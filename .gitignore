@@ -1,0 +1,12 @@
+# Ignore TLS certificates & keys
+certs/
+
+# Ignore Synapse runtime data and secret signing keys
+synapse-data/
+
+# Ignore database storage (if mapped locally)
+postgres_data/
+
+# Ignore OS files
+.DS_Store
+*.log

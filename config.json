@@ -1,0 +1,10 @@
+{
+    "default_server_config": {
+        "m.homeserver": {
+            "base_url": "https://gov.local",
+            "server_name": "gov.local"
+        }
+    },
+    "disable_custom_urls": true,
+    "brand": "Element"
+}
