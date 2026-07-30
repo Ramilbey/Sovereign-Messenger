@@ -20,6 +20,7 @@ services:
       - postgres
     restart: unless-stopped
 
+
   element:
     container_name: matrix_element
     image: vectorim/element-web:latest
