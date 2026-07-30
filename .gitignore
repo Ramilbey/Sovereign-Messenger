@@ -10,3 +10,6 @@ postgres_data/
 # Ignore OS files
 .DS_Store
 *.log
+
+#ignore passwords
+*.env

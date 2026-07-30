@@ -6,5 +6,23 @@
         }
     },
     "disable_custom_urls": true,
-    "brand": "Element"
+    "brand": "Sovereign Chat",
+    "default_theme": "dark",
+    "branding": {
+        "auth_header_logo_url": "img/logo.svg",
+        "welcome_background_url": "https://images.unsplash.com/photo-1526374965328-7f61d4dc18c5?q=80&w=1920",
+        "auth_footer_links": [
+            { "text": "Privacy Policy", "url": "#" },
+            { "text": "System Status", "url": "#" }
+        ]
+    },
+    "setting_defaults": {
+        "custom_themes": [
+            {
+                "name": "Sovereign Dark",
+                "is_dark": true,
+                "colors": { "accent-color": "#00ff88" }
+            }
+        ]
+    }
 }
