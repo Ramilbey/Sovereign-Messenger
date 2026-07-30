@@ -6,23 +6,70 @@
         }
     },
     "disable_custom_urls": true,
-    "brand": "Uz Gov",
+    "disable_login_language_selector": true,
+    "disable_3pid_login": true,
+    "brand": "Sovereign Messenger",
     "default_theme": "dark",
     "branding": {
-        "auth_header_logo_url": "img/logo.svg",
-        "welcome_background_url": "https://images.unsplash.com/photo-1526374965328-7f61d4dc18c5?q=80&w=1920",
+        "auth_header_logo_url": "themes/element/img/logos/uzbekistan_state_seal.png",
         "auth_footer_links": [
-            { "text": "Privacy Policy", "url": "#" },
-            { "text": "System Status", "url": "#" }
+            { "text": "Maxfiylik siyosati", "url": "#" },
+            { "text": "Tizim holati", "url": "#" }
         ]
     },
+    "room_directory": {
+        "servers": ["gov.local"]
+    },
     "setting_defaults": {
+        "language": "uz",
+        "breadcrumbs": true,
         "custom_themes": [
             {
                 "name": "Sovereign Dark",
                 "is_dark": true,
-                "colors": { "accent-color": "#00ff88" }
+                "colors": {
+                    "accent-color": "#0099FF",
+                    "accent": "#0099FF",
+                    "primary-content": "#ffffff",
+                    "secondary-content": "#94a3b8",
+                    "tertiary-content": "#64748b",
+                    "background": "#0a0f1d",
+                    "sidebar-color": "#060c1a",
+                    "timeline-background-color": "#0a0f1d",
+                    "roomlist-background-color": "#060c1a",
+                    "roomlist-text-color": "#e2e8f0",
+                    "roomlist-text-secondary-color": "#94a3b8",
+                    "roomlist-highlights-color": "#10172a",
+                    "reaction-row-button-selected-bg-color": "rgba(0, 153, 255, 0.15)"
+                },
+                "compound": {
+                    "--cpd-color-bg-canvas-default": "#0a0f1d",
+                    "--cpd-color-bg-subtle-primary": "#10172a",
+                    "--cpd-color-bg-subtle-secondary": "#161f38",
+                    "--cpd-color-text-primary": "#ffffff",
+                    "--cpd-color-text-secondary": "#94a3b8",
+                    "--cpd-color-text-placeholder": "#475569",
+                    "--cpd-color-bg-action-primary-rest": "#0099FF",
+                    "--cpd-color-bg-action-primary-hovered": "#1aa3ff",
+                    "--cpd-color-bg-action-primary-pressed": "#008ae6",
+                    "--cpd-color-text-action-accent": "#0099FF",
+                    "--cpd-color-icon-accent": "#0099FF",
+                    "--cpd-color-icon-primary": "#e2e8f0",
+                    "--cpd-color-icon-secondary": "#94a3b8",
+                    "--cpd-color-border-interactive-primary": "#0099FF",
+                    "--cpd-color-border-interactive-secondary": "rgba(51, 65, 85, 0.5)",
+                    "--cpd-color-border-disabled": "rgba(51, 65, 85, 0.3)",
+                    "--cpd-color-bg-action-secondary-rest": "transparent",
+                    "--cpd-color-bg-action-secondary-hovered": "rgba(0, 153, 255, 0.08)",
+                    "--cpd-color-bg-action-secondary-pressed": "rgba(0, 153, 255, 0.15)"
+                }
             }
         ]
-    }
+    },
+    "features": {
+        "feature_thread": true,
+        "feature_pinning": true
+    },
+    "show_labs_settings": false,
+    "permalinkPrefix": "https://gov.local"
 }
