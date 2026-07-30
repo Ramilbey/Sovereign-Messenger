@@ -1,0 +1,15 @@
+Phase 1 – Rebrand
+Remove all Element branding.
+New logos, colors, favicon, app name, login page.
+Phase 2 – Modern UI
+Telegram-inspired chat layout.
+Improved spacing, message bubbles, typography, icons.
+Phase 3 – Government Features
+Employee directory.
+Department hierarchy.
+Announcements.
+SSO.
+Document integration.
+Role-based permissions.
+Phase 4 – Mobile
+Fork the Element Android and iOS apps and apply the same branding and UI so the experience is consistent across web and mobile.

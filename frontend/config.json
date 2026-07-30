@@ -6,7 +6,7 @@
         }
     },
     "disable_custom_urls": true,
-    "brand": "Sovereign Chat",
+    "brand": "Uz Gov",
     "default_theme": "dark",
     "branding": {
         "auth_header_logo_url": "img/logo.svg",

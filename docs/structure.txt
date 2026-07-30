@@ -1,0 +1,20 @@
+Sovereign-Messenger/
+
+│
+├── backend/
+│   ├── synapse/
+│   ├── postgres/
+│   └── docker-compose.yml
+│
+├── frontend/
+│   ├── element-source/
+│   ├── branding/
+│   ├── themes/
+│   ├── assets/
+│   └── Dockerfile
+│
+├── nginx/
+│
+├── docs/
+│
+└── deployment/
