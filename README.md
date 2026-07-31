@@ -109,38 +109,118 @@ docker exec -it matrix_synapse register_new_matrix_user \
 
 ---
 
+---
+
 ## 🏗️ System Architecture & Network Flow
 
-The system runs entirely containerized within an isolated Docker network:
+### 🔌 How Local Custom Element & Synapse Work Together in the Background
+
+> **Are you running Custom Element in a Docker image or from your local laptop storage?**
+> **Answer**: You are using **Direct Local Storage Mount Mode (Hot Development Setup)**!
+
+Instead of rebuilding a heavy Docker image every single time you change a line of CSS (`_sovereign.pcss`) or translation key (`uz.json`), the `matrix_element` container is configured as an ultra-fast Nginx container that **directly volume-mounts your laptop's local build directory** (`frontend/element-web/apps/web/webapp`):
+
+```yaml
+# In backend/docker-compose.yml:
+element:
+  container_name: matrix_element
+  image: nginx:alpine
+  volumes:
+    # Local laptop storage  ──────►  Inside Docker container
+    - ../frontend/element-web/apps/web/webapp:/usr/share/nginx/html:ro
+    - ../frontend/config.json:/usr/share/nginx/html/config.json:ro
+```
+
+#### Why this setup is awesome for development:
+1. When you edit source code on your laptop (e.g. `_sovereign.pcss` or `uz.json`) and run `pnpm --filter element-web build`, Webpack outputs compiled files directly into `apps/web/webapp` on your disk.
+2. The `matrix_element` container reads these files **instantly** from your local disk.
+3. When you run `docker compose restart element` (or just refresh the page), Nginx serves your newly compiled code immediately!
+
+---
+
+### 🎨 Visual Architecture Diagram
 
 ```
-                  ┌─────────────────────────────────────────┐
-                  │              User Browser               │
-                  │   https://gov.local  /  http://localhost │
-                  └────────────────────┬────────────────────┘
-                                       │
-                                       ▼ (HTTPS 443 / HTTP 80)
-┌─────────────────────────────────────────────────────────────────────────────┐
-│ Docker Network: backend_default                                             │
-│                                                                             │
-│   ┌─────────────────────────────────────────────────────────────────────┐   │
-│   │                      Nginx Reverse Proxy                            │   │
-│   │                      (Container: matrix_proxy)                      │   │
-│   └───────────────┬─────────────────────────────────────┬───────────────┘   │
-│                   │                                     │                   │
-│      Location /   │ (Static Web Assets)    Location /_matrix│ (API Proxy)       │
-│                   ▼                                     ▼                   │
-│   ┌───────────────────────────────┐     ┌───────────────────────────────┐   │
-│   │     Element Web Frontend      │     │      Matrix Synapse Engine    │   │
-│   │   (Container: matrix_element) │     │   (Container: matrix_synapse) │   │
-│   └───────────────────────────────┘     └───────────────┬───────────────┘   │
-│                                                         │ Internal TCP      │
-│                                                         ▼                   │
-│                                         ┌───────────────────────────────┐   │
-│                                         │      PostgreSQL 15 Database   │   │
-│                                         │  (Container: matrix_postgres) │   │
-│                                         └───────────────────────────────┘   │
-└─────────────────────────────────────────────────────────────────────────────┘
+                 ┌────────────────────────────────────────────────────────┐
+                 │                   USER LAPTOP BROWSER                  │
+                 │         Client visits: https://gov.local               │
+                 └───────────────────────────┬────────────────────────────┘
+                                             │
+                                             │  (1) ALL HTTP/HTTPS Requests
+                                             ▼
+ ┌─────────────────────────────────────────────────────────────────────────────────────────┐
+ │ DOCKER DESKTOP CONTAINER NETWORK (backend_default)                                      │
+ │                                                                                         │
+ │  ┌───────────────────────────────────────────────────────────────────────────────────┐  │
+ │  │                         Nginx SSL Reverse Proxy Gateway                           │  │
+ │  │                            (Container: matrix_proxy)                              │  │
+ │  └───────────────┬───────────────────────────────────────────────────┬───────────────┘  │
+ │                  │                                                   │                  │
+ │   Route (A):     │ (2a) Serving Static UI                            │ (2b) Proxying    │
+ │   Path: "/"      │ (HTML, JS, CSS, Logos)               Route (B):   │ Matrix API       │
+ │                  ▼                                      Path:        │                  │
+ │  ┌──────────────────────────────────┐                   "/_matrix"   │                  │
+ │  │     Element Web Container        │                   "/_synapse"  │                  │
+ │  │    (Container: matrix_element)   │                                ▼                  │
+ │  └───────────────┬──────────────────┘                ┌───────────────────────────────┐  │
+ │                  │                                   │     Matrix Synapse Engine     │  │
+ │                  │ (Mounts compiled files            │  (Container: matrix_synapse)  │  │
+ │                  │  live from disk)                  └───────────────┬───────────────┘  │
+ │                  ▼                                                   │                  │
+ │  ┌──────────────────────────────────┐                                │ (3) SQL Queries  │
+ │  │ LOCAL LAPTOP DISK STORAGE        │                                │ (Users, Rooms,   │
+ │  │ ./frontend/element-web/apps/web/ │                                │  Messages)       │
+ │  │ webapp                           │                                ▼                  │
+ │  └──────────────────────────────────┘                ┌───────────────────────────────┐  │
+ │                                                      │    PostgreSQL 15 Database     │  │
+ │                                                      │ (Container: matrix_postgres)  │  │
+ │                                                      └───────────────────────────────┘  │
+ └─────────────────────────────────────────────────────────────────────────────────────────┘
+```
+
+---
+
+### 🔄 Step-by-Step Request & Response Flow
+
+Here is exactly what happens in the background when you interact with Sovereign Messenger:
+
+#### Phase A: Loading the Sovereign Web UI
+1. **User enters `https://gov.local` in browser**:
+   - The request hits host IP `127.0.0.1:443`, which Docker maps to the **Nginx Proxy (`matrix_proxy`)** container.
+2. **Nginx matches Route `/`**:
+   - Nginx inspects the path (`/`). It proxies the request internally to `http://matrix_element:80`.
+3. **Element Container Serves Files**:
+   - `matrix_element` container fetches `index.html`, compiled JS bundles, and `_sovereign.pcss` directly from your **laptop local folder** (`frontend/element-web/apps/web/webapp`).
+4. **Browser renders Telegram-styled UI**:
+   - Browser receives the static files, parses `config.json`, displays the Uzbekistan Coat of Arms logo, applies the Telegram Web dark theme, and loads the Uzbek (`uz`) language translations.
+
+#### Phase B: User Login / Sending a Message
+1. **User clicks "Login" or sends a message**:
+   - Element Web client creates a Matrix REST API request to `https://gov.local/_matrix/client/v3/login` (or `/send/m.room.message`).
+2. **Nginx intercepts `/_matrix` API path**:
+   - Nginx sees `/_matrix` or `/_synapse` and proxies it directly to **Synapse (`matrix_synapse:8008`)**.
+3. **Synapse executes logic & queries Database**:
+   - Synapse verifies credentials / encryption keys, and executes SQL queries (`SELECT`/`INSERT`) against **PostgreSQL (`matrix_postgres:5432`)** over the internal Docker network.
+4. **Response returns back to the Browser**:
+   - PostgreSQL returns data -> Synapse formats Matrix JSON -> Nginx encrypts response over TLS -> Browser receives response -> Element UI updates instantly (e.g. message bubble appears in Telegram dark blue)!
+
+---
+
+### 🔁 Visual Sequence Diagram
+
+```
+Browser (Client)        Nginx (matrix_proxy)    Element (matrix_element)   Synapse (matrix_synapse)   Postgres (matrix_postgres)
+      │                          │                          │                          │                          │
+      │ ─── 1. GET / ──────────► │                          │                          │                          │
+      │                          │ ─── 2. Proxy to / ─────► │                          │                          │
+      │                          │                          │ ── (Reads from local) ──►│ (Laptop Disk Storage)    │
+      │ ◄── 3. Returns HTML/JS ─ │ ◄── Returns static UI ── │                          │                          │
+      │                          │                          │                          │                          │
+      │ ─── 4. POST /_matrix ──► │                          │                          │                          │
+      │                          │ ─── 5. Proxy /_matrix ────────────────────────────► │                          │
+      │                          │                          │                          │ ─── 6. SQL Query ──────► │
+      │                          │                          │                          │ ◄── 7. SQL Result ────── │
+      │ ◄── 8. JSON Response ─── │ ◄── 7. Matrix JSON API ───────────────────────────── │                          │
 ```
 
 ---
