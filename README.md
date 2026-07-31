@@ -1,346 +1,82 @@
-# 🏛️ Sovereign Messenger — Republic of Uzbekistan
+# 🏛️ Sovereign Messenger
 
-> **Secure, Government-Branded Matrix Communication Platform**
-> Sovereign Messenger is an enterprise-grade, self-hosted communication portal tailored for government entities of the Republic of Uzbekistan. Built on top of Matrix Synapse, PostgreSQL, Nginx, and a heavily customized Element Web client featuring Telegram Web (Z/K) aesthetics and native trilingual support (Uzbek, Russian, English).
+**Secure, self-hosted government communication platform for the Republic of Uzbekistan.**
 
----
-
-## 📋 Table of Contents
-1. [Workspace Structure](#-workspace-structure)
-2. [Quickstart & Run Commands](#-quickstart--run-commands)
-3. [System Architecture & Network Flow](#-system-architecture--network-flow)
-4. [Service Configurations & Customizations](#-service-configurations--customizations)
-   - [PostgreSQL Database](#1-postgresql-database)
-   - [Synapse Matrix Homeserver](#2-synapse-matrix-homeserver)
-   - [Nginx Reverse Proxy & SSL](#3-nginx-reverse-proxy--ssl)
-   - [Custom Element Web Frontend](#4-custom-element-web-frontend)
-5. [Status Matrix (Working vs Pending)](#-status-matrix)
-6. [💡 Troubleshooting & Valuable Developer Advice](#-troubleshooting--valuable-developer-advice)
-7. [🎯 Current Step & Next Roadmap](#-current-step--next-roadmap)
+Built on Matrix Synapse + custom Element Web, containerized with Docker Desktop, proxied through Nginx with TLS.
 
 ---
 
-## 📁 Workspace Structure
+## What Is This?
 
-```
-Sovereign-Messenger/
-├── README.md                           # Master Project Documentation & Runbook
-├── .env                                # Local environment variables
-├── certs/                              # Local SSL Certificates for https://gov.local
-│   ├── gov.local.crt                   # Public SSL Certificate
-│   └── gov.local.key                   # Private SSL Key
-├── nginx/                              # Nginx Proxy Configuration
-│   └── default.conf                    # Routing rules for Web UI (80) & Matrix API (8008)
-├── backend/                            # Docker Compose & Synapse Core
-│   ├── docker-compose.yml              # Container orchestration (Postgres, Synapse, Element, Nginx)
-│   ├── connect_synapse.sh              # CLI utility to shell into running Synapse container
-│   └── synapse-data/                   # Synapse persistent data & configuration
-│       ├── homeserver.yaml             # Core Matrix homeserver configuration
-│       └── gov.local.signing.key       # Matrix federation/signing keys
-└── frontend/                           # Custom Element Web Source Code
-    ├── config.json                     # Main Element Web runtime configuration
-    └── element-web/                    # Element Web monorepo
-        └── apps/web/
-            ├── I18nWebpackPlugin.ts    # Custom i18n build plugin (filters & builds uz, ru, en_EN)
-            ├── src/i18n/strings/
-            │   ├── uz.json             # Pure Uzbek translations (350+ UI keys covered)
-            │   ├── ru.json             # Russian translation bundle
-            │   └── en_EN.json          # English fallback dictionary
-            ├── res/css/
-            │   └── _sovereign.pcss     # Telegram Web (Z/K) custom theme stylesheet
-            └── webapp/                 # Compiled production web assets
-```
+Sovereign Messenger is a government-grade secure messaging portal. It uses the open Matrix protocol as its backbone, a heavily customized Element Web as the browser UI, and runs entirely on the organization's own servers — no third-party cloud, no data leaving the country.
 
 ---
 
-## 🚀 Quickstart & Run Commands
+## Quick Start
 
-### 1. Frontend Development & Build Commands
-
-All frontend operations take place inside `frontend/element-web`.
+### First Time Only
 
 ```bash
-# Navigate to element-web
-cd ~/Desktop/Sovereign-Messenger/frontend/element-web
-
-# Rebuild the production web assets (compiles JS, CSS themes & i18n bundles)
-pnpm --filter element-web build
-
-# Run local hot-reloading dev server (Optional for active UI dev)
-pnpm --filter element-web start
+chmod +x dev.sh prod.sh
 ```
 
-### 2. Backend & Docker Container Management
-
-All container management commands are executed from the `backend/` directory.
+### Development Mode (active UI work, hot reload)
 
 ```bash
-# Navigate to backend directory
-cd ~/Desktop/Sovereign-Messenger/backend
-
-# Start the complete backend stack in detached mode
-docker compose up -d
-
-# Restart all services
-docker compose restart
-
-# Restart ONLY the Element Web frontend container (e.g. after a rebuild)
-docker compose restart element
-
-# View live container logs
-docker compose logs -f [postgres|synapse|element|nginx]
-
-# Stop all running containers
-docker compose down
+./dev.sh
 ```
 
-### 3. User Administration & Synapse Commands
+### Production Mode (final build, full Docker stack)
 
 ```bash
-# Connect directly to the interactive shell of the running Synapse container
-./backend/connect_synapse.sh
-# OR: docker exec -it matrix_synapse /bin/bash
-
-# Create a new Matrix user (e.g., Admin or Official user)
-docker exec -it matrix_synapse register_new_matrix_user \
-  -c /data/homeserver.yaml \
-  https://localhost:8008
+./prod.sh
 ```
 
 ---
 
----
+## Access
 
-## 🏗️ System Architecture & Network Flow
+| URL | What |
+|-----|------|
+| `https://gov.local` | The messenger web UI |
+| `https://gov.local/_matrix` | Matrix API (internal, used by Element) |
 
-### 🔌 How Local Custom Element & Synapse Work Together in the Background
-
-> **Are you running Custom Element in a Docker image or from your local laptop storage?**
-> **Answer**: You are using **Direct Local Storage Mount Mode (Hot Development Setup)**!
-
-Instead of rebuilding a heavy Docker image every single time you change a line of CSS (`_sovereign.pcss`) or translation key (`uz.json`), the `matrix_element` container is configured as an ultra-fast Nginx container that **directly volume-mounts your laptop's local build directory** (`frontend/element-web/apps/web/webapp`):
-
-```yaml
-# In backend/docker-compose.yml:
-element:
-  container_name: matrix_element
-  image: nginx:alpine
-  volumes:
-    # Local laptop storage  ──────►  Inside Docker container
-    - ../frontend/element-web/apps/web/webapp:/usr/share/nginx/html:ro
-    - ../frontend/config.json:/usr/share/nginx/html/config.json:ro
-```
-
-#### Why this setup is awesome for development:
-1. When you edit source code on your laptop (e.g. `_sovereign.pcss` or `uz.json`) and run `pnpm --filter element-web build`, Webpack outputs compiled files directly into `apps/web/webapp` on your disk.
-2. The `matrix_element` container reads these files **instantly** from your local disk.
-3. When you run `docker compose restart element` (or just refresh the page), Nginx serves your newly compiled code immediately!
+> Add `127.0.0.1 gov.local` to `/etc/hosts` if the domain does not resolve.
 
 ---
 
-### 🎨 Visual Architecture Diagram
+## Documentation
 
-```
-                 ┌────────────────────────────────────────────────────────┐
-                 │                   USER LAPTOP BROWSER                  │
-                 │         Client visits: https://gov.local               │
-                 └───────────────────────────┬────────────────────────────┘
-                                             │
-                                             │  (1) ALL HTTP/HTTPS Requests
-                                             ▼
- ┌─────────────────────────────────────────────────────────────────────────────────────────┐
- │ DOCKER DESKTOP CONTAINER NETWORK (backend_default)                                      │
- │                                                                                         │
- │  ┌───────────────────────────────────────────────────────────────────────────────────┐  │
- │  │                         Nginx SSL Reverse Proxy Gateway                           │  │
- │  │                            (Container: matrix_proxy)                              │  │
- │  └───────────────┬───────────────────────────────────────────────────┬───────────────┘  │
- │                  │                                                   │                  │
- │   Route (A):     │ (2a) Serving Static UI                            │ (2b) Proxying    │
- │   Path: "/"      │ (HTML, JS, CSS, Logos)               Route (B):   │ Matrix API       │
- │                  ▼                                      Path:        │                  │
- │  ┌──────────────────────────────────┐                   "/_matrix"   │                  │
- │  │     Element Web Container        │                   "/_synapse"  │                  │
- │  │    (Container: matrix_element)   │                                ▼                  │
- │  └───────────────┬──────────────────┘                ┌───────────────────────────────┐  │
- │                  │                                   │     Matrix Synapse Engine     │  │
- │                  │ (Mounts compiled files            │  (Container: matrix_synapse)  │  │
- │                  │  live from disk)                  └───────────────┬───────────────┘  │
- │                  ▼                                                   │                  │
- │  ┌──────────────────────────────────┐                                │ (3) SQL Queries  │
- │  │ LOCAL LAPTOP DISK STORAGE        │                                │ (Users, Rooms,   │
- │  │ ./frontend/element-web/apps/web/ │                                │  Messages)       │
- │  │ webapp                           │                                ▼                  │
- │  └──────────────────────────────────┘                ┌───────────────────────────────┐  │
- │                                                      │    PostgreSQL 15 Database     │  │
- │                                                      │ (Container: matrix_postgres)  │  │
- │                                                      └───────────────────────────────┘  │
- └─────────────────────────────────────────────────────────────────────────────────────────┘
-```
+All detailed documentation lives in [`docs/`](docs/):
+
+| Topic | File |
+|-------|------|
+| System architecture & how everything connects | [docs/Architecture/system-overview.md](docs/Architecture/system-overview.md) |
+| Development mode — hot reload setup | [docs/Development/dev-mode.md](docs/Development/dev-mode.md) |
+| Production build & deployment | [docs/Deployment/production.md](docs/Deployment/production.md) |
+| Docker containers & networking | [docs/Docker/containers.md](docs/Docker/containers.md) |
+| Nginx reverse proxy & SSL | [docs/Nginx/proxy.md](docs/Nginx/proxy.md) |
+| Matrix Synapse homeserver | [docs/Backend/synapse.md](docs/Backend/synapse.md) |
+| PostgreSQL database | [docs/Backend/postgresql.md](docs/Backend/postgresql.md) |
+| Element Web — UI customization | [docs/Frontend/element-customization.md](docs/Frontend/element-customization.md) |
+| Telegram-style theme | [docs/Frontend/theming.md](docs/Frontend/theming.md) |
+| Uzbek & Russian language support | [docs/Frontend/i18n.md](docs/Frontend/i18n.md) |
+| SSL certificates | [docs/Security/ssl-certificates.md](docs/Security/ssl-certificates.md) |
+| Troubleshooting common issues | [docs/Troubleshooting/common-issues.md](docs/Troubleshooting/common-issues.md) |
+| Glossary of terms | [docs/Glossary/glossary.md](docs/Glossary/glossary.md) |
+| Engineering decisions (ADRs) | [docs/ADRs/](docs/ADRs/) |
 
 ---
 
-### 🔄 Step-by-Step Request & Response Flow
+## Tech Stack
 
-Here is exactly what happens in the background when you interact with Sovereign Messenger:
-
-#### Phase A: Loading the Sovereign Web UI
-1. **User enters `https://gov.local` in browser**:
-   - The request hits host IP `127.0.0.1:443`, which Docker maps to the **Nginx Proxy (`matrix_proxy`)** container.
-2. **Nginx matches Route `/`**:
-   - Nginx inspects the path (`/`). It proxies the request internally to `http://matrix_element:80`.
-3. **Element Container Serves Files**:
-   - `matrix_element` container fetches `index.html`, compiled JS bundles, and `_sovereign.pcss` directly from your **laptop local folder** (`frontend/element-web/apps/web/webapp`).
-4. **Browser renders Telegram-styled UI**:
-   - Browser receives the static files, parses `config.json`, displays the Uzbekistan Coat of Arms logo, applies the Telegram Web dark theme, and loads the Uzbek (`uz`) language translations.
-
-#### Phase B: User Login / Sending a Message
-1. **User clicks "Login" or sends a message**:
-   - Element Web client creates a Matrix REST API request to `https://gov.local/_matrix/client/v3/login` (or `/send/m.room.message`).
-2. **Nginx intercepts `/_matrix` API path**:
-   - Nginx sees `/_matrix` or `/_synapse` and proxies it directly to **Synapse (`matrix_synapse:8008`)**.
-3. **Synapse executes logic & queries Database**:
-   - Synapse verifies credentials / encryption keys, and executes SQL queries (`SELECT`/`INSERT`) against **PostgreSQL (`matrix_postgres:5432`)** over the internal Docker network.
-4. **Response returns back to the Browser**:
-   - PostgreSQL returns data -> Synapse formats Matrix JSON -> Nginx encrypts response over TLS -> Browser receives response -> Element UI updates instantly (e.g. message bubble appears in Telegram dark blue)!
-
----
-
-### 🔁 Visual Sequence Diagram
-
-```
-Browser (Client)        Nginx (matrix_proxy)    Element (matrix_element)   Synapse (matrix_synapse)   Postgres (matrix_postgres)
-      │                          │                          │                          │                          │
-      │ ─── 1. GET / ──────────► │                          │                          │                          │
-      │                          │ ─── 2. Proxy to / ─────► │                          │                          │
-      │                          │                          │ ── (Reads from local) ──►│ (Laptop Disk Storage)    │
-      │ ◄── 3. Returns HTML/JS ─ │ ◄── Returns static UI ── │                          │                          │
-      │                          │                          │                          │                          │
-      │ ─── 4. POST /_matrix ──► │                          │                          │                          │
-      │                          │ ─── 5. Proxy /_matrix ────────────────────────────► │                          │
-      │                          │                          │                          │ ─── 6. SQL Query ──────► │
-      │                          │                          │                          │ ◄── 7. SQL Result ────── │
-      │ ◄── 8. JSON Response ─── │ ◄── 7. Matrix JSON API ───────────────────────────── │                          │
-```
-
----
-
-## ⚙️ Service Configurations & Customizations
-
-### 1. PostgreSQL Database (`matrix_postgres`)
-- **Image**: `postgres:15-alpine`
-- **Database**: `synapse`
-- **User**: `synapse_user`
-- **Encoding**: UTF-8 with `C` collation (optimized for Matrix string indexing).
-- **Data Persistence**: Named Docker volume `postgres_data`.
-
-### 2. Synapse Matrix Homeserver (`matrix_synapse`)
-- **Image**: `matrixdotorg/synapse:v1.100.0`
-- **Server Name**: `gov.local`
-- **Key Settings (`homeserver.yaml`)**:
-  - **Registration Security**: Hard-restricted to approved official government email domains (`@gov.uz`, `@mf.uz`).
-  - **Federation Isolation**: `federation_domain_whitelist: []` (Disabled public federation to enforce sovereign security perimeter).
-  - **Database Connector**: Configured to connect directly to `matrix_postgres:5432`.
-
-### 3. Nginx Reverse Proxy & SSL (`matrix_proxy`)
-- **Image**: `nginx:alpine`
-- **Ports**: `80` (HTTP redirects to HTTPS) and `443` (TLS 1.2/1.3 encrypted).
-- **SSL Certificates**: Self-signed government SSL certificates stored in `certs/gov.local.crt` and `certs/gov.local.key`.
-- **Routing Rules**:
-  - `/` -> Proxies to `matrix_element:80` (serves compiled static webapp).
-  - `/_matrix` & `/_synapse` -> Proxies to `matrix_synapse:8008` (Matrix Client-Server API).
-
-### 4. Custom Element Web Frontend (`matrix_element`)
-- **Branding**: Customized to **Sovereign Messenger** with official Uzbekistan Coat of Arms seal in the authentication header.
-- **Language Support**:
-  - `I18nWebpackPlugin.ts` configured to compile `uz` (O'zbekcha), `ru` (Русский), and `en_EN` (English fallback).
-  - Expanded `uz.json` dictionary covering over **350+ UI keys** (Actions, Auth, Composer, Room List, Settings, Encryption, Keyboard Shortcuts, Threads, Polls).
-- **Telegram Web (Z/K) Theme (`_sovereign.pcss`)**:
-  - **Palette**: Telegram Dark `#17212b` (sidebar/headers) and `#0e1621` (timeline canvas).
-  - **Bubbles**: Rounded chat bubbles — Incoming `#182533` (left) and Outgoing `#2b5278` (Telegram sent blue, right).
-  - **Avatars**: 100% circular avatars throughout chat list, header, and timeline.
-  - **Composer**: Floating pill input bar with circular `#5288c1` / `#40a7e3` send button.
-
----
-
-## 📊 Status Matrix
-
-| Component / Feature | Status | Details |
-| :--- | :---: | :--- |
-| **Container Stack (Docker)** | ✅ Working | Postgres 15, Synapse, Element Web, Nginx reverse proxy running. |
-| **HTTPS / SSL Proxy** | ✅ Working | Nginx serving `https://gov.local` with local certs. |
-| **Uzbekistan Government Branding** | ✅ Working | Official seal logo, sovereign title, government dark color palette. |
-| **Telegram Web UI Aesthetic** | ✅ Working | Custom CSS (`_sovereign.pcss`) styled matching Telegram Web Z/K. |
-| **Uzbek Language (`uz`)** | ✅ Working | 350+ translated keys in `uz.json` integrated into build. |
-| **Russian Language (`ru`)** | ✅ Working | Enabled in build pipeline and exposed in UI selector. |
-| **Synapse Matrix API** | ✅ Working | Listening on port 8008, communicating with Postgres. |
-| **Domain Restriction** | ✅ Working | Synapse configured for `@gov.uz` and `@mf.uz` domains. |
-| **Automated Email Registration** | ⏳ Pending (Stage 2) | Needs SMTP credentials configured in `homeserver.yaml`. |
-| **Voice/Video Calls (TURN)** | ⏳ Pending (Stage 2) | Coturn container installation required for NAT traversal. |
-
----
-
-### 🐳 Docker Desktop Environment Note
-> **Important**: This project runs on **Docker Desktop for Linux** (NOT standard standalone Docker Engine / `dockerd`).
-- **Control Service**: Docker Desktop is managed as a user service (`systemctl --user start/stop/status docker-desktop`) or via the Docker Desktop GUI application.
-- **Resource Allocation**: Ensure Docker Desktop has allocated at least **4GB RAM** and **2 CPUs** (Settings → Resources) to ensure Webpack builds and Synapse database migrations run smoothly without Out-Of-Memory (OOM) kills.
-- **Docker Context**: Verify your CLI is pointing to Docker Desktop:
-  ```bash
-  docker context ls
-  # Should show 'desktop-linux' as active (*)
-  ```
-
----
-
-## 💡 Troubleshooting & Valuable Developer Advice
-
-### 1. Why Docker Desktop / Containers May Not Start or Fail
-
-- **Docker Desktop Service Not Running**:
-  - *Symptom*: `Cannot connect to the Docker daemon at unix:///var/run/docker.sock`.
-  - *Fix*: Start Docker Desktop via systemd user service or launcher:
-    ```bash
-    systemctl --user start docker-desktop
-    ```
-    Or check status:
-    ```bash
-    systemctl --user status docker-desktop
-    ```
-
-- **Port Conflicts (80 or 443 already in use)**:
-  - *Symptom*: Nginx container fails to bind to 0.0.0.0:80 or 0.0.0.0:443.
-  - *Fix*: Check what is using port 80/443 with `sudo lsof -i :80` or `sudo netstat -tlpn | grep :80`. Stop local web servers (like system Apache or system Nginx) before running `docker compose up -d`.
-
-- **Out of Memory (OOM) Kills during Webpack / Synapse startup**:
-  - *Symptom*: Container exits with code `137` or Webpack build fails abruptly.
-  - *Fix*: Open Docker Desktop GUI → **Settings** → **Resources** and increase Memory to **4GB+**.
-
-- **Synapse File Permission Denied**:
-  - *Symptom*: `matrix_synapse` container exits immediately with permission errors on `/data/homeserver.yaml`.
-  - *Fix*: Synapse runs as UID `991`. Fix permissions with: `sudo chown -R 991:991 backend/synapse-data`.
-
-- **Database Connection Failure on Cold Start**:
-  - *Symptom*: Synapse starts before Postgres is completely initialized.
-  - *Fix*: Docker Compose `depends_on` handles startup order, but on first run Postgres initializes schema. If Synapse fails once, run `docker compose restart synapse`.
-
-### 2. Browser Cache & UI Verification
-- After running `pnpm --filter element-web build` and restarting `matrix_element`, your browser may still display old cached JS/CSS files.
-- **Always do a Hard Refresh**: Press `Ctrl + F5` (or `Cmd + Shift + R` on macOS) to bypass browser cache.
-
-### 3. Local Domain Resolution (`gov.local`)
-- Ensure `/etc/hosts` contains the line:
-  ```
-  127.0.0.1 gov.local
-  ```
-
----
-
-## 🎯 Current Step & Next Roadmap
-
-### 📍 Current Milestone: Stage 1 (PoC / MVP Complete)
-The sovereign web app is fully containerized, branded for Uzbekistan state entities, translated into Uzbek and Russian, styled like Telegram Web, and connected to Matrix Synapse.
-
-### 🚩 Next Steps for Stage 2 & Production Deployment
-1. **SMTP Configuration**: Configure real SMTP server details in `backend/synapse-data/homeserver.yaml` to allow self-registration via email verification link.
-2. **Coturn / TURN Server Setup**: Deploy `coturn` image for peer-to-peer encrypted video and audio calls across restricted government subnets.
-3. **IT Park Pipeline Submission**: Package the repository with deployment scripts for official startup incubator / government pipeline submission.
+| Layer | Technology |
+|-------|-----------|
+| Protocol | Matrix (open standard) |
+| Homeserver | Synapse v1.100.0 |
+| Database | PostgreSQL 15 |
+| Frontend | Element Web (heavily customized) |
+| Proxy / TLS | Nginx (Alpine) |
+| Containers | Docker Desktop for Linux |
+| Languages | Uzbek (primary), Russian, English (fallback) |
+| UI Theme | Telegram Web Z/K dark style |
