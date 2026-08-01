@@ -1,0 +1,71 @@
+{
+  "_comment": "Example org structure for Sovereign Messenger. Copy to org_structure.json and fill in real values. PASSWORDS: generate with python3 -c \"import secrets; print(secrets.token_urlsafe(16))\"",
+  "national_space_name": "Government of Uzbekistan",
+  "regions": [
+    {
+      "name": "Tashkent",
+      "admin_user": "@tashkent_admin:gov.local",
+      "departments": [
+        {
+          "name": "Ministry of Finance",
+          "manager_user": "@finance_manager:gov.local",
+          "members": [
+            {
+              "username": "tashkent_admin",
+              "password": "CHANGE_ME_generate_secure_password",
+              "display_name": "Tashkent Regional Administrator",
+              "title": "Regional Administrator",
+              "role": "regional_admin"
+            },
+            {
+              "username": "finance_manager",
+              "password": "CHANGE_ME_generate_secure_password",
+              "display_name": "Finance Department Manager",
+              "title": "Department Manager",
+              "role": "dept_manager"
+            },
+            {
+              "username": "johndoe",
+              "password": "CHANGE_ME_generate_secure_password",
+              "display_name": "John Doe",
+              "title": "Senior Financial Analyst",
+              "role": "employee"
+            }
+          ]
+        },
+        {
+          "name": "Ministry of Justice",
+          "manager_user": "@justice_manager:gov.local",
+          "members": [
+            {
+              "username": "justice_manager",
+              "password": "CHANGE_ME_generate_secure_password",
+              "display_name": "Justice Department Manager",
+              "title": "Department Manager",
+              "role": "dept_manager"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "Samarkand",
+      "admin_user": "@samarkand_admin:gov.local",
+      "departments": [
+        {
+          "name": "Regional Administration",
+          "manager_user": "@samarkand_admin:gov.local",
+          "members": [
+            {
+              "username": "samarkand_admin",
+              "password": "CHANGE_ME_generate_secure_password",
+              "display_name": "Samarkand Regional Administrator",
+              "title": "Regional Administrator",
+              "role": "regional_admin"
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}

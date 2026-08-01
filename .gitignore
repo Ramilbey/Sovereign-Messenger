@@ -1,5 +1,7 @@
-# Ignore TLS certificates & keys
-certs/
+# Ignore TLS certificates & private keys (but keep the generation script)
+certs/*.crt
+certs/*.key
+certs/*.pem
 
 # Ignore Synapse runtime data and secret signing keys
 synapse-data/
@@ -7,9 +9,16 @@ synapse-data/
 # Ignore database storage (if mapped locally)
 postgres_data/
 
+# Ignore pg_dump backup files (but keep the pg_backup directory itself)
+backend/scripts/pg_backup/*.sql.gz
+backend/scripts/pg_backup/*.sql
+
 # Ignore OS files
 .DS_Store
 *.log
 
-#ignore passwords
+# Environment secrets — NEVER commit .env (contains real passwords/tokens)
+# .env.example IS committed (contains only placeholder values)
+.env
 *.env
+!.env.example

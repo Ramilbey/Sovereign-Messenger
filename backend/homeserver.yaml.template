@@ -1,0 +1,72 @@
+## =============================================================================
+## homeserver.yaml.template — Synapse configuration TEMPLATE
+## =============================================================================
+## Committed at: backend/homeserver.yaml.template
+## DO NOT put real secrets here — uses ${VAR} placeholders.
+##
+## Rendering: the `synapse-config` one-shot init container (Alpine + gettext)
+## runs `envsubst` on this file before Synapse starts, writing the rendered
+## result to /data/homeserver.yaml (inside the synapse-data volume).
+## Synapse reads the rendered file at its normal startup — no entrypoint
+## override, no package-manager calls inside the Synapse container.
+##
+## Note: synapse-data/homeserver.yaml.template is a stale duplicate created
+## during initial setup — it is gitignored and can be safely deleted:
+##   rm backend/synapse-data/homeserver.yaml.template
+## =============================================================================
+
+server_name: "gov.local"
+pid_file: /data/homeserver.pid
+
+listeners:
+  - port: 8008
+    tls: false
+    type: http
+    x_forwarded: true
+    resources:
+      - names: [client]
+        compress: false
+
+database:
+  name: psycopg2
+  args:
+    user: synapse_user
+    password: ${POSTGRES_PASSWORD}
+    database: synapse
+    host: "postgres"
+    port: 5432
+    cp_min: 5
+    cp_max: 10
+
+log_config: "/data/gov.local.log.config"
+media_store_path: "/data/media_store"
+signing_key_path: "/data/gov.local.signing.key"
+suppress_key_server_warning: true
+
+# ── Registration ──────────────────────────────────────────────────────────────
+# Accounts are created exclusively via provisioning script (register_new_matrix_user).
+enable_registration: false
+enable_registration_without_verification: false
+registration_shared_secret: "${REGISTRATION_SHARED_SECRET}"
+
+# Restrict 3PID (email) to government domains only.
+allowed_local_3pids:
+  - medium: email
+    pattern: '.*@(gov\.uz|mf\.uz)'
+
+# ── Federation ────────────────────────────────────────────────────────────────
+federation_domain_whitelist: []
+allow_public_rooms_over_federation: false
+
+# ── Server Notices (Emergency Broadcast mechanism — §4.5) ─────────────────────
+# Uncomment when implementing Phase 2 emergency broadcasts.
+# server_notices:
+#   system_mxid_localpart: "system"
+#   system_mxid_display_name: "Sovereign Messenger System"
+#   system_mxid_avatar_url: ""
+#   room_name: "Server Notices"
+
+# ── Media ─────────────────────────────────────────────────────────────────────
+max_upload_size: 50M
+
+report_stats: false

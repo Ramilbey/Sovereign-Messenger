@@ -1,0 +1,6 @@
+# This directory holds pg_dump backup files (*.sql.gz).
+# Files here are gitignored by the postgres_data/ and *.log patterns,
+# but this .gitkeep ensures the directory itself exists in the repo
+# so pg_backup.sh can write to it without a mkdir step.
+#
+# To enable automated backups, see backend/scripts/README.md.

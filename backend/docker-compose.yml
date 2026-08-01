@@ -1,39 +1,66 @@
 services:
+
   postgres:
     container_name: matrix_postgres
     image: postgres:15-alpine
+    env_file:
+      - ../.env
     environment:
       POSTGRES_USER: synapse_user
-      POSTGRES_PASSWORD: SecretGovernmentPassword123!
       POSTGRES_DB: synapse
       POSTGRES_INITDB_ARGS: "--encoding=UTF-8 --lc-collate=C --lc-ctype=C"
     volumes:
       - postgres_data:/var/lib/postgresql/data
+      - ./scripts/pg_backup:/pg_backup
     restart: unless-stopped
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U synapse_user -d synapse"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
 
   synapse:
     container_name: matrix_synapse
     image: matrixdotorg/synapse:v1.100.0
+    # homeserver.yaml is rendered on the HOST before `docker compose up` by
+    # dev.sh / prod.sh (see backend/scripts/render_homeserver.py).
+    # No entrypoint override, no init container, no network dependency.
     volumes:
       - ./synapse-data:/data
     depends_on:
-      - postgres
+      postgres:
+        condition: service_healthy
     restart: unless-stopped
+    healthcheck:
+      # Python is always present in the Synapse Debian image.
+      # nginx waits on this before starting (condition: service_healthy).
+      test: ["CMD", "python3", "-c",
+             "import urllib.request; urllib.request.urlopen('http://localhost:8008/_matrix/client/versions')"]
+      interval: 15s
+      timeout: 10s
+      retries: 10
+      start_period: 60s
 
   # Custom built Sovereign Messenger frontend
   element:
     container_name: matrix_element
-    # --- PRODUCTION MODE (Builds from local source) ---
+    # --- PRODUCTION MODE ---
     # build:
     #   context: ../frontend
     #   dockerfile: Dockerfile
-    # --------------------------------------------------
-    # --- DEVELOPMENT MODE (Alternative for instant hot-reload) ---
+    # --- DEVELOPMENT MODE (hot-reload via webpack-dev-server, see dev.sh) ---
     image: nginx:alpine
     volumes:
       - ../frontend/element-web/apps/web/webapp:/usr/share/nginx/html:ro
       - ../frontend/config.json:/usr/share/nginx/html/config.json:ro
-    # --------------------------------------------------
+    restart: unless-stopped
+
+  # Synapse Admin UI — Phase 1, §9
+  # Access: https://gov.local/admin/
+  # ⚠️  Restrict to management VLAN/VPN before production deployment.
+  synapse-admin:
+    container_name: matrix_admin
+    image: awesometechnologies/synapse-admin:latest
     restart: unless-stopped
 
   nginx:
@@ -46,8 +73,14 @@ services:
       - ../nginx/default.conf:/etc/nginx/conf.d/default.conf:ro
       - ../certs:/etc/nginx/certs:ro
     depends_on:
-      - synapse
-      - element
+      # nginx resolves proxy_pass hostnames at config-load time —
+      # wait for Synapse's healthcheck before nginx starts.
+      synapse:
+        condition: service_healthy
+      element:
+        condition: service_started
+      synapse-admin:
+        condition: service_started
     restart: unless-stopped
 
 volumes:
