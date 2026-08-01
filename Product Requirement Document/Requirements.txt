@@ -1,0 +1,274 @@
+# Sovereign Messenger — Product Requirements Document (PRD)
+
+**Status:** Draft v2.0 (Full Scope)
+**Owner:** [you]
+**Supersedes:** `docs/PRD.md` v1 (abstract skeleton)
+**Rule:** This document is the source of truth. If code and this document disagree, this document is correct until updated. Every new feature must update this document before implementation is considered complete.
+
+---
+
+## 0. How to Read This Document
+
+Every feature below carries a **Feasibility Tag** so an executing agent knows what kind of work is actually required — this PRD is written so no one has to guess whether "add emergency broadcast" means editing a JSON file or building a new service.
+
+| Tag | Meaning |
+|---|---|
+| 🟢 **Native** | Achievable with Matrix/Synapse/Element's existing behavior. No code changes. |
+| 🟡 **Config** | Achievable via config files, `homeserver.yaml`, Admin API calls, or provisioning scripts. No source code changes to Element or Synapse. |
+| 🔵 **Custom-FE** | Requires editing Element Web source (`frontend/element-web/apps/web/...`). |
+| 🟠 **Custom-BE** | Requires a new Synapse module, a small internal backend service, or scripting against the Admin API beyond simple calls. |
+| 🔴 **New Component** | Requires adding new infrastructure (new container, new service) not currently in `docker-compose.yml`. |
+
+---
+
+## 1. Executive Summary & Product Vision
+
+Sovereign Messenger is **not a Telegram clone**. It is an official, internally-hosted secure communication platform for government institutions of the Republic of Uzbekistan, built on Matrix Synapse + a custom Element Web fork. It must feel **official, trustworthy, modern, secure, familiar, efficient, calm, professional** — familiar interaction patterns (chat list, bubbles, threads) without adopting consumer messaging norms (public discovery, open registration, informal tone) that conflict with government use.
+
+Primary objective: give government employees a secure, official alternative to consumer apps (Telegram, WhatsApp) for work communication, without giving up any of the day-to-day usability those apps trained people to expect.
+
+---
+
+## 2. Users & Roles
+
+| Role | Description | Primary Scope |
+|---|---|---|
+| **Government Employee** | Standard user. Sends/receives DMs, participates in department channels. | Own department |
+| **Department Manager** | Manages a single department's channels and members. | One department |
+| **Regional Administrator** | Manages all departments within one region. | One region |
+| **National Administrator** | Full org-wide authority. Can post national announcements and trigger emergency broadcasts. | National |
+| **IT Administrator** | Technical operator: account provisioning, server config, Docker/infra. Not necessarily a comms participant. | National (technical) |
+| **Security Officer** | Authorizes emergency broadcasts, reviews audit logs, manages access policy. | National (security) |
+| **Auditor** | Read-only access to audit logs and compliance reports. No messaging authority. | National (read-only) |
+| **Help Desk** | Password resets, account unlocks, basic support tickets. No content access. | National (support) |
+
+**Implementation mapping — 🟡 Config:** Matrix has no native "role" concept beyond room/space power levels (0–100). Roles above are implemented as a **power-level scheme applied consistently across Spaces**, plus a `department`/`region`/`role` field carried in each user's profile (see §8, Verified Directory). Role assignment itself is a provisioning action via the Synapse Admin API (`register_new_matrix_user`, then `PUT /_synapse/admin/v1/users/{id}/admin` and custom room invites/power-level grants), not something Element's stock UI exposes — this is why an admin panel is required (see §10).
+
+### Power Level Scheme (applies to all Spaces/rooms unless noted)
+
+| Power Level | Assigned To |
+|---|---|
+| 100 | National Administrator, IT Administrator (space-level, not per-message content) |
+| 75 | Regional Administrator (within their region's Space) |
+| 50 | Department Manager (within their department's Space) |
+| 25 | Reserved (future: team lead / moderator tier) |
+| 0 | Government Employee (default) |
+
+Auditor and Help Desk are **not** granted elevated power levels in messaging rooms — their access is via the Synapse Admin API / a dedicated internal admin tool, not via chat permissions. This preserves least-privilege: an Auditor can read logs without being able to read message content they aren't a room member of, and Help Desk can reset a password without ever seeing chat content.
+
+---
+
+## 3. Information Architecture
+
+Hierarchy: **Ministry → Region → Department → Channel**, plus cross-cutting **Direct Messages** and **Announcements**.
+
+**Implementation — 🟢 Native / 🟡 Config:** Matrix Spaces natively support nesting (a Space can contain child Spaces and child rooms via `m.space.child` state events). This maps directly:
+
+```
+Space: Ministry of X                       (national)
+ └─ Space: Tashkent Region                  (regional)
+     └─ Space: Department of Y              (department)
+         ├─ Room: #general:gov.local        (department channel)
+         ├─ Room: #announcements:gov.local  (read-only, dept-scoped)
+         └─ Room: #incident-2026-08-01      (temporary, see §5.7)
+```
+
+Element's Space UI (left-hand rail) already renders nested spaces — confirm your fork's Element version still supports this (it has in every stable release to date). No `_sovereign.pcss` or component changes are needed for basic hierarchy rendering; only **provisioning** (creating the Spaces and setting `m.space.child`/`m.space.parent` events) is new work, done via a script against the Admin API or `/createRoom` + `/send_state_event` calls, run once per new Ministry/Region/Department.
+
+**File/config touchpoints:** none in `frontend/`; provisioning lives in a new `backend/scripts/provision_org.py` (or similar) — 🟠 **Custom-BE**, since no such script exists yet in your repo.
+
+---
+
+## 4. Communication Model
+
+### 4.1 Direct Messages
+🟢 **Native.** Standard Matrix DM (`m.direct` account data + normal E2EE room). No changes required to Synapse or Element beyond what's already running.
+
+- **User story:** As a Government Employee, I want to message a colleague privately so we can coordinate without cluttering a department channel.
+- **Acceptance criteria:** DM is end-to-end encrypted by default; DM does not appear in any department Space; recipient must be a verified directory user (see §8) — cross-department DMs are allowed by default unless Security Officer policy restricts them (see edge case below).
+- **Permissions:** Any authenticated user can DM any other authenticated user found via the verified directory, unless explicitly blocked by policy.
+- **Edge case:** If cross-department DMs must be restricted for a sensitive ministry (e.g., only National Administrators can DM across ministries), this requires a Synapse module hooking `user_may_invite` — 🟠 **Custom-BE**, not built by default. Flag as a policy decision needed before implementation (see §16, Open Questions).
+
+### 4.2 Department Channels
+🟢 **Native** (rooms) + 🟡 **Config** (provisioning, power levels).
+- **User story:** As a Department Manager, I want a channel for my department so my team has one place for day-to-day coordination.
+- **Acceptance criteria:** Room is a child of the Department's Space; default power level 0 (any member can post); Department Manager holds power level 50 (can kick/ban, change room settings, pin messages).
+- **Dependencies:** Department Space must exist first (§3 provisioning).
+- **File/config:** created via Admin API script, no Element source changes.
+
+### 4.3 Regional & National Workspaces
+🟢 **Native** (Spaces) + 🟡 **Config** (provisioning + power levels per §2 table).
+- **User story:** As a Regional Administrator, I want a regional workspace so I can coordinate across departments in my region.
+- **Acceptance criteria:** Regional Space is visible only to members of departments within that region (Space join rule: `restricted`, tied to department Space membership) plus National Administrators.
+- **Edge case:** Matrix's `restricted` join rule (MSC3083) requires the invitee to already be a member of a specified parent space — confirm your Synapse `v1.100.0` fully supports this (it should, it's long-stable), otherwise fall back to manual invite-only rooms — 🟡 **Config** either way, just different scripts.
+
+### 4.4 Department & National Announcements
+🟡 **Config.** Implemented as a room where `events_default` power level is raised above 0 (e.g., 50) so only Managers/Administrators can post, while all department/national members remain joined at power level 0 (read-only).
+- **User story:** As a National Administrator, I want to post an announcement that every employee sees, without allowing replies that fragment the message.
+- **Acceptance criteria:** Only power level ≥50 (announcement scope) can send `m.room.message`; all other roles can read and (optionally) react but not send; room appears pinned at the top of the relevant Space in Element's room list.
+- **Dependencies:** "Pinned at top" ordering is an Element room-list feature — confirm current behavior; if not automatic, this is a small 🔵 **Custom-FE** tweak to room-list sort order (likely in the "Advanced Room List" system mentioned in element-web's architecture).
+
+### 4.5 Emergency Broadcasts
+🟡 **Config** (core mechanism) + 🟠 **Custom-BE** (trigger tooling).
+- **User story:** As a Security Officer, I want to push an urgent message to every user immediately, bypassing normal room membership, in a true emergency.
+- **Mechanism:** Synapse has a **native Server Notices** feature (`server_notices` block in `homeserver.yaml`: `system_mxid_localpart`, `system_mxid_display_name`, `room_name`) plus the Admin API endpoint `POST /_synapse/admin/v1/send_server_notice`, which auto-creates/uses a system room per user and delivers a message that appears from an official system account. This is the correct native mechanism for "reach every user regardless of room membership" — do not build a custom fan-out system, Synapse already has this.
+- **Gap:** There is no UI in Element (or anywhere in the current stack) for a Security Officer to *trigger* a server notice — it's an Admin API call today, meaning someone has to run a script or curl command. Building even a minimal internal panel (a single authenticated form: "message text" → calls the Admin API) is 🟠 **Custom-BE**, and is the single highest-priority new component if emergency broadcast is a real requirement, not aspirational.
+- **Acceptance criteria:** Trigger action requires Security Officer or National Administrator authentication; message is delivered to all active accounts within [X seconds — define SLA]; delivery does not depend on the target user being a member of any particular room.
+
+### 4.6 Cross-Department Coordination
+🟢 **Native** (ad hoc rooms with members from multiple departments) + 🟡 **Config** (who is allowed to create/invite cross-department, enforced via power levels or a Synapse module if strict enforcement is needed).
+- **User story:** As a Department Manager, I want to create a room with members from another department for a joint task, with explicit authorization.
+- **Edge case:** If "authorized" must be enforced (not just a policy on paper), this needs a `user_may_create_room` / `user_may_invite` Synapse module check against a cross-department-permission table — 🟠 **Custom-BE**. If it's a paper policy enforced by training/audit rather than code, it's 🟢 **Native** with no dev work. **This is an open scope question — see §16.**
+
+### 4.7 Temporary Incident Rooms
+🟡 **Config** + 🟠 **Custom-BE** (lifecycle automation).
+- **User story:** As a Regional Administrator, I want to spin up a room for an active incident and have it auto-archive when resolved, so incident rooms don't accumulate as clutter.
+- **Acceptance criteria:** Room created with a standard naming convention (`incident-YYYY-MM-DD-<slug>`); auto-tagged/moved to an "Archived Incidents" Space or made read-only after a manager marks it resolved.
+- **Dependencies:** "Auto-archive" is not a Matrix/Synapse primitive — it requires a small scheduled job (e.g., a cron script using the Admin API to change room join rules/power levels on a schedule or on an explicit "resolve" action) — 🟠 **Custom-BE**, new component.
+
+---
+
+## 5. Security & Permissions
+
+Baseline (already implemented per `homeserver.yaml`):
+- Federation fully disabled (`federation_domain_whitelist: []`) — 🟢 already done.
+- Public registration disabled (`enable_registration: false`) — 🟢 already done.
+- Email domain restricted to `@gov.uz` / `@mf.uz` — 🟢 already done.
+
+New requirements to formalize:
+
+| Permission | Employee | Dept Mgr | Regional Admin | National Admin | IT Admin | Security Officer | Auditor | Help Desk |
+|---|---|---|---|---|---|---|---|---|
+| Send DM | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ | ❌ | ❌ |
+| Post in dept channel | ✅ | ✅ | ✅ | ✅ | — | — | ❌ | ❌ |
+| Create dept channel | ❌ | ✅ | ✅ | ✅ | — | — | ❌ | ❌ |
+| Create regional workspace | ❌ | ❌ | ✅ (own region) | ✅ | — | — | ❌ | ❌ |
+| Create national workspace | ❌ | ❌ | ❌ | ✅ | — | — | ❌ | ❌ |
+| Post department announcement | ❌ | ✅ | ✅ | ✅ | — | — | ❌ | ❌ |
+| Post national announcement | ❌ | ❌ | ❌ | ✅ | — | — | ❌ | ❌ |
+| Trigger emergency broadcast | ❌ | ❌ | ❌ | ✅ | ❌ | ✅ | ❌ | ❌ |
+| Invite within department | ❌ | ✅ | ✅ | ✅ | — | — | ❌ | ❌ |
+| Invite cross-department | ❌ | ⚠️ policy | ✅ | ✅ | — | — | ❌ | ❌ |
+| Remove/deactivate user | ❌ | ❌ | ❌ | ✅ | ✅ | ✅ | ❌ | ⚠️ (unlock only) |
+| View audit logs | ❌ | ❌ | ❌ | ✅ | ✅ | ✅ | ✅ | ❌ |
+| Reset passwords | ❌ | ❌ | ❌ | ❌ | ✅ | ❌ | ❌ | ✅ |
+| View other regions | ❌ | ❌ | ❌ | ✅ | ✅ (technical) | ✅ | ✅ (log-only) | ❌ |
+
+⚠️ = policy-level, needs explicit decision in §16 before implementation (whether enforced in code or process).
+
+**Implementation:** all row items map to either (a) Matrix power levels within Spaces/rooms — 🟢/🟡, or (b) Synapse Admin API permissions, which are inherently gated by `admin: true` flag on an account — 🟡 **Config**, or (c) require a genuinely new authorization layer (Auditor/Help Desk scoped access, cross-department policy enforcement) — 🟠 **Custom-BE**, since neither Synapse nor Element ships a granular non-admin-but-still-privileged role like "Auditor" or "Help Desk" out of the box.
+
+---
+
+## 6. Secure Document Sharing
+
+🟢 **Native** (baseline) + 🟠 **Custom-BE** (hardening, if required).
+- Native: Matrix's E2EE media upload/download already works; `media_store_path` is configured (`backend/synapse-data/media_store/`).
+- Requirements likely needed for a government deployment: file-size limits, allowed file-type restrictions, and possibly antivirus/malware scanning on upload. None of these exist today. Size/type limits are 🟡 **Config** (`homeserver.yaml`: `max_upload_size`, and a `spam_checker` module for type filtering). AV scanning is 🟠 **Custom-BE** — no such module currently exists in your stack; would need a Synapse `spam_checker` or `media_repository` callback integrated with a scanning engine (e.g., ClamAV) — 🔴 **New Component** if ClamAV is added as its own container.
+
+---
+
+## 7. Verified Employee Directory
+
+🟡 **Config** (baseline search) + 🔵 **Custom-FE** (rich profile display).
+- Synapse's native user directory (`_matrix/client/v3/user_directory/search`) searches display name / Matrix ID only.
+- To show department, title, region, and "verified" status on a profile card, you need to store that data (Matrix profile fields via `m.presence`/custom account data, or a small directory service) and **render it** — Element's profile card component would need editing to display the extra fields. This is 🔵 **Custom-FE** (a specific, scoped edit — not a fork-wide rewrite) plus 🟠 **Custom-BE** if the data isn't just stored as extended profile fields but needs its own lookup service.
+- **Acceptance criteria:** Every account created via provisioning has department/region/title populated at creation time (part of the same admin provisioning flow in §10); Element profile card shows these fields with a "Verified — Government of Uzbekistan" badge.
+
+---
+
+## 8. Notifications
+
+Categories, in priority order (highest interrupts lowest):
+
+1. Emergency alerts (§4.5) — always full interrupt, bypasses do-not-disturb.
+2. National announcements (§4.4)
+3. Direct messages / mentions
+4. Department announcements
+5. Administrative actions (account changes affecting the user)
+6. System maintenance notices
+
+**Implementation:** Matrix's push rules (`m.push_rules`) already support per-room override priority — 🟡 **Config**, achievable by setting default push rules at account-creation time so emergency/announcement rooms are pre-configured to `highlight`/`override` regardless of user mute settings. No Synapse or Element source changes needed; this is provisioning-script work (same script family as §3/§10).
+
+---
+
+## 9. Administration
+
+| Capability | Feasibility | Notes |
+|---|---|---|
+| Create/deactivate user | 🟡 Config | `register_new_matrix_user` CLI + Admin API deactivate endpoint. Needs a wrapper script/UI — see below. |
+| Assign role/department/region | 🟠 Custom-BE | No native concept; stored as profile metadata + power-level grants, needs a provisioning script. |
+| Create/manage Spaces (org structure) | 🟡 Config | Admin API + `/createRoom` with `m.space` type. |
+| Manage announcements | 🟡 Config | Power-level grants per §4.4. |
+| Audit support | 🔴 New Component | Synapse does not ship a full immutable audit trail. Requires log aggregation (e.g., shipping Synapse/Nginx logs to a log store) and/or the Admin API's `event_reports` endpoint for user-flagged content — this is new infrastructure, not a config toggle. |
+
+**Recommendation:** Rather than building a bespoke admin panel from scratch, evaluate **synapse-admin** (the established open-source Synapse admin UI) as an additional container in `docker-compose.yml` — 🔴 **New Component**, but far less work than a custom build, and it already covers user/room management. Custom role/department assignment and audit log aggregation would still need to be layered on top or beside it.
+
+---
+
+## 10. UX & Visual Design Principles
+
+Ties directly to existing customization work (see `docs/element-customization.md`):
+
+| Principle | Where it's enforced |
+|---|---|
+| Official/trustworthy first impression | `frontend/config.json` → `branding.auth_header_logo_url` (Uzbekistan state seal), `brand: "Sovereign Messenger"` |
+| Familiar interaction patterns | `frontend/element-web/apps/web/res/css/_sovereign.pcss` (Telegram-style bubbles/sidebar, already implemented) |
+| Calm, professional tone (not consumer-playful) | Copy review pass on `uz.json`/`ru.json`/`en_EN.json` — ensure no casual/consumer-app phrasing slips into translated strings. No dev work, a content review task. |
+| Accessibility | Not yet addressed anywhere in current docs — flag as a gap. Needs a pass on contrast ratios in `_sovereign.pcss` custom colors (e.g., `#5288c1` on `#0e1621`) against WCAG AA, and keyboard navigation testing. 🔵 **Custom-FE**, scoped CSS/audit work. |
+
+---
+
+## 11. In-App Policies
+
+🔵 **Custom-FE** (new, not yet built). Requirement: acceptable-use policy visible inside the app (not only as an external PDF). Recommended implementation: a static policy page served via Element's `embeddedPages` config option (already used for `welcomeUrl` per `config.json` conventions) — add a `policyUrl`/custom embedded page rather than building a new UI component from scratch. Low effort, reuses an existing Element config mechanism.
+
+---
+
+## 12. Non-Functional Requirements
+
+- **Isolation:** No federation, no public internet exposure of ports 8008/5432 (already enforced — `docker-compose.yml`).
+- **Availability target:** [define — e.g., 99.5% during business hours] — not yet specified, needed before infra sizing decisions.
+- **Performance:** Synapse `cp_min: 5 / cp_max: 10` sized for <200 users per `docs/synapse.md`; re-evaluate before any national-scale rollout — cross-check expected concurrent user count against this pool size.
+- **Browser support:** inherit Element Web's supported-browser tiers (evergreen Chrome/Firefox/Edge, latest Safari) — no government-specific override currently defined; flag if older/mandated browsers (e.g., legacy IE-dependent government systems) must be supported, as that would be a significant 🔵 **Custom-FE** constraint.
+
+---
+
+## 13. Master File/Config Map
+
+| Feature Area | Primary File(s) |
+|---|---|
+| Homeserver identity, federation, registration | `backend/synapse-data/homeserver.yaml` |
+| Database credentials/tuning | `backend/docker-compose.yml`, `homeserver.yaml` (`database:` block) |
+| Homeserver → Element connection, branding, language default | `frontend/config.json` |
+| Telegram-style theme | `frontend/element-web/apps/web/res/css/_sovereign.pcss` |
+| Uzbek / Russian translations | `frontend/element-web/apps/web/src/i18n/strings/{uz,ru,en_EN}.json` |
+| Language build inclusion | `frontend/element-web/apps/web/I18nWebpackPlugin.ts` |
+| Language selector UI | `frontend/element-web/apps/web/src/i18n/utils.ts` |
+| Reverse proxy routing/TLS | `nginx/default.conf`, `certs/gov.local.{crt,key}` |
+| Org structure provisioning (new) | `backend/scripts/provision_org.py` *(does not exist yet — to be created)* |
+| Emergency broadcast trigger (new) | *(new component — to be created, see §4.5)* |
+| Audit log aggregation (new) | *(new infrastructure — to be added, see §9)* |
+| Admin panel (new/evaluate) | *(evaluate `synapse-admin` as new container, see §9)* |
+
+---
+
+## 14. Future Expansion (Deferred, Not Forgotten)
+
+Digital approvals, government directory integration, calendar integration, meeting scheduling, secure video conferencing, AI assistant, incident management automation beyond §4.7, workflow automation. No design work yet — listed so scope doesn't silently disappear.
+
+---
+
+## 15. Open Questions / Risks (must be resolved before agent execution begins)
+
+1. **Cross-department DM/invite restriction** (§4.1, §4.6): policy-only or code-enforced? This single decision determines whether a Synapse module (🟠) is in scope at all for v1.
+2. **Emergency broadcast trigger tooling** (§4.5): build a minimal custom panel now, or accept manual Admin API/curl usage for v1 and defer the UI?
+3. **Audit requirements** (§9): what specific events must be retained, for how long, and for which compliance standard? This drives whether log aggregation is a v1 blocker or a v2 item.
+4. **Availability/scale target** (§12): expected concurrent user count — determines whether current Postgres pool sizing and single-node Synapse is sufficient or whether `worker_app` multi-process config is needed now rather than later.
+5. **Document/media scanning** (§6): is AV scanning a hard compliance requirement for v1, or acceptable to defer?
+
+---
+
+## 16. Documentation Rule
+
+Every new feature added to the product must update this document before implementation is considered complete. Feasibility tags must be corrected retroactively if a "Config" turns out to need code, or vice versa — this document's value depends on the tags staying honest.
