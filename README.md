@@ -39,6 +39,7 @@ chmod +x dev.sh prod.sh
 | URL | What |
 |-----|------|
 | `https://gov.local` | The messenger web UI |
+| `https://gov.local/admin/` | Synapse Admin Management UI |
 | `https://gov.local/_matrix` | Matrix API (internal, used by Element) |
 
 > Add `127.0.0.1 gov.local` to `/etc/hosts` if the domain does not resolve.
@@ -51,6 +52,7 @@ All detailed documentation lives in [`docs/`](docs/):
 
 | Topic | File |
 |-------|------|
+| **App operations & CLI tasks guide** | [docs/app-functions.md](docs/app-functions.md) |
 | System architecture & how everything connects | [docs/Architecture/system-overview.md](docs/Architecture/system-overview.md) |
 | Development mode — hot reload setup | [docs/Development/dev-mode.md](docs/Development/dev-mode.md) |
 | Production build & deployment | [docs/Deployment/production.md](docs/Deployment/production.md) |

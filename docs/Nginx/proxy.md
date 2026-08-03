@@ -120,6 +120,20 @@ location /_synapse {
 
 `/_synapse/admin` is Synapse's administrative API for creating users, querying rooms, etc. This is only accessible if you have an admin access token.
 
+### Route 4: Synapse Admin Web UI
+
+```nginx
+location /admin/ {
+    proxy_pass         http://matrix_admin:80/;
+    proxy_set_header   Host              $host;
+    proxy_set_header   X-Real-IP         $remote_addr;
+    proxy_set_header   X-Forwarded-For   $proxy_add_x_forwarded_for;
+    proxy_set_header   X-Forwarded-Proto https;
+}
+```
+
+`/admin/` routes traffic to the `matrix_admin` (`synapse-admin`) container.
+
 ---
 
 ## Request Flow Diagram

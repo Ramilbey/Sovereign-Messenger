@@ -1,0 +1,495 @@
+1- Bosqich 
+Samarqand viloyati ( Ichida barcha davlat tashkilotlari mavjud.)
+
+-----------------------------------------------------------------------------------------------------------------------------------------
+
+2-bosqich
+
+Tashkilotlar
+
+Samarqand viloyati
+
+    ├── Hokimlik
+    ├── Ichki Ishlar
+    ├── DXX
+    ├── FVV
+    ├── Sog'liqni Saqlash
+    ├── Adliya
+    ├── Soliq
+    ├── Raqamli Texnologiyalar (IT)
+    ├── Maktabgacha va Maktab Ta'limi
+    ├── Milliy Gvardiya
+    └── Prokuratura
+-----------------------------------------------------------------------------------------------------------------------------------------
+3-bosqich
+
+Davlat tashkilotlari ichidagi bo'limlar
+
+Hokimlik
+
+    ├── Hokim
+    ├── Hokim o'rinbosarlari
+    ├── Kotibiyat
+    ├── Kadrlar
+    ├── Moliya
+    ├── IT
+    ├── Axborot xizmati
+    └── Yuridik
+
+Ichki Ishlar
+
+    ├── Rahbariyat
+    ├── Tergov
+    ├── Jinoyat Qidiruv
+    ├── Jamoat Xavfsizligi
+    ├── YHX
+    ├── Kadrlar
+    ├── Moliya
+    └── IT
+
+Davlat xavfsizlik xizmati
+
+    ├── Rahbariyat
+    ├── Operativ boshqarma
+    ├── Analitika
+    ├── Kiberxavfsizlik
+    ├── Ichki xavfsizlik
+    ├── Maxsus aloqa
+    ├── Kadrlar
+    ├── Moliya
+    └── IT
+
+FVV
+
+    ├── Rahbariyat
+    ├── Operativ navbatchilik
+    ├── Yong'in xavfsizligi
+    ├── Qutqaruv xizmati
+    ├── Logistika
+    ├── Aloqa markazi
+    ├── Kadrlar
+    ├── Moliya
+    └── IT
+
+Sog'liqni Saqlash
+
+    ├── Rahbariyat
+    ├── Kasalxonalar koordinatsiyasi
+    ├── Poliklinikalar
+    ├── Tez yordam
+    ├── Epidemiologiya
+    ├── Dorilar ta'minoti
+    ├── Kadrlar
+    ├── Moliya
+    └── IT
+
+Adliya
+
+    ├── Rahbariyat
+    ├── Yuridik xizmat
+    ├── Davlat xizmatlari
+    ├── Notariat
+    ├── FHDYO
+    ├── Huquqiy targ'ibot
+    ├── Kadrlar
+    ├── Moliya
+    └── IT
+
+Soliq
+
+    ├── Rahbariyat
+    ├── Soliq nazorati
+    ├── Yuridik shaxslar
+    ├── Jismoniy shaxslar
+    ├── Audit
+    ├── Tahlil va statistika
+    ├── Kadrlar
+    ├── Moliya
+    └── IT
+
+Raqamli Texnologiyalar
+
+    ├── Rahbariyat
+    ├── Dasturiy ta'minot
+    ├── Tarmoq administratorlari
+    ├── Server va Data Center
+    ├── Axborot xavfsizligi
+    ├── Texnik yordam (Help Desk)
+    ├── DevOps
+    ├── Kadrlar
+    ├── Moliya
+    └── Loyihalar boshqaruvi
+
+Maktab Ta'limi
+
+    ├── Rahbariyat
+    ├── Maktablar koordinatsiyasi
+    ├── Maktabgacha ta'lim
+    ├── O'qituvchilar bilan ishlash
+    ├── O'quv dasturlari
+    ├── Monitoring
+    ├── Kadrlar
+    ├── Moliya
+    └── IT
+
+Milliy Gvardiya
+
+    ├── Rahbariyat
+    ├── Jamoat tartibi
+    ├── Muhim obyektlarni qo'riqlash
+    ├── Tezkor bo'linmalar
+    ├── Operativ navbatchilik
+    ├── Kadrlar
+    ├── Moliya
+    └── IT
+
+Prokuratura
+
+    ├── Rahbariyat
+    ├── Jinoyat ishlari nazorati
+    ├── Fuqarolik ishlari
+    ├── Tergov ustidan nazorat
+    ├── Sudlarda ishtirok etish
+    ├── Murojaatlar bilan ishlash
+    ├── Kadrlar
+    ├── Moliya
+    └── IT
+-----------------------------------------------------------------------------------------------------------------------------------------
+
+4-bosqich
+
+Workspace standarti
+
+Har bir bo'lim avtomatik quyidagi Workspace bilan yaratiladi.
+
+Tergov Workspace
+
+├── 📢 Kanallar (Channels)
+├── 💬 Guruhlar (Groups)
+├── 👥 Xodimlar (Members)
+├── 📁 Hujjatlar (Documents)
+├── ✅ Vazifalar (Tasks)
+├── 📅 Kalendar
+├── 📊 Dashboard
+├── 📌 Pinned
+└── ⚙ Workspace sozlamalari
+
+Bu barcha bo'limlarda bir xil.
+
+Barcha Workspace'lar 80% bir xil, 20% esa bo'limga moslashtirilgan bo'lsin. Bu bo'limning ish faoliyatiga bog'liq.
+
+👮 Ichki Ishlar → Tergov
+Tergov Workspace
+
+Universal
++
+🗂 Ishlar (Cases)
+👤 Gumonlanuvchilar
+📷 Dalillar
+📜 Bayonnomalar
+⚖ Sud materiallari
+
+###############
+🚒 FVV → Qutqaruv
+Qutqaruv Workspace
+
+Universal
++
+🚨 Hodisalar
+📍 Xarita
+🚒 Texnikalar
+📡 Chaqiruvlar
+🌦 Ob-havo
+
+################
+
+🏥 Sog'liqni saqlash
+Sog'liqni saqlash Workspace
+
+Universal
++
+🏥 Shifoxonalar
+🚑 Tez yordam
+💊 Dorilar
+📈 Statistikalar
+👨‍⚕ Navbatchilik
+
+#################
+🏛 Hokimlik
+Hokimlik Workspace
+
+Universal
++
+📜 Farmoyishlar
+📑 Qarorlar
+🏗 Loyihalar
+💰 Budjet
+📍 Tumanlar
+
+##############
+⚖ Prokuratura
+Prokuratura Workspace
+
+Universal
++
+⚖ Ish yuritish
+📂 Nazorat ishlari
+📜 Xulosalar
+📨 Murojaatlar
+🏛 Sud ishlari
+
+###############
+💻 IT
+IT Workspace
+
+Universal
++
+🖥 Serverlar
+🌐 Tarmoq
+🔐 Xavfsizlik
+📊 Monitoring
+🎫 Help Desk
+-----------------------------------------------------------------------------------------------------------------------------------------
+
+5-bosqich
+
+📢 Kanallar (Channels)
+
+Faqat muhim e'lonlar uchun.
+
+📢 Kanallar
+
+├── 📢 E'lonlar
+
+├── 📢 Buyruqlar
+
+├── 📢 Favqulodda xabarlar
+
+├── 📢 Haftalik reja
+
+└── 📢 Yangiliklar
+Kim yozadi?
+
+✅ Rahbar
+
+✅ Administrator
+
+Kim o'qiydi?
+
+✅ Hamma.
+
+################################################
+💬 Guruhlar (Groups)
+
+Bu yerda xodimlar ishlaydi.
+
+💬 Guruhlar
+
+├── Umumiy
+
+├── Operativ
+
+├── Navbatchilik
+
+├── Loyihalar
+
+└── Vaqtinchalik guruhlar
+
+Masalan
+
+Operatsiya tugasa
+
+"Operativ-17"
+
+guruhi avtomatik arxivga o'tadi.
+
+###############################################
+👥 Xodimlar
+Rahbar
+
+👤 Akmal Karimov
+
+────────────
+
+Xodimlar
+
+👤 Sardor
+
+👤 Aziz
+
+👤 Diyor
+
+────────────
+
+Status
+
+🟢 Ishda
+
+🟡 Yig'ilishda
+
+🔴 Band
+
+⚫ Offline
+
+Har bir profilga bosish mumkin.
+
+################################################
+📁 Hujjatlar
+Hujjatlar
+
+├── Buyruqlar
+
+├── Hisobotlar
+
+├── Shablonlar
+
+├── PDF
+
+├── Excel
+
+├── Word
+
+└── Arxiv
+
+Version history ham bo'ladi.
+
+################################################
+✅ Vazifalar (Tasks)
+
+Bu juda foydali.
+
+Bugungi vazifalar
+
+□ Hisobot tayyorlash
+
+□ Yig'ilish
+
+□ Tekshiruv
+
+□ Farmonni bajarish
+
+Rahbar yaratadi.
+
+Hodim bajaradi.
+
+################################################
+
+📅 Kalendar
+Bugun
+
+09:00
+
+Yig'ilish
+
+11:00
+
+Tekshiruv
+
+14:00
+
+Viloyat yig'ilishi
+
+16:00
+
+Hisobot topshirish
+
+#################################################
+
+📊 Dashboard
+
+Rahbar uchun.
+
+Masalan
+
+Bugun
+
+Online
+
+18
+
+Offline
+
+5
+
+Vazifalar
+
+31
+
+Bajarildi
+
+26
+
+Favqulodda
+
+1
+
+Oddiy hodim esa faqat
+
+o'z vazifalarini ko'radi.
+
+
+####################################
+
+⚙ Workspace sozlamalari
+
+Rahbar uchun.
+
+Workspace
+
+↓
+
+Permissions
+
+↓
+
+Members
+
+↓
+
+Groups
+
+↓
+
+Channels
+
+↓
+
+Archive
+
+↓
+
+Audit Logs
+
+####################################
+
+----------------------------------------------------------------------------------------------------------------
+
+Sidebar qanday ko'rinadi?
+
+Masalan foydalanuvchi Samarqand → Ichki Ishlar → Tergov da ishlaydi.
+
+U chap panelda quyidagini ko'radi.
+
+🏛 Samarqand viloyati
+━━━━━━━━━━━━━━
+👮 Ichki Ishlar
+   📂 Tergov
+━━━━━━━━━━━━━━
+📢 Kanallar
+💬 Guruhlar
+👥 Hodimlar
+📁 Hujjatlar
+✅ Vazifalar
+📅 Kalendar
+📊 Dashboard
+━━━━━━━━━━━━━━
+🗂 Ishlar
+👤 Gumonlanuvchilar
+📷 Dalillar
+📜 Bayonnomalar
+━━━━━━━━━━━━━━
+💬 Shaxsiy chatlar
+━━━━━━━━━━━━━━
+⭐ Sevimlilar
+━━━━━━━━━━━━━━
+⚙ Sozlamalar

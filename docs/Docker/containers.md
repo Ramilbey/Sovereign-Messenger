@@ -43,6 +43,7 @@ graph TD
         PG["matrix_postgres\npostgres:15-alpine\n:5432 internal"]
         SY["matrix_synapse\nmatrixdotorg/synapse:v1.100.0\n:8008 internal"]
         EL["matrix_element\nnginx:alpine\n:80 internal"]
+        AD["matrix_admin\nawesometechnologies/synapse-admin:latest\n:80 internal"]
         NX["matrix_proxy\nnginx:alpine\n:80 :443 exposed"]
     end
 
@@ -51,6 +52,7 @@ graph TD
     SY -->|depends_on| PG
     NX -->|depends_on| SY
     NX -->|depends_on| EL
+    NX -->|depends_on| AD
     EL -.->|volume mount| HostDisk
 ```
 
@@ -185,6 +187,31 @@ This container is stopped (`docker compose stop element`). The webpack-dev-serve
 In production mode: users see a 502 error or blank page because Nginx cannot proxy to this container.
 
 In development mode: nothing, because the dev server is running instead.
+
+---
+
+## Container: `matrix_admin`
+
+### What It Is
+
+`awesometechnologies/synapse-admin:latest` — lightweight graphical web interface for Synapse homeserver administration.
+
+### Access
+
+Available via HTTPS at `https://gov.local/admin/`.
+
+### Configuration
+
+```yaml
+synapse-admin:
+  container_name: matrix_admin
+  image: awesometechnologies/synapse-admin:latest
+  restart: unless-stopped
+```
+
+### What Breaks If This Stops
+
+Administrators will not be able to access the `/admin/` graphical management panel. The main Matrix messaging application (`matrix_element`) and Synapse homeserver will continue to function normally.
 
 ---
 

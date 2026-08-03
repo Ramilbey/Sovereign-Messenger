@@ -238,6 +238,70 @@ class MatrixAdminClient:
             },
         )
 
+    def set_room_push_rule(self, user_id, room_id, highlight=True):
+        """
+        Set notification push rule for a user in an announcement room (PRD §8).
+        Forces highlight/notify for official announcement channels.
+        """
+        log.info("  push rule (highlight=%s) → %s for %s", highlight, room_id, user_id)
+        actions = ["notify", {"set_tweak": "highlight", "value": True}] if highlight else ["notify"]
+        path = f"/_matrix/client/v3/pushrules/global/room/{room_id}"
+        body = {
+            "actions": actions,
+        }
+        try:
+            self.put(path, body)
+        except Exception as e:
+            log.warning("  Could not set push rule for %s in %s: %s", user_id, room_id, e)
+
+    def force_join(self, room_id, user_id):
+        """
+        Force-join a user to a room/space via Synapse Admin API (POST /_synapse/admin/v1/join/{roomId}).
+        This ensures groups and channels immediately appear in the employee's sidebar upon login.
+        """
+        log.info("  force-join %s → %s", user_id, room_id)
+        if self.dry_run:
+            log.info("[DRY-RUN] POST /_synapse/admin/v1/join/%s", room_id)
+            return {}
+        try:
+            return self.post(f"/_synapse/admin/v1/join/{room_id}", {"user_id": user_id})
+        except Exception as e:
+            log.warning("  Could not force-join %s to %s: %s (falling back to invite)", user_id, room_id, e)
+            return self.invite(room_id, user_id)
+
+    def create_admin_dm(self, user_id, admin_user_id="@admin:gov.local"):
+        """
+        Create a default Direct Message (DM) chat between the employee and the Admin.
+        When the employee logs in for the first time, the chat with Admin is already present.
+        """
+        if user_id == admin_user_id:
+            return None
+        log.info("  creating default Admin DM: %s ↔ %s", user_id, admin_user_id)
+        try:
+            room = self.post("/_matrix/client/v3/createRoom", {
+                "name": "Administrator Support",
+                "preset": "trusted_private_chat",
+                "is_direct": True,
+                "invite": [user_id, admin_user_id],
+                "initial_state": [
+                    {
+                        "type": "m.room.guest_access",
+                        "state_key": "",
+                        "content": {"guest_access": "forbidden"}
+                    }
+                ]
+            })
+            dm_id = room.get("room_id")
+            if dm_id:
+                self.force_join(dm_id, user_id)
+                self.force_join(dm_id, admin_user_id)
+            return dm_id
+        except Exception as e:
+            log.warning("  Could not create Admin DM for %s: %s", user_id, e)
+            return None
+
+
+
 
 # ── Department provisioning ───────────────────────────────────────────────────
 
@@ -355,7 +419,16 @@ def provision_from_file(client, org_file):
                     role=role,
                 )
                 for room_id in rooms.values():
-                    client.invite(room_id, uid)
+                    client.force_join(room_id, uid)
+                client.force_join(nat_announce_id, uid)
+
+                # Create default Admin chat for every employee
+                client.create_admin_dm(uid)
+
+                # Set highlight notification push rule for announcement rooms (PRD §8)
+                client.set_room_push_rule(uid, rooms["announcements_room_id"], highlight=True)
+                client.set_room_push_rule(uid, nat_announce_id, highlight=True)
+
                 pl = ROLE_TO_PL.get(role, PL_EMPLOYEE)
                 if pl > 0:
                     for room_id in rooms.values():
@@ -422,7 +495,8 @@ def main():
                                    is_admin=args.role in ("national_admin", "it_admin"))
         client.set_profile_fields(uid, args.department, args.region,
                                   args.title, args.role)
-        log.info("✅ User created: %s", uid)
+        client.create_admin_dm(uid)
+        log.info("✅ User created and Admin chat initialized: %s", uid)
 
     elif args.create_department:
         for req in ("dept_name", "region_name", "region_space_id"):

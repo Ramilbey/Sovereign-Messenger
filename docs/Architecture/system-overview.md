@@ -31,6 +31,7 @@ The components:
 | **Matrix Synapse** | The homeserver — stores all messages, users, rooms | Reference implementation, battle-tested, open source |
 | **PostgreSQL 15** | Database — stores all Synapse data persistently | Synapse requires PostgreSQL for production; SQLite is dev-only |
 | **Element Web** | Browser UI — the app users actually see and use | Most mature Matrix client; fully customizable source code |
+| **Synapse Admin** | Management UI — web panel for user and room administration | Lightweight administration panel for homeserver management |
 | **Nginx** | Reverse proxy — routes all traffic, terminates SSL | Industry standard; handles HTTPS so other services don't have to |
 | **Docker Desktop** | Container runtime — packages everything together | Ensures identical environment across machines |
 
@@ -45,6 +46,7 @@ graph TD
     subgraph Docker["Docker Desktop — backend_default network"]
         Nginx["🔀 Nginx Reverse Proxy<br/>matrix_proxy<br/>Ports 80 / 443"]
         Element["🎨 Element Web<br/>matrix_element<br/>Serves compiled UI files"]
+        Admin["🛠️ Synapse Admin UI<br/>matrix_admin<br/>Serves /admin/ UI"]
         Synapse["⚙️ Matrix Synapse<br/>matrix_synapse<br/>Port 8008"]
         Postgres["🗄️ PostgreSQL 15<br/>matrix_postgres<br/>Port 5432"]
     end
@@ -53,6 +55,7 @@ graph TD
 
     Browser -->|"All requests<br/>HTTPS 443"| Nginx
     Nginx -->|"Path: /<br/>Static web files"| Element
+    Nginx -->|"Path: /admin/<br/>Admin Panel"| Admin
     Nginx -->|"Path: /_matrix<br/>Path: /_synapse<br/>Matrix API"| Synapse
     Element -->|"Volume mount<br/>reads files directly"| LocalDisk
     Synapse -->|"SQL queries<br/>internal network"| Postgres
@@ -68,6 +71,7 @@ graph LR
         subgraph Net["Docker Network: backend_default"]
             P["matrix_proxy<br/>nginx:alpine<br/>:80 :443"]
             E["matrix_element<br/>nginx:alpine<br/>:80 (internal)"]
+            A["matrix_admin<br/>synapse-admin<br/>:80 (internal)"]
             S["matrix_synapse<br/>matrixdotorg/synapse:v1.100.0<br/>:8008 (internal)"]
             DB["matrix_postgres<br/>postgres:15-alpine<br/>:5432 (internal)"]
         end
@@ -75,6 +79,7 @@ graph LR
     end
 
     P --> E
+    P --> A
     P --> S
     S --> DB
     E -.->|"volume mount"| Disk
