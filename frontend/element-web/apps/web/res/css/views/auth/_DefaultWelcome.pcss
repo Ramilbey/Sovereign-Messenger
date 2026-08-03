@@ -1,0 +1,91 @@
+/*
+Copyright 2026 Element Creations Ltd. / Sovereign Messenger
+
+SPDX-License-Identifier: AGPL-3.0-only OR GPL-3.0-only OR LicenseRef-Element-Commercial
+Please see LICENSE files in the repository root for full details.
+*/
+
+.mx_DefaultWelcome {
+    text-align: center;
+    width: 100%;
+
+    .mx_DefaultWelcome_logo img {
+        height: 80px;
+        aspect-ratio: auto;
+        display: block;
+        margin: 0 auto;
+        filter: drop-shadow(0 0 25px rgba(0, 153, 255, 0.25));
+        transition: filter 0.4s ease;
+    }
+
+    .mx_DefaultWelcome_logo img:hover {
+        filter: drop-shadow(0 0 35px rgba(0, 153, 255, 0.45));
+    }
+
+    h1 {
+        margin: var(--cpd-space-6x) 0 0;
+        color: #ffffff;
+        font-size: 26px;
+        font-weight: 700;
+        letter-spacing: -0.02em;
+    }
+
+    p {
+        color: #94a3b8;
+        margin-top: var(--cpd-space-2x);
+        font-size: 14px;
+    }
+
+    .mx_DefaultWelcome_buttons {
+        margin: var(--cpd-space-10x) 0 var(--cpd-space-1x);
+        padding-bottom: var(--cpd-space-4x);
+        border-bottom: 1px solid rgba(0, 153, 255, 0.1);
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        gap: var(--cpd-space-3x);
+
+        a {
+            width: 100%;
+            max-width: 320px;
+            border-radius: 14px;
+            font-size: 15px;
+            font-weight: 600;
+            padding: 14px 24px;
+            transition: all 0.3s ease;
+        }
+
+        /* Primary button — gradient */
+        a[data-kind="primary"] {
+            background: linear-gradient(135deg, #0066CC 0%, #0099FF 50%, #0077E6 100%);
+            border: none;
+            color: #ffffff;
+            box-shadow: 0 4px 20px rgba(0, 102, 204, 0.35);
+        }
+
+        a[data-kind="primary"]:hover {
+            background: linear-gradient(135deg, #0077E6 0%, #1AA3FF 50%, #0088E6 100%);
+            box-shadow: 0 6px 30px rgba(0, 102, 204, 0.5);
+            transform: translateY(-2px);
+        }
+
+        /* Secondary button — outlined */
+        a[data-kind="secondary"] {
+            background: transparent;
+            border: 1.5px solid rgba(0, 153, 255, 0.35);
+            color: #0099FF;
+        }
+
+        a[data-kind="secondary"]:hover {
+            border-color: #0099FF;
+            background: rgba(0, 153, 255, 0.08);
+            transform: translateY(-1px);
+        }
+    }
+}
+
+.mx_WelcomePage_registrationDisabled {
+    .mx_DefaultWelcome_buttons_register {
+        display: none;
+    }
+}

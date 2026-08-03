@@ -1,0 +1,64 @@
+{
+    "users": [
+        {
+            "id": "akmal.karimov",
+            "displayName": "Akmal Karimov",
+            "role": "Manager",
+            "title": "Tergov bo'limi boshlig'i",
+            "department": "Tergov",
+            "status": "online",
+            "statusLabel": "🟢 Ishda",
+            "avatarInitials": "AK"
+        },
+        {
+            "id": "sardor.umarov",
+            "displayName": "Sardor Umarov",
+            "role": "Employee",
+            "title": "Katta tergovchi",
+            "department": "Tergov",
+            "status": "online",
+            "statusLabel": "🟢 Ishda",
+            "avatarInitials": "SU"
+        },
+        {
+            "id": "aziz.toshmatov",
+            "displayName": "Aziz Toshmatov",
+            "role": "Employee",
+            "title": "Tergovchi",
+            "department": "Tergov",
+            "status": "meeting",
+            "statusLabel": "🟡 Yig'ilishda",
+            "avatarInitials": "AT"
+        },
+        {
+            "id": "diyor.nazarov",
+            "displayName": "Diyor Nazarov",
+            "role": "Employee",
+            "title": "Kichik tergovchi",
+            "department": "Tergov",
+            "status": "busy",
+            "statusLabel": "🔴 Band",
+            "avatarInitials": "DN"
+        },
+        {
+            "id": "jasur.rahimov",
+            "displayName": "Jasur Rahimov",
+            "role": "Employee",
+            "title": "Operativ tergovchi",
+            "department": "Tergov",
+            "status": "offline",
+            "statusLabel": "⚫ Offline",
+            "avatarInitials": "JR"
+        },
+        {
+            "id": "national.admin",
+            "displayName": "Milliy Administrator",
+            "role": "NationalAdmin",
+            "title": "Tizim Administratori",
+            "department": null,
+            "status": "online",
+            "statusLabel": "🟢 Ishda",
+            "avatarInitials": "MA"
+        }
+    ]
+}

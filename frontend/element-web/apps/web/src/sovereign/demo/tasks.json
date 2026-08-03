@@ -1,0 +1,48 @@
+{
+    "tasks": [
+        {
+            "id": "task_101",
+            "title": "№128-sonli tergov ishining ekspertiza xulosasini biriktirish",
+            "assigneeId": "sardor.umarov",
+            "assigneeName": "Sardor Umarov",
+            "assignerName": "Akmal Karimov",
+            "dueDate": "2026-08-03",
+            "status": "in_progress",
+            "statusLabel": "Bajarilmoqda",
+            "priority": "high"
+        },
+        {
+            "id": "task_102",
+            "title": "Gumonlanuvchi N.B. so'roq bayonnomasini rasmiylashtirish",
+            "assigneeId": "aziz.toshmatov",
+            "assigneeName": "Aziz Toshmatov",
+            "assignerName": "Akmal Karimov",
+            "dueDate": "2026-08-04",
+            "status": "pending",
+            "statusLabel": "Kutilmoqda",
+            "priority": "medium"
+        },
+        {
+            "id": "task_103",
+            "title": "Dalillar ashoyiboti reestrini auditi",
+            "assigneeId": "diyor.nazarov",
+            "assigneeName": "Diyor Nazarov",
+            "assignerName": "Akmal Karimov",
+            "dueDate": "2026-08-02",
+            "status": "completed",
+            "statusLabel": "Bajarildi",
+            "priority": "medium"
+        },
+        {
+            "id": "task_104",
+            "title": "Oylik Tergov hisobotini shakllantirish",
+            "assigneeId": "sardor.umarov",
+            "assigneeName": "Sardor Umarov",
+            "assignerName": "Akmal Karimov",
+            "dueDate": "2026-08-05",
+            "status": "in_progress",
+            "statusLabel": "Bajarilmoqda",
+            "priority": "high"
+        }
+    ]
+}

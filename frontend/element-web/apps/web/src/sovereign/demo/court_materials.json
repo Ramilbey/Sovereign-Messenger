@@ -1,0 +1,43 @@
+{
+    "courtMaterials": [
+        {
+            "id": "court_001",
+            "caseId": "case_004",
+            "caseNumber": "TER-2026-004",
+            "title": "Ayblov xulosasi — Davlat mulkini o'g'irlash",
+            "type": "indictment",
+            "typeLabel": "Ayblov xulosasi",
+            "submittedDate": "2026-07-28",
+            "court": "Samarqand viloyat sudi",
+            "status": "submitted",
+            "statusLabel": "Yuborildi",
+            "preparedBy": "Jasur Rahimov"
+        },
+        {
+            "id": "court_002",
+            "caseId": "case_001",
+            "caseNumber": "TER-2026-001",
+            "title": "Qo'lga olish to'g'risida qaror",
+            "type": "warrant",
+            "typeLabel": "Hibsga olish sanadi",
+            "submittedDate": "2026-07-15",
+            "court": "Samarqand tuman sudi",
+            "status": "approved",
+            "statusLabel": "Tasdiqlandi",
+            "preparedBy": "Sardor Umarov"
+        },
+        {
+            "id": "court_003",
+            "caseId": "case_002",
+            "caseNumber": "TER-2026-002",
+            "title": "Mulkni muzlatish to'g'risida ariza",
+            "type": "motion",
+            "typeLabel": "Sud arizasi",
+            "submittedDate": "2026-07-24",
+            "court": "Samarqand iqtisodiy sudi",
+            "status": "pending",
+            "statusLabel": "Ko'rib chiqilmoqda",
+            "preparedBy": "Aziz Toshmatov"
+        }
+    ]
+}

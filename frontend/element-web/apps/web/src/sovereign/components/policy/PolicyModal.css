@@ -1,0 +1,134 @@
+/*
+ * Sovereign Messenger — Sprint 1, Step 9 / Policy Modal
+ * PolicyModal.css — Styling for Government Workspace Policy Modal.
+ *
+ * Palette (Telegram Dark Theme):
+ *   Backdrop:   rgba(0, 0, 0, 0.75)
+ *   Card:       #17212b
+ *   Border:     #2b3a4a
+ *   Text Main:  #ffffff
+ *   Subtext:    #7d8e9e
+ *   Accent:     #5288c1
+ */
+
+.svr-policy-backdrop {
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background-color: rgba(14, 22, 33, 0.85);
+    backdrop-filter: blur(4px);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    z-index: 10000;
+    padding: 16px;
+}
+
+.svr-policy-modal {
+    background-color: #17212b;
+    border: 1px solid #2b3a4a;
+    border-radius: 12px;
+    width: 100%;
+    max-width: 560px;
+    box-shadow: 0 12px 32px rgba(0, 0, 0, 0.5);
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
+    color: #ffffff;
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+}
+
+.svr-policy-header {
+    padding: 20px 24px;
+    border-bottom: 1px solid #2b3a4a;
+    display: flex;
+    align-items: center;
+    gap: 14px;
+    background-color: #131c26;
+}
+
+.svr-policy-emblem {
+    font-size: 32px;
+    line-height: 1;
+}
+
+.svr-policy-header-titles {
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+}
+
+.svr-policy-gov-title {
+    font-size: 11px;
+    font-weight: 700;
+    color: #5288c1;
+    letter-spacing: 0.5px;
+    text-transform: uppercase;
+}
+
+.svr-policy-modal-title {
+    font-size: 18px;
+    font-weight: 700;
+    color: #ffffff;
+}
+
+.svr-policy-body {
+    padding: 24px;
+    display: flex;
+    flex-direction: column;
+    gap: 20px;
+    max-height: 60vh;
+    overflow-y: auto;
+}
+
+.svr-policy-section {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+}
+
+.svr-policy-section-title {
+    font-size: 14px;
+    font-weight: 600;
+    color: #5288c1;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.svr-policy-section-text {
+    font-size: 13px;
+    line-height: 1.6;
+    color: #a8b8c8;
+}
+
+.svr-policy-footer {
+    padding: 16px 24px;
+    border-top: 1px solid #2b3a4a;
+    background-color: #131c26;
+    display: flex;
+    justify-content: flex-end;
+}
+
+.svr-policy-accept-btn {
+    background-color: #5288c1;
+    color: #ffffff;
+    border: none;
+    border-radius: 8px;
+    padding: 10px 24px;
+    font-size: 14px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: background-color 0.2s ease;
+    width: 100%;
+}
+
+.svr-policy-accept-btn:hover {
+    background-color: #4374a7;
+}
+
+.svr-policy-accept-btn:active {
+    background-color: #38628e;
+}

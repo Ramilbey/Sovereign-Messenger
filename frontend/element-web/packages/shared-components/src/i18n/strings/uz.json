@@ -1,0 +1,151 @@
+{
+    "a11y": {
+        "seek_bar_label": "Audio qidirish paneli"
+    },
+    "action": {
+        "back": "Orqaga",
+        "click": "Bosish",
+        "close": "Yopish",
+        "collapse": "Kichraytirish",
+        "delete": "O'chirish",
+        "dismiss": "Yopish",
+        "download": "Yuklab olish",
+        "edit": "Tahrirlash",
+        "explore_rooms": "Xonalarni ko'rish",
+        "go": "O'tish",
+        "hide": "Yashirish",
+        "invite": "Taklif qilish",
+        "new_conversation": "Yangi suhbat",
+        "new_room": "Yangi xona",
+        "new_section": "Yangi bo'lim",
+        "new_video_room": "Yangi video xona",
+        "open_menu": "Menyuni ochish",
+        "pause": "To'xtatish",
+        "pin": "Biriktirish",
+        "play": "Ijro etish",
+        "react": "Reaksiya bildirish",
+        "remove": "Olib tashlash",
+        "reply": "Javob berish",
+        "reply_in_thread": "Mavzuda javob berish",
+        "retry": "Qayta urinish",
+        "search": "Qidirish",
+        "start_chat": "Suhbat boshlash",
+        "unpin": "Ajratish",
+        "view_source": "Manbani ko'rish"
+    },
+    "common": {
+        "attachment": "Biriktirma",
+        "encryption_enabled": "Shifrlash yoqilgan",
+        "loading": "Yuklanmoqda…",
+        "options": "Sozlamalar",
+        "preferences": "Sozlamalar",
+        "state_encryption_enabled": "Eksperimental holat shifrlash yoqilgan"
+    },
+    "keyboard": {
+        "shift": "Shift"
+    },
+    "left_panel": {
+        "open_dial_pad": "Raqamli panelni ochish",
+        "separator_label": "Kengaytirish uchun bosing yoki torting"
+    },
+    "menus": {
+        "user_menu": {
+            "clear_status": "Tozalash",
+            "create_an_account": "Hisob yaratish",
+            "got_an_account": "Hisobingiz bormi?",
+            "manage_account": "Hisobni boshqarish",
+            "sign_in": "Tizimga kirish",
+            "title": "Foydalanuvchi menyusi"
+        }
+    },
+    "notifications": {
+        "all_messages": "Barcha xabarlar",
+        "default_settings": "Standart sozlamalar",
+        "mentions_keywords": "Eslatmalar va kalit so'zlar",
+        "mute_room": "Xonani o'chirish"
+    },
+    "room": {
+        "context_menu": {
+            "title": "Xona sozlamalari"
+        },
+        "jump_to_date": "Sanaga o'tish",
+        "pinned_message_badge": "Biriktirilgan xabar",
+        "status_bar": {
+            "retry_all": "Hammasini qayta urinish",
+            "some_messages_not_sent": "Ba'zi xabarlaringiz yuborilmadi"
+        }
+    },
+    "room_list": {
+        "appearance": "Tashqi ko'rinish",
+        "collapse_all_sections": "Barcha bo'limlarni yig'ish",
+        "collapse_filters": "Filtrlar ro'yxatini yig'ish",
+        "empty": {
+            "no_chats": "Hali suhbatlar yo'q",
+            "no_chats_description": "Birovga xabar yuboring yoki xona yarating",
+            "no_invites": "O'qilmagan takliflar yo'q",
+            "no_mentions": "O'qilmagan eslatmalar yo'q",
+            "no_people": "Hali hech kim bilan suhbat yo'q",
+            "no_rooms": "Hali birorta xonaga qo'shilmagansiz",
+            "no_unread": "Tabriklaymiz! O'qilmagan xabarlar yo'q",
+            "show_activity": "Barcha faoliyatni ko'rish",
+            "show_chats": "Barcha suhbatlarni ko'rsatish"
+        },
+        "expand_all_sections": "Barcha bo'limlarni yoyish",
+        "expand_filters": "Filtrlar ro'yxatini yoyish",
+        "filters": {
+            "favourite": "Saralanganlar",
+            "invites": "Takliflar",
+            "low_priority": "Past ustuvorlik",
+            "mentions": "Eslatmalar",
+            "people": "Odamlar",
+            "rooms": "Xonalar",
+            "unread": "O'qilmaganlar"
+        },
+        "list_title": "Xonalar ro'yxati",
+        "more_options": {
+            "copy_link": "Xona havolasini nusxalash",
+            "favourited": "Saralangan",
+            "leave_room": "Xonani tark etish",
+            "low_priority": "Past ustuvorlik",
+            "mark_read": "O'qilgan deb belgilash",
+            "mark_unread": "O'qilmagan deb belgilash",
+            "move_to_section": "Ko'chirish",
+            "remove_from_section": "Bo'limdan olib tashlash"
+        },
+        "notification_options": "Bildirishnoma sozlamalari",
+        "primary_filters": "Xona filtr ro'yxati",
+        "room": {
+            "more_options": "Ko'proq sozlamalar"
+        },
+        "room_options": "Xona sozlamalari",
+        "show_message_previews": "Xabar oldindan ko'rishni ko'rsatish",
+        "sort": "Tartiblash",
+        "sort_type": {
+            "activity": "So'nggi faoliyat",
+            "atoz": "A-Z",
+            "unread_first": "Avval o'qilmaganlar"
+        },
+        "space_menu": {
+            "home": "Hudud bosh sahifasi",
+            "space_settings": "Hudud sozlamalari"
+        },
+        "unread_messages": "O'qilmagan xabarlar"
+    },
+    "status": {
+        "set_status": {
+            "away": "Tashqarida",
+            "be_right_back": "Tez orada qaytaman",
+            "focus_time": "Diqqat vaqti",
+            "in_a_meeting": "Yig'ilishda",
+            "on_the_road": "Yo'lda",
+            "set_status_prompt": "Holatni kiriting"
+        }
+    },
+    "user_menu": {
+        "link_new_device": "Yangi qurilmani ulash",
+        "open_feedback": "Fikr-mulohaza",
+        "open_home": "Bosh sahifa",
+        "open_security": "Xavfsizlik va maxfiylik",
+        "open_settings": "Barcha sozlamalar"
+    }
+}

@@ -1,0 +1,20 @@
+<svg width="200" height="200" viewBox="0 0 200 200" fill="none" xmlns="http://www.w3.org/2000/svg">
+  <defs>
+    <linearGradient id="blueGrad" x1="0" y1="0" x2="200" y2="200" gradientUnits="userSpaceOnUse">
+      <stop offset="0%" stop-color="#0099FF" />
+      <stop offset="100%" stop-color="#0055aa" />
+    </linearGradient>
+  </defs>
+  
+  <!-- Outer Ring representing unity and security -->
+  <circle cx="100" cy="100" r="90" stroke="url(#blueGrad)" stroke-width="8" fill="#0c101d" />
+  
+  <!-- Stylized secure key/message bubble -->
+  <path d="M100 45 C70 45 55 60 55 90 C55 110 65 125 80 131 L80 155 L105 135 C130 135 145 120 145 90 C145 60 130 45 100 45 Z" fill="url(#blueGrad)" />
+
+  <!-- White crescent moon in top right of bubble representing Uzbekistan -->
+  <path d="M95 65 C110 65 122 77 122 92 C122 102 115 111 106 116 C114 114 120 106 120 96 C120 83 109 72 96 72 C91 72 86 74 82 77 C86 70 90 65 95 65 Z" fill="#ffffff" />
+  
+  <!-- A small shiny gold star representing state guidance -->
+  <polygon points="102,80 104,84 109,84 105,87 106,92 102,89 98,92 99,87 95,84 100,84" fill="#FFD700" />
+</svg>

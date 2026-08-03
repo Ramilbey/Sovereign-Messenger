@@ -1,0 +1,78 @@
+{
+    "channels": [
+        {
+            "id": "channel_elonlar",
+            "name": "E'lonlar",
+            "type": "channel",
+            "icon": "📢",
+            "description": "Rasmiy e'lonlar",
+            "readOnlyForEmployees": true
+        },
+        {
+            "id": "channel_buyruqlar",
+            "name": "Buyruqlar",
+            "type": "channel",
+            "icon": "📢",
+            "description": "Rasmiy buyruqlar va farmoyishlar",
+            "readOnlyForEmployees": true
+        },
+        {
+            "id": "channel_favqulodda",
+            "name": "Favqulodda xabarlar",
+            "type": "channel",
+            "icon": "📢",
+            "description": "Shoshilinch xabarnomalar va tezkor topshiriqlar",
+            "readOnlyForEmployees": true
+        },
+        {
+            "id": "channel_haftalik",
+            "name": "Haftalik reja",
+            "type": "channel",
+            "icon": "📢",
+            "description": "Haftalik ish rejalari va ko'rsatmalar",
+            "readOnlyForEmployees": true
+        },
+        {
+            "id": "channel_yangiliklar",
+            "name": "Yangiliklar",
+            "type": "channel",
+            "icon": "📢",
+            "description": "Tizim va davlat yangiliklari",
+            "readOnlyForEmployees": true
+        }
+    ],
+    "groups": [
+        {
+            "id": "group_umumiy",
+            "name": "Umumiy",
+            "type": "group",
+            "icon": "💬",
+            "description": "Tergov bo'limi me'yoriy muloqoti",
+            "readOnlyForEmployees": false
+        },
+        {
+            "id": "group_operativ",
+            "name": "Operativ",
+            "type": "group",
+            "icon": "💬",
+            "description": "Tezkor amaliyot muhokamalari",
+            "readOnlyForEmployees": false
+        },
+        {
+            "id": "group_navbatchilik",
+            "name": "Navbatchilik",
+            "type": "group",
+            "icon": "💬",
+            "description": "24/7 Navbatchi xodimlar muloqoti",
+            "readOnlyForEmployees": false
+        },
+        {
+            "id": "group_loyihalar",
+            "name": "Loyihalar",
+            "type": "group",
+            "icon": "💬",
+            "description": "Maxsus loyihalar va topshiriqlar guruhi",
+            "readOnlyForEmployees": false
+        }
+    ]
+}

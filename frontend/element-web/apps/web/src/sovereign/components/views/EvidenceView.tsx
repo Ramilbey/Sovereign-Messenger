@@ -1,0 +1,54 @@
+/*
+ * Sovereign Messenger — Sprint 1, Step 9
+ * EvidenceView.tsx — Workspace view for Tergov Evidence module (📷 Dalillar).
+ * Backed by useEvidence() hook.
+ */
+
+import React, { memo, type JSX } from "react";
+import { useEvidence } from "../../providers/useSovereignData";
+import "./ModuleViews.css";
+
+const TYPE_ICONS: Record<string, string> = {
+    physical: "📦",
+    digital: "💾",
+    document: "📄",
+};
+
+export const EvidenceView = memo(function EvidenceView(): JSX.Element {
+    const evidence = useEvidence();
+
+    return (
+        <div id="module-view-evidence" className="svr-module-view-root">
+            <div className="svr-module-header">
+                <span className="svr-module-header-icon">📷</span>
+                <span className="svr-module-header-title">Dalillar</span>
+                <span className="svr-module-header-count">{evidence.length} ta dalil</span>
+            </div>
+
+            <div className="svr-inv-list">
+                {evidence.map((e) => (
+                    <div key={e.id} className="svr-inv-card">
+                        <div className="svr-inv-card-row">
+                            <div>
+                                <div className="svr-inv-card-title">
+                                    {TYPE_ICONS[e.type] || "📷"} {e.description}
+                                </div>
+                                <div className="svr-inv-card-meta">
+                                    Ish: <span className="svr-inv-card-accent">#{e.caseNumber}</span>{" "}
+                                    • Tur: {e.typeLabel}
+                                    <br />
+                                    Yig'gan: {e.collectedBy} • Sana: {e.collectedDate}
+                                    <br />
+                                    Joylashuv: {e.storageLocation}
+                                </div>
+                            </div>
+                            <div className="svr-inv-card-badges">
+                                <span className={`svr-inv-badge ${e.status}`}>{e.statusLabel}</span>
+                            </div>
+                        </div>
+                    </div>
+                ))}
+            </div>
+        </div>
+    );
+});

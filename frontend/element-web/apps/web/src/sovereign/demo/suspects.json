@@ -1,0 +1,52 @@
+{
+    "suspects": [
+        {
+            "id": "suspect_001",
+            "caseId": "case_001",
+            "caseNumber": "TER-2026-001",
+            "fullName": "Bahodir Xolmatov",
+            "birthYear": 1985,
+            "address": "Samarqand sh., Mirzo Ulug'bek ko'chasi, 14",
+            "status": "detained",
+            "statusLabel": "Hibsda",
+            "charge": "JK 247-m (Noqonuniy qurol saqlash)",
+            "assignedInvestigator": "Sardor Umarov"
+        },
+        {
+            "id": "suspect_002",
+            "caseId": "case_001",
+            "caseNumber": "TER-2026-001",
+            "fullName": "Sherzod Qodirov",
+            "birthYear": 1990,
+            "address": "Urgut tumani, Bog'ishamol MFY",
+            "status": "wanted",
+            "statusLabel": "Qidirilmoqda",
+            "charge": "JK 247-m (Qurol tarqatish)",
+            "assignedInvestigator": "Sardor Umarov"
+        },
+        {
+            "id": "suspect_003",
+            "caseId": "case_002",
+            "caseNumber": "TER-2026-002",
+            "fullName": "Nilufar Hasanova",
+            "birthYear": 1978,
+            "address": "Samarqand sh., Registon tumani, 22-uy",
+            "status": "released",
+            "statusLabel": "Ozod qilingan",
+            "charge": "JK 168-m (Firibgarlik)",
+            "assignedInvestigator": "Aziz Toshmatov"
+        },
+        {
+            "id": "suspect_004",
+            "caseId": "case_003",
+            "caseNumber": "TER-2026-003",
+            "fullName": "Davron Ergashev",
+            "birthYear": 1995,
+            "address": "Kattaqo'rg'on sh., Markaziy ko'cha, 7",
+            "status": "detained",
+            "statusLabel": "Hibsda",
+            "charge": "JK 273-m (Giyohvand moddalar tarqatish)",
+            "assignedInvestigator": "Diyor Nazarov"
+        }
+    ]
+}

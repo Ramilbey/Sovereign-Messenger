@@ -1,0 +1,136 @@
+{
+    "messages": [
+        {
+            "id": "msg_001",
+            "channelId": "channel_elonlar",
+            "senderId": "akmal.karimov",
+            "senderName": "Akmal Karimov",
+            "senderRole": "Manager",
+            "content": "Hurmatli xodimlar, ertaga soat 09:00 da tezkor yig'ilish o'tkaziladi. Barcha tergovchilar qatnashishi shart.",
+            "timestamp": "10:15",
+            "date": "Bugun",
+            "readState": "read"
+        },
+        {
+            "id": "msg_002",
+            "channelId": "channel_elonlar",
+            "senderId": "akmal.karimov",
+            "senderName": "Akmal Karimov",
+            "senderRole": "Manager",
+            "content": "Buyruq №42 tasdiqlandi. Hujjatlar bo'limidan nusxasini olishingiz mumkin.",
+            "timestamp": "11:30",
+            "date": "Bugun",
+            "readState": "read"
+        },
+        {
+            "id": "msg_003",
+            "channelId": "channel_favqulodda",
+            "senderId": "national.admin",
+            "senderName": "Milliy Administrator",
+            "senderRole": "NationalAdmin",
+            "content": "DIQQAT: Samarqand viloyati bo'yicha kiberxavfsizlik monitoringi kuchaytirildi.",
+            "timestamp": "08:45",
+            "date": "Bugun",
+            "readState": "read"
+        },
+        {
+            "id": "msg_004",
+            "channelId": "channel_haftalik",
+            "senderId": "akmal.karimov",
+            "senderName": "Akmal Karimov",
+            "senderRole": "Manager",
+            "content": "Haftalik reja: 1. Ishlar ko'rib chiqilishi. 2. Ekspertiza xulosalari topshirilishi.",
+            "timestamp": "09:00",
+            "date": "Kecha",
+            "readState": "read"
+        },
+        {
+            "id": "msg_005",
+            "channelId": "group_umumiy",
+            "senderId": "sardor.umarov",
+            "senderName": "Sardor Umarov",
+            "senderRole": "Employee",
+            "content": "№128-sonli ish bo'yicha bayonnoma tayyorlandi.",
+            "timestamp": "14:20",
+            "date": "Bugun",
+            "readState": "read"
+        },
+        {
+            "id": "msg_006",
+            "channelId": "group_umumiy",
+            "senderId": "aziz.toshmatov",
+            "senderName": "Aziz Toshmatov",
+            "senderRole": "Employee",
+            "content": "Rahmat Sardor. Ekspertiza hujjatlarini ham biriktirib qo'ying.",
+            "timestamp": "14:22",
+            "date": "Bugun",
+            "readState": "read"
+        },
+        {
+            "id": "msg_007",
+            "channelId": "group_umumiy",
+            "senderId": "diyor.nazarov",
+            "senderName": "Diyor Nazarov",
+            "senderRole": "Employee",
+            "content": "Dalillar reestri yangilandi.",
+            "timestamp": "15:05",
+            "date": "Bugun",
+            "readState": "delivered"
+        },
+        {
+            "id": "msg_008",
+            "channelId": "group_operativ",
+            "senderId": "sardor.umarov",
+            "senderName": "Sardor Umarov",
+            "senderRole": "Employee",
+            "content": "Operativ surishtiruv guruhi ob'ektdan qaytdi. Hisobot tayyorlanmoqda.",
+            "timestamp": "16:10",
+            "date": "Bugun",
+            "readState": "read"
+        },
+        {
+            "id": "msg_009",
+            "channelId": "group_operativ",
+            "senderId": "akmal.karimov",
+            "senderName": "Akmal Karimov",
+            "senderRole": "Manager",
+            "content": "Yaxshi. Hisobotni soat 17:30 gacha ish stolimga qo'ying.",
+            "timestamp": "16:15",
+            "date": "Bugun",
+            "readState": "read"
+        },
+        {
+            "id": "msg_010",
+            "channelId": "group_navbatchilik",
+            "senderId": "diyor.nazarov",
+            "senderName": "Diyor Nazarov",
+            "senderRole": "Employee",
+            "content": "Smena topshirildi. Navbatchilik tinch o'tdi.",
+            "timestamp": "08:00",
+            "date": "Bugun",
+            "readState": "read"
+        },
+        {
+            "id": "msg_011",
+            "channelId": "group_navbatchilik",
+            "senderId": "jasur.rahimov",
+            "senderName": "Jasur Rahimov",
+            "senderRole": "Employee",
+            "content": "Smenani qabul qildim. Navbatchilik davom etmoqda.",
+            "timestamp": "08:05",
+            "date": "Bugun",
+            "readState": "read"
+        },
+        {
+            "id": "msg_012",
+            "channelId": "group_umumiy",
+            "senderId": "akmal.karimov",
+            "senderName": "Akmal Karimov",
+            "senderRole": "Manager",
+            "content": "Barcha tergovchilar diqqatiga: Hujjatlar shaklini tasdiqlangan yangi shablonda to'ldiring.",
+            "timestamp": "17:00",
+            "date": "Bugun",
+            "readState": "read"
+        }
+    ]
+}

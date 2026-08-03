@@ -1,0 +1,28 @@
+{
+    "documents": [
+        {
+            "id": "doc_01",
+            "title": "Buyruq №42 — Tergov tartibi.pdf",
+            "type": "pdf",
+            "fileSize": "2.4 MB",
+            "uploadedBy": "Akmal Karimov",
+            "date": "2026-08-01"
+        },
+        {
+            "id": "doc_02",
+            "title": "Tergov hisoboti_Q3.xlsx",
+            "type": "excel",
+            "fileSize": "1.1 MB",
+            "uploadedBy": "Sardor Umarov",
+            "date": "2026-07-28"
+        },
+        {
+            "id": "doc_03",
+            "title": "Tergov_bayonnomasi_shabloni.docx",
+            "type": "word",
+            "fileSize": "540 KB",
+            "uploadedBy": "Akmal Karimov",
+            "date": "2026-07-15"
+        }
+    ]
+}

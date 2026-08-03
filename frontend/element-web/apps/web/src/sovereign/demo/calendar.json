@@ -1,0 +1,28 @@
+{
+    "events": [
+        {
+            "id": "cal_01",
+            "time": "09:00",
+            "title": "Tezkor ertalabki yig'ilish",
+            "location": "Tergov majlislar zali"
+        },
+        {
+            "id": "cal_02",
+            "time": "11:00",
+            "title": "Ishlar bo'yicha hujjatlar tekshiruvi",
+            "location": "Xona №204"
+        },
+        {
+            "id": "cal_03",
+            "time": "14:00",
+            "title": "Viloyat IIB muvofiqlashtirish yig'ilishi",
+            "location": "Boshqarma binosi"
+        },
+        {
+            "id": "cal_04",
+            "time": "16:00",
+            "title": "Haftalik hisobot topshirish",
+            "location": "Kanal: Haftalik reja"
+        }
+    ]
+}

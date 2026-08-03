@@ -1,0 +1,56 @@
+{
+    "evidence": [
+        {
+            "id": "evid_001",
+            "caseId": "case_001",
+            "caseNumber": "TER-2026-001",
+            "type": "physical",
+            "typeLabel": "Moddiy",
+            "description": "Noqonuniy saqlangan 3 ta miltiq va 120 dona o'q",
+            "collectedDate": "2026-07-16",
+            "collectedBy": "Sardor Umarov",
+            "storageLocation": "Dalillar xonasi — №A-14",
+            "status": "stored",
+            "statusLabel": "Saqlanmoqda"
+        },
+        {
+            "id": "evid_002",
+            "caseId": "case_001",
+            "caseNumber": "TER-2026-001",
+            "type": "digital",
+            "typeLabel": "Raqamli",
+            "description": "Mobil telefon — xabar tarixi va kontaktlar",
+            "collectedDate": "2026-07-17",
+            "collectedBy": "Sardor Umarov",
+            "storageLocation": "Raqamli arxiv — №D-07",
+            "status": "analysis",
+            "statusLabel": "Tahlilda"
+        },
+        {
+            "id": "evid_003",
+            "caseId": "case_002",
+            "caseNumber": "TER-2026-002",
+            "type": "document",
+            "typeLabel": "Hujjat",
+            "description": "Soxta moliyaviy hisobotlar — 24 sahifa",
+            "collectedDate": "2026-07-21",
+            "collectedBy": "Aziz Toshmatov",
+            "storageLocation": "Hujjatlar arxivi — №B-02",
+            "status": "stored",
+            "statusLabel": "Saqlanmoqda"
+        },
+        {
+            "id": "evid_004",
+            "caseId": "case_003",
+            "caseNumber": "TER-2026-003",
+            "type": "physical",
+            "typeLabel": "Moddiy",
+            "description": "Giyohvand modda namunalari — laboratoriya tahlili uchun",
+            "collectedDate": "2026-06-12",
+            "collectedBy": "Diyor Nazarov",
+            "storageLocation": "Ekspertiza bo'limi",
+            "status": "expert",
+            "statusLabel": "Ekspertizada"
+        }
+    ]
+}

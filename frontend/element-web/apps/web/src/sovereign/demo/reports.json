@@ -1,0 +1,56 @@
+{
+    "reports": [
+        {
+            "id": "report_001",
+            "caseId": "case_001",
+            "caseNumber": "TER-2026-001",
+            "title": "B.Xolmatov so'roq bayonnomasi",
+            "type": "interrogation",
+            "typeLabel": "So'roq bayonnomasi",
+            "date": "2026-07-18",
+            "author": "Sardor Umarov",
+            "pageCount": 12,
+            "status": "signed",
+            "statusLabel": "Imzolangan"
+        },
+        {
+            "id": "report_002",
+            "caseId": "case_001",
+            "caseNumber": "TER-2026-001",
+            "title": "Uy-joy tintuv bayonnomasi",
+            "type": "search",
+            "typeLabel": "Tintuv bayonnomasi",
+            "date": "2026-07-16",
+            "author": "Sardor Umarov",
+            "pageCount": 8,
+            "status": "signed",
+            "statusLabel": "Imzolangan"
+        },
+        {
+            "id": "report_003",
+            "caseId": "case_002",
+            "caseNumber": "TER-2026-002",
+            "title": "N.Hasanova so'roq bayonnomasi",
+            "type": "interrogation",
+            "typeLabel": "So'roq bayonnomasi",
+            "date": "2026-07-22",
+            "author": "Aziz Toshmatov",
+            "pageCount": 15,
+            "status": "draft",
+            "statusLabel": "Qoralama"
+        },
+        {
+            "id": "report_004",
+            "caseId": "case_003",
+            "caseNumber": "TER-2026-003",
+            "title": "Kuzatuv operatsiyasi bayonnomasi",
+            "type": "surveillance",
+            "typeLabel": "Kuzatuv bayonnomasi",
+            "date": "2026-06-15",
+            "author": "Diyor Nazarov",
+            "pageCount": 20,
+            "status": "signed",
+            "statusLabel": "Imzolangan"
+        }
+    ]
+}

@@ -1,0 +1,56 @@
+{
+    "cases": [
+        {
+            "id": "case_001",
+            "caseNumber": "TER-2026-001",
+            "title": "Noqonuniy qurol saqlash va tarqatish",
+            "status": "active",
+            "statusLabel": "Faol",
+            "priority": "high",
+            "priorityLabel": "Muhim",
+            "investigatorId": "sardor.umarov",
+            "investigatorName": "Sardor Umarov",
+            "openedDate": "2026-07-15",
+            "description": "Samarqand viloyatida noqonuniy qurol saqlash va tarqatish bilan bog'liq tergov ishi."
+        },
+        {
+            "id": "case_002",
+            "caseNumber": "TER-2026-002",
+            "title": "Moliyaviy firibgarlik — korxona hisobvaraqlari",
+            "status": "active",
+            "statusLabel": "Faol",
+            "priority": "high",
+            "priorityLabel": "Muhim",
+            "investigatorId": "aziz.toshmatov",
+            "investigatorName": "Aziz Toshmatov",
+            "openedDate": "2026-07-20",
+            "description": "Qurilish korxonasi hisobvaraqlari orqali amalga oshirilgan moliyaviy firibgarlik ishi."
+        },
+        {
+            "id": "case_003",
+            "caseNumber": "TER-2026-003",
+            "title": "Giyohvand moddalar tarqatish tarmog'i",
+            "status": "suspended",
+            "statusLabel": "To'xtatilgan",
+            "priority": "medium",
+            "priorityLabel": "O'rta",
+            "investigatorId": "diyor.nazarov",
+            "investigatorName": "Diyor Nazarov",
+            "openedDate": "2026-06-10",
+            "description": "Viloyat bo'ylab giyohvand moddalar tarqatish bilan shug'ullanuvchi guruhga qarshi tergov."
+        },
+        {
+            "id": "case_004",
+            "caseNumber": "TER-2026-004",
+            "title": "Davlat mulkini o'g'irlash",
+            "status": "closed",
+            "statusLabel": "Yopilgan",
+            "priority": "low",
+            "priorityLabel": "Past",
+            "investigatorId": "jasur.rahimov",
+            "investigatorName": "Jasur Rahimov",
+            "openedDate": "2026-05-22",
+            "description": "Davlat omboridan texnika jihozlarini o'g'irlash ishi. Sud qaroriga yuborildi."
+        }
+    ]
+}
