@@ -1,15 +1,16 @@
 /*
- * Sovereign Messenger — Sprint 2, Phase 5
- * useSovereignData.ts — Unified Data Provider Hooks with Matrix Migration.
+ * Sovereign Messenger — Sprint 2, Phase 6.4
+ * useSovereignData.ts — Dynamic Data Provider Hooks (Demo vs. Matrix Production).
  *
- * PRD §3.1 & Phase 5 Requirements:
- * - Migrates room providers (useChannels / useGroups) to MatrixRoomService when in Production Mode.
- * - Preserves exact interface of SovereignChannel (id, name, type, icon, description, readOnlyForEmployees).
- * - When SOVEREIGN_MODE=true (isDemoMode()): continues using Demo JSON.
- * - When SOVEREIGN_MODE=false (!isDemoMode()): retrieves rooms from MatrixRoomService.
+ * PRD §3.1 & Phase 6.4 Requirements:
+ * - When SOVEREIGN_MODE=true (isDemoMode()): returns Demo JSON providers.
+ * - When SOVEREIGN_MODE=false (!isDemoMode()): retrieves room list reactively from MatrixRoomService.
+ * - Subscribes to Matrix SDK client sync/room events so room discoveries trigger React re-renders.
+ * - Returned objects match SovereignChannel interface.
  * - Zero UI component changes.
  */
 
+import { useState, useEffect } from "react";
 import organizationData from "../demo/organization.json";
 import usersData from "../demo/users.json";
 import channelsData from "../demo/channels.json";
@@ -27,6 +28,7 @@ import type { SovereignMessage } from "../services/MessageService";
 import { useMessages } from "../hooks/useMessages";
 import { isDemoMode } from "../config/SovereignConfig";
 import { MatrixRoomService, type SovereignRoom } from "../services/MatrixRoomService";
+import { MatrixClientService } from "../services/MatrixClientService";
 
 export type { SovereignMessage };
 export { useMessages };
@@ -176,7 +178,7 @@ function mapMatrixRoomToChannel(room: SovereignRoom): SovereignChannel {
         id: room.roomId,
         name: room.name,
         type: isChannel ? "channel" : "group",
-        icon: isChannel ? "#" : "👥",
+        icon: isChannel ? "📢" : "💬",
         description: room.topic || (isChannel ? "Matrix Rasmiy Kanal" : "Matrix Guruhi"),
         readOnlyForEmployees: false,
     };
@@ -193,6 +195,42 @@ export function useUsers(): SovereignUser[] {
 }
 
 export function useChannels(): { channels: SovereignChannel[]; groups: SovereignChannel[] } {
+    const [matrixRooms, setMatrixRooms] = useState<SovereignRoom[]>(() => {
+        return isDemoMode() ? [] : MatrixRoomService.getInstance().getAllRooms();
+    });
+
+    useEffect(() => {
+        if (isDemoMode()) return;
+
+        const updateRooms = () => {
+            setMatrixRooms(MatrixRoomService.getInstance().getAllRooms());
+        };
+
+        updateRooms();
+
+        const client = MatrixClientService.getInstance().getClient();
+        if (!client) return;
+
+        const handleSync = () => updateRooms();
+        const handleRoom = () => updateRooms();
+
+        try {
+            client.on("sync", handleSync);
+            client.on("Room", handleRoom);
+        } catch {
+            // Graceful fallback
+        }
+
+        return () => {
+            try {
+                client.removeListener("sync", handleSync);
+                client.removeListener("Room", handleRoom);
+            } catch {
+                // Graceful fallback
+            }
+        };
+    }, []);
+
     if (isDemoMode()) {
         return {
             channels: channelsData.channels as SovereignChannel[],
@@ -200,7 +238,6 @@ export function useChannels(): { channels: SovereignChannel[]; groups: Sovereign
         };
     }
 
-    const matrixRooms = MatrixRoomService.getInstance().getAllRooms();
     if (matrixRooms.length === 0) {
         return {
             channels: channelsData.channels as SovereignChannel[],

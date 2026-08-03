@@ -65,6 +65,10 @@ import { Landmark, LandmarkNavigation } from "../../accessibility/LandmarkNaviga
 import { ModuleApi } from "../../modules/Api.ts";
 import { SDKContext } from "../../contexts/SDKContext.ts";
 import { ResizerViewModel } from "../../viewmodels/structures/ResizerViewModel.ts";
+import { SovereignLayout } from "../../sovereign/components/layout/SovereignLayout";
+import { PermissionProvider } from "../../sovereign/context/PermissionContext";
+import { ChatProvider } from "../../sovereign/context/ChatContext";
+import type { SovereignUser } from "../../sovereign/providers/useSovereignData";
 
 // We need to fetch each pinned message individually (if we don't already have it)
 // so each pinned message may trigger a request. Limit the number per room for sanity.
@@ -725,20 +729,26 @@ class LoggedInView extends React.Component<IProps, IState> {
             );
         }
 
+        const currentUserId = this.props.matrixClient.getUserId() || "@user:gov.local";
+        const sovereignUser: SovereignUser = {
+            id: currentUserId,
+            displayName: this.props.matrixClient.getUser(currentUserId)?.displayName || currentUserId,
+            role: "Manager",
+            department: "Tergov Boshqarmasi",
+            status: "online",
+            statusLabel: "Tarmoqda",
+            avatarInitials: currentUserId.length > 2 ? currentUserId.substring(1, 3).toUpperCase() : "TM",
+        };
+
         return (
             <MatrixClientContextProvider client={this._matrixClient}>
-                <div
-                    onPaste={this.onPaste}
-                    onKeyDown={this.onReactKeyDown}
-                    className={wrapperClasses}
-                    aria-hidden={this.props.hideToSRUsers}
-                >
-                    <ToastContainer />
-                    <div className={bodyClasses}>{content}</div>
-                </div>
-                <PipContainer />
-                <NonUrgentToastContainer />
-                {audioFeedArraysForCalls}
+                <PermissionProvider currentUser={sovereignUser}>
+                    <ChatProvider>
+                        <div id="sovereign-app">
+                            <SovereignLayout />
+                        </div>
+                    </ChatProvider>
+                </PermissionProvider>
             </MatrixClientContextProvider>
         );
     }
