@@ -9,3 +9,5 @@ export * from "./MatrixClientService";
 export * from "./MatrixAuthService";
 export * from "./SessionService";
 export * from "./SessionBootstrapService";
+export * from "./BootstrapCoordinator";
+export * from "./MatrixSyncService";
