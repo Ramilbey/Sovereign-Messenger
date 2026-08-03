@@ -101,4 +101,4 @@ echo ""
 cd "$ELEMENT_WEB"
 # Sovereign Messenger §9.1: SOVEREIGN_MODE=true activates SovereignDemoApp
 # instead of the standard MatrixChat/Element login flow.
-SOVEREIGN_MODE=true pnpm --filter element-web start
+SOVEREIGN_MODE=${SOVEREIGN_MODE:-true} pnpm --filter element-web start

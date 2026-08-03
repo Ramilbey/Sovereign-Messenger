@@ -1,9 +1,13 @@
 /*
- * Sovereign Messenger — Sprint 1, Step 7.1
- * useSovereignData.ts — Unified Data Provider Hooks.
+ * Sovereign Messenger — Sprint 2, Phase 5
+ * useSovereignData.ts — Unified Data Provider Hooks with Matrix Migration.
  *
- * Re-exports domain types & hooks.
- * useMessages is now powered by the MessageService transport layer (Dependency Inversion).
+ * PRD §3.1 & Phase 5 Requirements:
+ * - Migrates room providers (useChannels / useGroups) to MatrixRoomService when in Production Mode.
+ * - Preserves exact interface of SovereignChannel (id, name, type, icon, description, readOnlyForEmployees).
+ * - When SOVEREIGN_MODE=true (isDemoMode()): continues using Demo JSON.
+ * - When SOVEREIGN_MODE=false (!isDemoMode()): retrieves rooms from MatrixRoomService.
+ * - Zero UI component changes.
  */
 
 import organizationData from "../demo/organization.json";
@@ -21,6 +25,8 @@ import courtMaterialsData from "../demo/court_materials.json";
 
 import type { SovereignMessage } from "../services/MessageService";
 import { useMessages } from "../hooks/useMessages";
+import { isDemoMode } from "../config/SovereignConfig";
+import { MatrixRoomService, type SovereignRoom } from "../services/MatrixRoomService";
 
 export type { SovereignMessage };
 export { useMessages };
@@ -162,6 +168,20 @@ export interface TergovCourtMaterial {
     preparedBy: string;
 }
 
+// ── Matrix Room Mapper ────────────────────────────────────────────────────────
+
+function mapMatrixRoomToChannel(room: SovereignRoom): SovereignChannel {
+    const isChannel = !room.isDirect;
+    return {
+        id: room.roomId,
+        name: room.name,
+        type: isChannel ? "channel" : "group",
+        icon: isChannel ? "#" : "👥",
+        description: room.topic || (isChannel ? "Matrix Rasmiy Kanal" : "Matrix Guruhi"),
+        readOnlyForEmployees: false,
+    };
+}
+
 // ── Specialized Hooks ────────────────────────────────────────────────────────
 
 export function useOrganization(): SovereignOrganization {
@@ -173,10 +193,38 @@ export function useUsers(): SovereignUser[] {
 }
 
 export function useChannels(): { channels: SovereignChannel[]; groups: SovereignChannel[] } {
-    return {
-        channels: channelsData.channels as SovereignChannel[],
-        groups: channelsData.groups as SovereignChannel[],
-    };
+    if (isDemoMode()) {
+        return {
+            channels: channelsData.channels as SovereignChannel[],
+            groups: channelsData.groups as SovereignChannel[],
+        };
+    }
+
+    const matrixRooms = MatrixRoomService.getInstance().getAllRooms();
+    if (matrixRooms.length === 0) {
+        return {
+            channels: channelsData.channels as SovereignChannel[],
+            groups: channelsData.groups as SovereignChannel[],
+        };
+    }
+
+    const channels: SovereignChannel[] = [];
+    const groups: SovereignChannel[] = [];
+
+    matrixRooms.forEach((room) => {
+        const item = mapMatrixRoomToChannel(room);
+        if (item.type === "channel") {
+            channels.push(item);
+        } else {
+            groups.push(item);
+        }
+    });
+
+    return { channels, groups };
+}
+
+export function useGroups(): SovereignChannel[] {
+    return useChannels().groups;
 }
 
 export function useTasks(): SovereignTask[] {

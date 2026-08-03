@@ -1,24 +1,29 @@
 /*
- * Sovereign Messenger — Sprint 1, Step 7.1
- * useMessages.ts — Thin React hook consuming MessageService.
+ * Sovereign Messenger — Sprint 2, Phase 6.2
+ * useMessages.ts — Message Provider Hook.
  *
- * Implements Dependency Inversion. Accepts optional MessageService parameter,
- * defaulting to DemoMessageService instance.
+ * Implements Dependency Inversion:
+ * When SOVEREIGN_MODE=true (isDemoMode()): uses DemoMessageService.
+ * When SOVEREIGN_MODE=false (!isDemoMode()): uses MatrixMessageService -> MatrixTimelineService.
  */
 
 import { useState, useEffect, useCallback } from "react";
 import type { MessageService, SovereignMessage } from "../services/MessageService";
 import { DemoMessageService } from "../services/DemoMessageService";
+import { MatrixMessageService } from "../services/MatrixMessageService";
+import { isDemoMode } from "../config/SovereignConfig";
 
-// Default active transport instance for Sprint 1
 const defaultDemoService = new DemoMessageService();
+const defaultMatrixService = new MatrixMessageService();
 
 export function useMessages(
     channelId?: string,
-    messageService: MessageService = defaultDemoService
+    messageService?: MessageService
 ) {
     const [messages, setMessages] = useState<SovereignMessage[]>([]);
     const [isLoading, setIsLoading] = useState<boolean>(false);
+
+    const activeService = messageService || (isDemoMode() ? defaultDemoService : defaultMatrixService);
 
     useEffect(() => {
         if (!channelId) {
@@ -28,8 +33,8 @@ export function useMessages(
 
         setIsLoading(true);
 
-        // Subscribe to real-time updates from MessageService implementation
-        const unsubscribe = messageService.subscribeToTimeline(channelId, (updatedMessages) => {
+        // Subscribe to timeline updates from active transport service
+        const unsubscribe = activeService.subscribeToTimeline(channelId, (updatedMessages) => {
             setMessages(updatedMessages);
             setIsLoading(false);
         });
@@ -37,14 +42,14 @@ export function useMessages(
         return () => {
             unsubscribe();
         };
-    }, [channelId, messageService]);
+    }, [channelId, activeService]);
 
     const sendMessage = useCallback(
         async (content: string, senderId: string, senderName: string, senderRole: string) => {
             if (!channelId || !content.trim()) return;
-            await messageService.sendMessage(channelId, content, senderId, senderName, senderRole);
+            await activeService.sendMessage(channelId, content, senderId, senderName, senderRole);
         },
-        [channelId, messageService]
+        [channelId, activeService]
     );
 
     return {

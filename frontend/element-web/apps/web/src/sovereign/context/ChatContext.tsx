@@ -33,6 +33,13 @@ export function ChatProvider({
     const [activeChannelId, setActiveChannelId] = useState<string>(defaultChannelId);
     const { channels, groups } = useChannels();
     const allChannels = useMemo(() => [...channels, ...groups], [channels, groups]);
+
+    React.useEffect(() => {
+        if (allChannels.length > 0 && !allChannels.some((c) => c.id === activeChannelId)) {
+            setActiveChannelId(allChannels[0].id);
+        }
+    }, [allChannels, activeChannelId]);
+
     const { messages, sendMessage: sendDemoMessage } = useMessages(activeChannelId);
     const { currentUser } = usePermissions();
 
