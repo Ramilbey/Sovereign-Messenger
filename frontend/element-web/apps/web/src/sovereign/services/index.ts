@@ -11,3 +11,4 @@ export * from "./SessionService";
 export * from "./SessionBootstrapService";
 export * from "./BootstrapCoordinator";
 export * from "./MatrixSyncService";
+export * from "./MatrixRoomService";
