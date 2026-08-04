@@ -697,3 +697,57 @@
     background-color: var(--svr-status-success-subtle);
     color: var(--svr-status-success);
 }
+
+/* ── CMP-46 Security Notice ──────────────────────────────────────────────── */
+/* SUX-14: an action-required notice renders no dismiss control, so it cannot
+   be hidden while unresolved. */
+
+.svr-security-notice {
+    display: flex;
+    align-items: flex-start;
+    gap: var(--svr-space-3);
+    padding: var(--svr-space-3) var(--svr-space-4);
+    border: var(--svr-border-width-thin) solid var(--svr-border-default);
+    border-radius: var(--svr-radius-md);
+    background-color: var(--svr-surface-raised);
+    font-family: var(--svr-font-family-base);
+}
+
+.svr-security-notice--action-required {
+    border-color: var(--svr-status-warning);
+    background-color: var(--svr-status-warning-subtle);
+}
+
+.svr-security-notice__icon {
+    display: inline-flex;
+    flex: none;
+    color: var(--svr-content-secondary);
+}
+
+.svr-security-notice--action-required .svr-security-notice__icon {
+    color: var(--svr-status-warning);
+}
+
+.svr-security-notice__body {
+    flex: 1;
+    min-width: 0;
+}
+
+.svr-security-notice__title {
+    margin: 0;
+    font-size: var(--svr-type-body-size);
+    font-weight: var(--svr-type-body-strong-weight);
+    line-height: var(--svr-type-body-line);
+    color: var(--svr-content-primary);
+}
+
+.svr-security-notice__description {
+    margin: var(--svr-space-1) 0 0;
+    font-size: var(--svr-type-caption-size);
+    line-height: var(--svr-type-caption-line);
+    color: var(--svr-content-secondary);
+}
+
+.svr-security-notice__action {
+    flex: none;
+}

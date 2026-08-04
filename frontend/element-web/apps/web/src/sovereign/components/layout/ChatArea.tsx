@@ -102,7 +102,7 @@ export function ChatArea(): JSX.Element {
 
             {/* Conditional Composer Bar (Unmounted if employee in read-only channel) */}
             {isAllowedToPost ? (
-                <MessageComposer onSendMessage={handleSendMessage} />
+                <MessageComposer onSendMessage={handleSendMessage} conversationId={activeChannelId} />
             ) : (
                 <div
                     style={{
