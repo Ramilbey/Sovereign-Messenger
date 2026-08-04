@@ -6,8 +6,9 @@
  * Manages active channel selection, active channel metadata, and message sending.
  */
 
-import React, { createContext, useContext, useState, useMemo, useCallback, type ReactNode, type JSX } from "react";
+import React, { createContext, useContext, useState, useMemo, useCallback, useEffect, type ReactNode, type JSX } from "react";
 import { usePermissions } from "./PermissionContext";
+import { OutboxService } from "../services/OutboxService";
 import { useChannels, useMessages, type SovereignChannel, type SovereignMessage } from "../providers/useSovereignData";
 
 
@@ -48,26 +49,36 @@ export function ChatProvider({
         [allChannels, activeChannelId],
     );
 
+    /*
+     * SUX-6 / ST-38: while disconnected, a composed message is queued rather
+     * than lost, and sent automatically in original order once the connection
+     * returns (EDGE-11). The outbox decides only WHEN to hand the message to
+     * the existing send path — it does not change how messages are sent.
+     */
+    const outbox = OutboxService.getInstance();
+
+    useEffect(() => {
+        if (!currentUser) return;
+        outbox.start((_conversationId, content) =>
+            sendDemoMessage(content, currentUser.id, currentUser.displayName, currentUser.role),
+        );
+    }, [outbox, currentUser, sendDemoMessage]);
+
     const handleSendMessage = useCallback(
         async (content: string) => {
             if (!currentUser) return;
 
             try {
-                await sendDemoMessage(
-                    content,
-                    currentUser.id,
-                    currentUser.displayName,
-                    currentUser.role,
-                );
+                await outbox.submit(activeChannelId, content);
             } catch (error: unknown) {
-                // Transport-level failures (Matrix send rejected, network drop)
-                // must not surface as an unhandled promise rejection —
-                // ChatArea's composer does not await this call.
+                // Transport-level failures (send rejected, network drop) must not
+                // surface as an unhandled promise rejection — ChatArea's composer
+                // does not await this call (ERR-1).
                 const detail = error instanceof Error ? error.message : String(error);
                 console.error("[ChatContext] Failed to send message:", detail);
             }
         },
-        [currentUser, sendDemoMessage],
+        [currentUser, outbox, activeChannelId],
     );
 
     const value = useMemo<ChatContextValue>(
