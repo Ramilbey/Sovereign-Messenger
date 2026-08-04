@@ -10,6 +10,7 @@
  * - Notifies subscribers immediately post-send so messages render in ChatArea instantly without refresh.
  */
 
+import { MatrixEventEvent, RoomEvent } from "matrix-js-sdk/src/matrix";
 import type { MessageService, SovereignMessage, TimelineCallback } from "./MessageService";
 import { MatrixTimelineService } from "./MatrixTimelineService";
 import { MatrixClientService } from "./MatrixClientService";
@@ -117,9 +118,25 @@ export class MatrixMessageService implements MessageService {
             }
         };
 
+        // In an end-to-end encrypted room, an event arrives over /sync as
+        // m.room.encrypted and Room.timeline fires BEFORE decryption finishes
+        // (decryption is asynchronous — see matrix-js-sdk event-mapper.ts). At
+        // that moment MatrixTimelineService.transformEvent() still sees
+        // m.room.encrypted and drops the event. Decryption completing does NOT
+        // re-fire Room.timeline — it fires MatrixEventEvent.Decrypted — so
+        // without this second listener a received message never reaches the UI
+        // until something else forces a re-read (sending, switching rooms, or a
+        // refresh). Element's own RoomView.tsx uses this same pair of listeners.
+        const onEventDecrypted = (event: any) => {
+            if (event?.getRoomId?.() !== channelId) return; // not for this room
+            if (event?.isDecryptionFailure?.()) return; // still undecryptable
+            this.notifyTimelineUpdate(channelId);
+        };
+
         try {
-            client.on("Room.timeline", onRoomTimeline);
-            client.on("Room.localEchoUpdated", onRoomTimeline);
+            client.on(RoomEvent.Timeline, onRoomTimeline);
+            client.on(RoomEvent.LocalEchoUpdated, onRoomTimeline);
+            client.on(MatrixEventEvent.Decrypted, onEventDecrypted);
         } catch (err: unknown) {
             const detail = err instanceof Error ? err.message : String(err);
             console.warn("[MatrixMessageService] Warning attaching timeline listener:", detail);
@@ -131,8 +148,9 @@ export class MatrixMessageService implements MessageService {
                 callbacks.delete(callback);
             }
             try {
-                client.removeListener("Room.timeline", onRoomTimeline);
-                client.removeListener("Room.localEchoUpdated", onRoomTimeline);
+                client.removeListener(RoomEvent.Timeline, onRoomTimeline);
+                client.removeListener(RoomEvent.LocalEchoUpdated, onRoomTimeline);
+                client.removeListener(MatrixEventEvent.Decrypted, onEventDecrypted);
             } catch {
                 // Graceful fallback
             }

@@ -21,7 +21,6 @@ export function ChatArea(): JSX.Element {
     const { currentUser, canPostInChannel } = usePermissions();
     const users = useUsers();
     const { channels, groups } = useChannels();
-    const allChannels = useMemo(() => [...channels, ...groups], [channels, groups]);
 
     // Map user Initials for MessageTimeline avatar circles
     const userInitialsMap = useMemo(() => {

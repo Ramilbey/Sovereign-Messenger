@@ -24,6 +24,7 @@ import evidenceData from "../demo/evidence.json";
 import reportsData from "../demo/reports.json";
 import courtMaterialsData from "../demo/court_materials.json";
 
+import { ClientEvent } from "matrix-js-sdk/src/matrix";
 import type { SovereignMessage } from "../services/MessageService";
 import { useMessages } from "../hooks/useMessages";
 import { isDemoMode } from "../config/SovereignConfig";
@@ -180,7 +181,14 @@ function mapMatrixRoomToChannel(room: SovereignRoom): SovereignChannel {
         type: isChannel ? "channel" : "group",
         icon: isChannel ? "📢" : "💬",
         description: room.topic || (isChannel ? "Matrix Rasmiy Kanal" : "Matrix Guruhi"),
-        readOnlyForEmployees: false,
+        // Blueprint §3.2: official channels are announcement-only — only
+        // Rahbar/Administrator may post, everyone reads. Groups are where
+        // employees actually work, so they stay writable. This mirrors the demo
+        // dataset (channels.json), where every channel is readOnlyForEmployees:
+        // true and every group is false. Previously hardcoded to false, which
+        // silently granted every employee write access to every announcement
+        // channel in production mode.
+        readOnlyForEmployees: isChannel,
     };
 }
 
@@ -215,16 +223,16 @@ export function useChannels(): { channels: SovereignChannel[]; groups: Sovereign
         const handleRoom = () => updateRooms();
 
         try {
-            client.on("sync", handleSync);
-            client.on("Room", handleRoom);
+            client.on(ClientEvent.Sync, handleSync);
+            client.on(ClientEvent.Room, handleRoom);
         } catch {
             // Graceful fallback
         }
 
         return () => {
             try {
-                client.removeListener("sync", handleSync);
-                client.removeListener("Room", handleRoom);
+                client.removeListener(ClientEvent.Sync, handleSync);
+                client.removeListener(ClientEvent.Room, handleRoom);
             } catch {
                 // Graceful fallback
             }

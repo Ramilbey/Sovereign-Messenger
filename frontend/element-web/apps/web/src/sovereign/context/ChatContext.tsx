@@ -52,12 +52,20 @@ export function ChatProvider({
         async (content: string) => {
             if (!currentUser) return;
 
-            await sendDemoMessage(
-                content,
-                currentUser.id,
-                currentUser.displayName,
-                currentUser.role,
-            );
+            try {
+                await sendDemoMessage(
+                    content,
+                    currentUser.id,
+                    currentUser.displayName,
+                    currentUser.role,
+                );
+            } catch (error: unknown) {
+                // Transport-level failures (Matrix send rejected, network drop)
+                // must not surface as an unhandled promise rejection —
+                // ChatArea's composer does not await this call.
+                const detail = error instanceof Error ? error.message : String(error);
+                console.error("[ChatContext] Failed to send message:", detail);
+            }
         },
         [currentUser, sendDemoMessage],
     );

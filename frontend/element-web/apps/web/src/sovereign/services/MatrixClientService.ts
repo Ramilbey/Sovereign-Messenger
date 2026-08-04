@@ -63,17 +63,6 @@ export class MatrixClientService {
     }
 
     /**
-     * Creates an unauthenticated, temporary MatrixClient instance (e.g. for login requests).
-     * Does NOT override or set the shared authenticated client instance.
-     */
-    public createUnauthenticatedClient(overrideBaseUrl?: string): MatrixClient {
-        const baseUrl = overrideBaseUrl || this.getHomeserverUrl();
-        return createClient({
-            baseUrl,
-        });
-    }
-
-    /**
      * Initializes and sets the single shared authenticated MatrixClient instance.
      * Reused across future messaging, rooms, timeline, presence, and status services.
      */
@@ -135,20 +124,5 @@ export class MatrixClientService {
      */
     public hasAuthenticatedClient(): boolean {
         return this.getClient() !== null;
-    }
-
-    /**
-     * Stops authenticated client lifecycle and clears client reference.
-     */
-    public stopClient(): void {
-        if (this.authenticatedClient) {
-            try {
-                this.authenticatedClient.stopClient();
-            } catch (err: unknown) {
-                const detail = err instanceof Error ? err.message : String(err);
-                console.warn("[MatrixClientService] Warning stopping client:", detail);
-            }
-            this.authenticatedClient = null;
-        }
     }
 }

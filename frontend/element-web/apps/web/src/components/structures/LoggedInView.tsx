@@ -6,7 +6,7 @@ SPDX-License-Identifier: AGPL-3.0-only OR GPL-3.0-only OR LicenseRef-Element-Com
 Please see LICENSE files in the repository root for full details.
 */
 
-import React, { type ClipboardEvent } from "react";
+import React from "react";
 import {
     ClientEvent,
     type MatrixClient,
@@ -21,11 +21,8 @@ import {
     ProfileKeyMSC4175Timezone,
 } from "matrix-js-sdk/src/matrix";
 import { type MatrixCall } from "matrix-js-sdk/src/webrtc/call";
-import classNames from "classnames";
-import { GroupView, SeparatorView, Panel, LeftResizablePanelView } from "@element-hq/web-shared-components";
 
 import { isOnlyCtrlOrCmdKeyEvent, Key } from "../../Keyboard";
-import PageTypes from "../../PageTypes";
 import MediaDeviceHandler from "../../MediaDeviceHandler";
 import dis from "../../dispatcher/dispatcher";
 import { type IMatrixClientCreds } from "../../utils/createMatrixClient";
@@ -34,41 +31,30 @@ import { SettingLevel } from "../../settings/SettingLevel";
 import PlatformPeg from "../../PlatformPeg";
 import { hideToast as hideServerLimitToast, showToast as showServerLimitToast } from "../../toasts/ServerLimitToast";
 import { Action } from "../../dispatcher/actions";
-import LeftPanel from "./LeftPanel";
 import { type ViewRoomDeltaPayload } from "../../dispatcher/payloads/ViewRoomDeltaPayload";
 import RoomListStoreV3 from "../../stores/room-list-v3/RoomListStoreV3";
-import NonUrgentToastContainer from "./NonUrgentToastContainer";
 import { type IOOBData, type IThreepidInvite } from "../../stores/ThreepidInviteStore";
 import Modal from "../../Modal";
 import { getKeyBindingsManager } from "../../KeyBindingsManager";
 import { type IOpts } from "../../createRoom";
-import SpacePanel from "../views/spaces/SpacePanel";
 import { LegacyCallHandlerEvent } from "../../LegacyCallHandler";
-import AudioFeedArrayForLegacyCall from "../views/voip/AudioFeedArrayForLegacyCall";
 import { OwnProfileStore } from "../../stores/OwnProfileStore";
 import { UPDATE_EVENT } from "../../stores/AsyncStore";
-import { RoomView } from "./RoomView";
-import ToastContainer from "./ToastContainer";
-import UserView from "./UserView";
 import { mediaFromMxc } from "../../customisations/Media";
 import { UserTab } from "../views/dialogs/UserTab";
 import { type OpenToTabPayload } from "../../dispatcher/payloads/OpenToTabPayload";
 import { TimelineRenderingType } from "../../contexts/RoomContext";
 import { KeyBindingAction } from "../../accessibility/KeyboardShortcuts";
 import { type SwitchSpacePayload } from "../../dispatcher/payloads/SwitchSpacePayload";
-import LeftPanelLiveShareWarning from "../views/beacon/LeftPanelLiveShareWarning";
-import HomePage from "./HomePage";
-import { PipContainer } from "./PipContainer";
 import { monitorSyncedPushRules } from "../../utils/pushRules/monitorSyncedPushRules";
 import { MatrixClientContextProvider } from "./MatrixClientContextProvider";
 import { Landmark, LandmarkNavigation } from "../../accessibility/LandmarkNavigation";
-import { ModuleApi } from "../../modules/Api.ts";
 import { SDKContext } from "../../contexts/SDKContext.ts";
-import { ResizerViewModel } from "../../viewmodels/structures/ResizerViewModel.ts";
+import type { RoomView } from "./RoomView";
 import { SovereignLayout } from "../../sovereign/components/layout/SovereignLayout";
 import { PermissionProvider } from "../../sovereign/context/PermissionContext";
 import { ChatProvider } from "../../sovereign/context/ChatContext";
-import type { SovereignUser } from "../../sovereign/providers/useSovereignData";
+import { MatrixUserService } from "../../sovereign/services/MatrixUserService";
 import "../../sovereign/bridge/MatrixClientBridge";
 
 // We need to fetch each pinned message individually (if we don't already have it)
@@ -128,8 +114,6 @@ class LoggedInView extends React.Component<IProps, IState> {
     protected compactLayoutWatcherRef?: string;
     protected backgroundImageWatcherRef?: string;
     protected timezoneProfileUpdateRef?: string[];
-
-    private resizerViewModel?: ResizerViewModel;
 
     public static contextType = SDKContext;
     declare public context: React.ContextType<typeof SDKContext>;
@@ -191,18 +175,6 @@ class LoggedInView extends React.Component<IProps, IState> {
         this.refreshBackgroundImage();
     }
 
-    private getResizerViewModel(): ResizerViewModel {
-        if (!this.resizerViewModel) {
-            this.resizerViewModel = new ResizerViewModel(this.context.callStore);
-        }
-        return this.resizerViewModel;
-    }
-
-    private disposeResizerViewModel(): void {
-        this.resizerViewModel?.dispose();
-        this.resizerViewModel = undefined;
-    }
-
     private onTimezoneUpdate = async (): Promise<void> => {
         // TODO: In a future app release, remove support for legacy key.
         if (!SettingsStore.getValue("userTimezonePublish")) {
@@ -242,7 +214,6 @@ class LoggedInView extends React.Component<IProps, IState> {
         SettingsStore.unwatchSetting(this.compactLayoutWatcherRef);
         SettingsStore.unwatchSetting(this.backgroundImageWatcherRef);
         this.timezoneProfileUpdateRef?.forEach((s) => SettingsStore.unwatchSetting(s));
-        this.disposeResizerViewModel();
     }
 
     private onCallState = (): void => {
@@ -374,27 +345,6 @@ class LoggedInView extends React.Component<IProps, IState> {
         });
     };
 
-    private onPaste = (ev: ClipboardEvent): void => {
-        const element = ev.target as HTMLElement;
-        const inputableElement = getInputableElement(element);
-        if (inputableElement === document.activeElement) return; // nothing to do
-
-        if (inputableElement?.focus) {
-            inputableElement.focus();
-        } else {
-            const inThread = !!document.activeElement?.closest(".mx_ThreadView");
-            // refocusing during a paste event will make the paste end up in the newly focused element,
-            // so dispatch synchronously before paste happens
-            dis.dispatch(
-                {
-                    action: Action.FocusSendMessageComposer,
-                    context: inThread ? TimelineRenderingType.Thread : TimelineRenderingType.Room,
-                },
-                true,
-            );
-        }
-    };
-
     /*
     SOME HACKERY BELOW:
     React optimizes event handlers, by always attaching only 1 handler to the document for a given type.
@@ -417,12 +367,6 @@ class LoggedInView extends React.Component<IProps, IState> {
     We also listen with a native listener on the document to get keydown events when no element is focused.
     Bubbling is irrelevant here as the target is the body element.
     */
-    private onReactKeyDown = (ev: React.KeyboardEvent): void => {
-        // events caught while bubbling up on the root element
-        // of this component, so something must be focused.
-        this.onKeyDown(ev);
-    };
-
     private onNativeKeyDown = (ev: KeyboardEvent): void => {
         // only pass this if there is no focused element.
         // if there is, onKeyDown will be called by the
@@ -623,123 +567,16 @@ class LoggedInView extends React.Component<IProps, IState> {
     };
 
     public render(): React.ReactNode {
-        let pageElement;
-
-        const moduleRenderer = this.props.page_type
-            ? ModuleApi.instance.navigation.locationRenderers.get(this.props.page_type)
-            : undefined;
-
-        switch (this.props.page_type) {
-            case PageTypes.RoomView:
-                pageElement = (
-                    <RoomView
-                        ref={this._roomView}
-                        onRegistered={this.props.onRegistered}
-                        threepidInvite={this.props.threepidInvite}
-                        oobData={this.props.roomOobData}
-                        key={this.props.currentRoomId || "roomview"}
-                        justCreatedOpts={this.props.roomJustCreatedOpts}
-                        forceTimeline={this.props.forceTimeline}
-                    />
-                );
-                break;
-
-            case PageTypes.HomePage:
-                pageElement = <HomePage justRegistered={this.props.justRegistered} />;
-                break;
-
-            case PageTypes.UserView:
-                if (!!this.props.currentUserId) {
-                    pageElement = (
-                        <UserView userId={this.props.currentUserId} resizeNotifier={this.context.resizeNotifier} />
-                    );
-                }
-                break;
-            default: {
-                if (moduleRenderer) {
-                    // Since the view will be removed, remove the vm as well
-                    this.disposeResizerViewModel();
-                    pageElement = moduleRenderer();
-                } else {
-                    console.warn(`Couldn't render page type "${this.props.page_type}"`);
-                }
-            }
-        }
-
-        const wrapperClasses = classNames({
-            mx_MatrixChat_wrapper: true,
-            mx_MatrixChat_useCompactLayout: this.state.useCompactLayout,
-        });
-        const bodyClasses = classNames({
-            "mx_MatrixChat": true,
-            "mx_MatrixChat--with-avatar": this.state.backgroundImage,
-        });
-
-        const leftPanelWrapperClasses = classNames("mx_LeftPanel_wrapper");
-
-        const audioFeedArraysForCalls = this.state.activeCalls.map((call) => {
-            return <AudioFeedArrayForLegacyCall call={call} key={call.callId} />;
-        });
-
-        const leftPanel = (
-            <div className="mx_LeftPanel_outerWrapper">
-                <LeftPanelLiveShareWarning isMinimized={false} />
-                <div className={leftPanelWrapperClasses}>
-                    {!moduleRenderer && (
-                        <div className="mx_LeftPanel_wrapper--user">
-                            <LeftPanel isMinimized={false} resizeNotifier={this.context.resizeNotifier} />
-                        </div>
-                    )}
-                </div>
-            </div>
-        );
-
-        const roomView = <div className="mx_RoomView_wrapper">{pageElement}</div>;
-
-        let content: React.ReactNode;
-        const resizerViewModel = !moduleRenderer ? this.getResizerViewModel() : undefined;
-        if (resizerViewModel && !moduleRenderer) {
-            // Resizable layout with a draggable separator. The SpacePanel lives inside GroupView
-            // (leftPanel omits it).
-            content = (
-                <GroupView vm={resizerViewModel}>
-                    <SpacePanel />
-                    <LeftResizablePanelView
-                        vm={resizerViewModel}
-                        className="mx_LeftPanel_panel"
-                        minSize="200px"
-                        maxSize="370px"
-                        defaultSize="370px"
-                    >
-                        {leftPanel}
-                    </LeftResizablePanelView>
-                    <SeparatorView className="mx_Separator" vm={resizerViewModel} />
-                    <Panel className="mx_LeftPanel_panel">{roomView}</Panel>
-                </GroupView>
-            );
-        } else {
-            // Fallback layout for a module's full-screen view (e.g. multiroom) which must not use the
-            // resizable layout above. The ResizeHandle is dropped for module views, which manage their
-            // own layout.
-            content = (
-                <>
-                    <SpacePanel />
-                    {leftPanel}
-                    {roomView}
-                </>
-            );
-        }
-
-        const currentUserId = this.props.matrixClient.getUserId() || "@user:gov.local";
-        const sovereignUser: SovereignUser = {
-            id: currentUserId,
-            displayName: this.props.matrixClient.getUser(currentUserId)?.displayName || currentUserId,
-            role: "Manager",
-            department: "Tergov Boshqarmasi",
-            status: "online",
-            statusLabel: "Tarmoqda",
-            avatarInitials: currentUserId.length > 2 ? currentUserId.substring(1, 3).toUpperCase() : "TM",
-        };
+        // Sovereign Messenger — Production Mode: Element's own chrome (SpacePanel,
+        // LeftPanel, RoomView, toasts, PiP, call UI) is intentionally not rendered.
+        // SovereignLayout fully replaces it below; MatrixClientContextProvider keeps
+        // the single real MatrixClient available to Sovereign's components via context.
+        //
+        // sovereignUser's role/department come from the real Matrix account data
+        // (see MatrixUserService — PRD §4.3), not a hardcoded value. A user with
+        // no m.identity.role account data yet is treated as Employee, the
+        // least-privileged role, never Manager.
+        const sovereignUser = MatrixUserService.getCurrentUser(this.props.matrixClient);
 
         return (
             <MatrixClientContextProvider client={this._matrixClient}>
