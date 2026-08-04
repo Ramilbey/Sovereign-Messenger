@@ -69,6 +69,7 @@ import { SovereignLayout } from "../../sovereign/components/layout/SovereignLayo
 import { PermissionProvider } from "../../sovereign/context/PermissionContext";
 import { ChatProvider } from "../../sovereign/context/ChatContext";
 import type { SovereignUser } from "../../sovereign/providers/useSovereignData";
+import "../../sovereign/bridge/MatrixClientBridge";
 
 // We need to fetch each pinned message individually (if we don't already have it)
 // so each pinned message may trigger a request. Limit the number per room for sanity.

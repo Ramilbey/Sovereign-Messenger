@@ -13,3 +13,5 @@ export * from "./BootstrapCoordinator";
 export * from "./MatrixSyncService";
 export * from "./MatrixRoomService";
 export * from "./MatrixTimelineService";
+export * from "../bridge/MatrixClientBridge";
+

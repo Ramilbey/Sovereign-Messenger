@@ -1,14 +1,13 @@
 /*
- * Sovereign Messenger — Sprint 2, Phase 6.3
+ * Sovereign Messenger — Sprint 2, Phase 6.3 / Debug Fix
  * MatrixMessageService.ts — Matrix Timeline & Messaging Service Implementation.
  *
- * PRD §3.1 & Phase 6.3 Requirements:
+ * Requirements:
  * - Implements real message sending via Matrix SDK sendTextMessage API.
  * - Uses MatrixClientService.getInstance().getClient(). Never creates duplicate Matrix clients.
- * - Listens for Matrix SDK Room.timeline events to make Matrix timeline the single source of truth.
- * - Does NOT manually append messages to local state post-send.
- * - Graceful error handling without crashing React components.
- * - Architecture: MessageComposer -> ChatContext -> useMessages -> MatrixMessageService -> MatrixClientService -> Matrix SDK -> Synapse.
+ * - Subscribes to Matrix SDK Room.timeline and Room.localEchoUpdated events.
+ * - Combines live timeline and pending sending events via MatrixTimelineService.
+ * - Notifies subscribers immediately post-send so messages render in ChatArea instantly without refresh.
  */
 
 import type { MessageService, SovereignMessage, TimelineCallback } from "./MessageService";
@@ -18,6 +17,7 @@ import { MatrixClientService } from "./MatrixClientService";
 export class MatrixMessageService implements MessageService {
     private timelineService: MatrixTimelineService;
     private clientService: MatrixClientService;
+    private activeSubscribers: Map<string, Set<TimelineCallback>> = new Map();
 
     constructor() {
         this.timelineService = MatrixTimelineService.getInstance();
@@ -38,7 +38,6 @@ export class MatrixMessageService implements MessageService {
 
     /**
      * Sends a text message to the specified Matrix room using Matrix JS SDK.
-     * Does NOT append manually to local state; timeline subscription is the single source of truth.
      */
     public async sendMessage(
         channelId: string,
@@ -57,8 +56,11 @@ export class MatrixMessageService implements MessageService {
         }
 
         try {
-            // Execute Matrix JS SDK text message sending (POST /_matrix/client/v3/rooms/{roomId}/send/m.room.message/{txnId})
             const response = await client.sendTextMessage(channelId, content);
+
+            // Notify active subscribers immediately upon send completion
+            this.notifyTimelineUpdate(channelId);
+
             const eventId = response?.event_id || `sent_${Date.now()}`;
             const timestamp = Date.now();
             const dateObj = new Date(timestamp);
@@ -90,41 +92,70 @@ export class MatrixMessageService implements MessageService {
             return () => {};
         }
 
-        const notifyTimelineUpdate = () => {
-            const rawTimeline = this.timelineService.getTimeline(channelId);
-            const sovereignMessages = rawTimeline.map((msg) => this.mapToSovereignMessage(msg));
-            callback(sovereignMessages);
-        };
+        // Register callback in activeSubscribers
+        if (!this.activeSubscribers.has(channelId)) {
+            this.activeSubscribers.set(channelId, new Set());
+        }
+        this.activeSubscribers.get(channelId)!.add(callback);
 
-        // 1. Send initial timeline snapshot
-        notifyTimelineUpdate();
+        // 1. Deliver initial snapshot
+        this.notifyTimelineUpdate(channelId);
 
-        // 2. Register listener on authenticated MatrixClient for Room.timeline events
+        // 2. Register listener on authenticated MatrixClient for Room.timeline & Room.localEchoUpdated events
         const client = this.clientService.getClient();
         if (!client) {
-            return () => {};
+            return () => {
+                const callbacks = this.activeSubscribers.get(channelId);
+                if (callbacks) callbacks.delete(callback);
+            };
         }
 
         const onRoomTimeline = (event: any, room: any) => {
-            if (room && room.roomId === channelId) {
-                notifyTimelineUpdate();
+            const eventRoomId = room?.roomId || event?.getRoomId?.();
+            if (eventRoomId === channelId || (room && room.roomId === channelId)) {
+                this.notifyTimelineUpdate(channelId);
             }
         };
 
         try {
             client.on("Room.timeline", onRoomTimeline);
+            client.on("Room.localEchoUpdated", onRoomTimeline);
         } catch (err: unknown) {
             const detail = err instanceof Error ? err.message : String(err);
             console.warn("[MatrixMessageService] Warning attaching timeline listener:", detail);
         }
 
         return () => {
+            const callbacks = this.activeSubscribers.get(channelId);
+            if (callbacks) {
+                callbacks.delete(callback);
+            }
             try {
                 client.removeListener("Room.timeline", onRoomTimeline);
+                client.removeListener("Room.localEchoUpdated", onRoomTimeline);
             } catch {
                 // Graceful fallback
             }
         };
+    }
+
+    /**
+     * Triggers timeline snapshot fetch and notifies all active subscribers for the channel.
+     */
+    private notifyTimelineUpdate(channelId: string): void {
+        const callbacks = this.activeSubscribers.get(channelId);
+        if (!callbacks || callbacks.size === 0) return;
+
+        const rawTimeline = this.timelineService.getTimeline(channelId);
+        const sovereignMessages = rawTimeline.map((msg) => this.mapToSovereignMessage(msg));
+
+        callbacks.forEach((cb) => {
+            try {
+                cb(sovereignMessages);
+            } catch (e) {
+                console.warn("[MatrixMessageService] Error in subscriber callback:", e);
+            }
+        });
     }
 
     /**

@@ -13,6 +13,7 @@
 import { createClient, type MatrixClient, type ICreateClientOpts } from "matrix-js-sdk/src/matrix";
 import { loadSovereignConfig, getSovereignConfig, type SovereignConfigOptions } from "../config/SovereignConfig";
 import { type MatrixSession } from "./SessionService";
+import { MatrixClientPeg } from "../../MatrixClientPeg";
 
 export interface AuthenticatedClientCredentials {
     accessToken: string;
@@ -104,17 +105,36 @@ export class MatrixClientService {
     }
 
     /**
+     * Sets the shared authenticated MatrixClient reference directly from Host Platform.
+     * Does NOT call createClient(), login(), or startClient().
+     */
+    public setClient(client: MatrixClient): void {
+        this.authenticatedClient = client;
+    }
+
+    /**
+     * Clears the authenticated MatrixClient reference without stopping host client.
+     */
+    public clearClient(): void {
+        this.authenticatedClient = null;
+    }
+
+    /**
      * Get current active authenticated MatrixClient instance.
+     * Checks explicit reference first, falling back to MatrixClientPeg.get().
      */
     public getClient(): MatrixClient | null {
-        return this.authenticatedClient;
+        if (this.authenticatedClient) {
+            return this.authenticatedClient;
+        }
+        return MatrixClientPeg.get();
     }
 
     /**
      * Check if an authenticated MatrixClient instance is initialized and active.
      */
     public hasAuthenticatedClient(): boolean {
-        return this.authenticatedClient !== null;
+        return this.getClient() !== null;
     }
 
     /**

@@ -67,9 +67,13 @@ export class MatrixTimelineService {
             const rawEvents = liveTimeline && typeof liveTimeline.getEvents === "function"
                 ? liveTimeline.getEvents()
                 : Array.isArray(room.timeline) ? room.timeline : [];
+            const pendingEvents = typeof room.getPendingEvents === "function" ? room.getPendingEvents() : [];
+
+            // Combine live timeline events with local pending sending events
+            const allEvents = [...rawEvents, ...pendingEvents];
 
             const messages: SovereignMessage[] = [];
-            for (const event of rawEvents) {
+            for (const event of allEvents) {
                 const msg = this.transformEvent(event, roomId);
                 if (msg) {
                     messages.push(msg);
