@@ -11,7 +11,7 @@
  */
 
 import { useState, useEffect } from "react";
-import organizationData from "../demo/organization.json";
+import organizationConfig from "../config/organization.config.json";
 import usersData from "../demo/users.json";
 import channelsData from "../demo/channels.json";
 import tasksData from "../demo/tasks.json";
@@ -25,6 +25,12 @@ import reportsData from "../demo/reports.json";
 import courtMaterialsData from "../demo/court_materials.json";
 
 import { ClientEvent } from "matrix-js-sdk/src/matrix";
+import {
+    ready,
+    loading,
+    unavailable,
+    type SovereignResource,
+} from "../types/resource";
 import type { SovereignMessage } from "../services/MessageService";
 import { useMessages } from "../hooks/useMessages";
 import { isDemoMode } from "../config/SovereignConfig";
@@ -194,30 +200,63 @@ function mapMatrixRoomToChannel(room: SovereignRoom): SovereignChannel {
 
 // ── Specialized Hooks ────────────────────────────────────────────────────────
 
-export function useOrganization(): SovereignOrganization {
-    return organizationData;
+/**
+ * The organisational identity of this deployment.
+ *
+ * Sourced from deployment configuration rather than the demonstration dataset,
+ * so it is authoritative in both runtime modes. The full multi-level hierarchy
+ * model (ORG-1) replaces this in a later milestone.
+ */
+export function useOrganization(): SovereignResource<SovereignOrganization> {
+    return ready(organizationConfig, false);
 }
 
-export function useUsers(): SovereignUser[] {
-    return usersData.users as SovereignUser[];
+/**
+ * Departmental colleagues.
+ *
+ * Production Mode: no authoritative source is wired in this milestone —
+ * real membership arrives with the member surfaces (CMP-12) — so this
+ * presents the `unavailable` state rather than fabricated colleagues (FR-1).
+ */
+export function useUsers(): SovereignResource<SovereignUser[]> {
+    return isDemoMode() ? ready(usersData.users as SovereignUser[]) : unavailable([]);
 }
 
-export function useChannels(): { channels: SovereignChannel[]; groups: SovereignChannel[] } {
-    const [matrixRooms, setMatrixRooms] = useState<SovereignRoom[]>(() => {
-        return isDemoMode() ? [] : MatrixRoomService.getInstance().getAllRooms();
-    });
+/**
+ * Channels and groups.
+ *
+ * Production Mode: derived from rooms the synchronised client has discovered.
+ * FR-4 — an empty room list resolves to the `empty` state. It is never
+ * replaced by demonstration content, which previously made real users see
+ * fabricated departmental channels.
+ */
+export function useChannels(): SovereignResource<{
+    channels: SovereignChannel[];
+    groups: SovereignChannel[];
+}> {
+    const demo = isDemoMode();
+
+    const [matrixRooms, setMatrixRooms] = useState<SovereignRoom[]>(() =>
+        demo ? [] : MatrixRoomService.getInstance().getAllRooms(),
+    );
+    // ES-1: a surface is loading until the first read has been attempted.
+    const [settled, setSettled] = useState<boolean>(demo);
 
     useEffect(() => {
-        if (isDemoMode()) return;
+        if (demo) return;
 
         const updateRooms = () => {
             setMatrixRooms(MatrixRoomService.getInstance().getAllRooms());
+            setSettled(true);
         };
 
         updateRooms();
 
         const client = MatrixClientService.getInstance().getClient();
-        if (!client) return;
+        if (!client) {
+            setSettled(true);
+            return;
+        }
 
         const handleSync = () => updateRooms();
         const handleRoom = () => updateRooms();
@@ -237,20 +276,21 @@ export function useChannels(): { channels: SovereignChannel[]; groups: Sovereign
                 // Graceful fallback
             }
         };
-    }, []);
+    }, [demo]);
 
-    if (isDemoMode()) {
-        return {
-            channels: channelsData.channels as SovereignChannel[],
-            groups: channelsData.groups as SovereignChannel[],
-        };
+    // Demo Mode is unchanged (ADR-004).
+    if (demo) {
+        return ready(
+            {
+                channels: channelsData.channels as SovereignChannel[],
+                groups: channelsData.groups as SovereignChannel[],
+            },
+            false,
+        );
     }
 
-    if (matrixRooms.length === 0) {
-        return {
-            channels: channelsData.channels as SovereignChannel[],
-            groups: channelsData.groups as SovereignChannel[],
-        };
+    if (!settled) {
+        return loading({ channels: [], groups: [] });
     }
 
     const channels: SovereignChannel[] = [];
@@ -265,60 +305,61 @@ export function useChannels(): { channels: SovereignChannel[]; groups: Sovereign
         }
     });
 
-    return { channels, groups };
+    return ready({ channels, groups }, channels.length === 0 && groups.length === 0);
 }
 
-export function useGroups(): SovereignChannel[] {
-    return useChannels().groups;
+export function useGroups(): SovereignResource<SovereignChannel[]> {
+    const { data, state } = useChannels();
+    return { data: data.groups, state: state === "ready" && data.groups.length === 0 ? "empty" : state };
 }
 
-export function useTasks(): SovereignTask[] {
-    return tasksData.tasks as SovereignTask[];
+/*
+ * Work modules with no authoritative data source in Sprint 3.
+ *
+ * FR-1 / FR-2: in Production Mode these present the `unavailable` state rather
+ * than demonstration content. Demo Mode continues to serve the full
+ * demonstration dataset unchanged (ADR-004).
+ *
+ * These surfaces gain real data sources in later sprints — see the PRD Future
+ * Recommendations section.
+ */
+
+export function useTasks(): SovereignResource<SovereignTask[]> {
+    return isDemoMode() ? ready(tasksData.tasks as SovereignTask[]) : unavailable([]);
 }
 
-export function useDocuments(): SovereignDocument[] {
-    return documentsData.documents as SovereignDocument[];
+export function useDocuments(): SovereignResource<SovereignDocument[]> {
+    return isDemoMode() ? ready(documentsData.documents as SovereignDocument[]) : unavailable([]);
 }
 
-export function useCalendar(): SovereignCalendarEvent[] {
-    return calendarData.events as SovereignCalendarEvent[];
+export function useCalendar(): SovereignResource<SovereignCalendarEvent[]> {
+    return isDemoMode() ? ready(calendarData.events as SovereignCalendarEvent[]) : unavailable([]);
 }
 
-export function useDashboard(): SovereignDashboardStats {
-    return dashboardData.stats as SovereignDashboardStats;
+export function useDashboard(): SovereignResource<SovereignDashboardStats | null> {
+    return isDemoMode()
+        ? ready(dashboardData.stats as SovereignDashboardStats, false)
+        : unavailable(null);
 }
 
-export function useCases(): TergovCase[] {
-    return casesData.cases as TergovCase[];
+export function useCases(): SovereignResource<TergovCase[]> {
+    return isDemoMode() ? ready(casesData.cases as TergovCase[]) : unavailable([]);
 }
 
-export function useSuspects(): TergovSuspect[] {
-    return suspectsData.suspects as TergovSuspect[];
+export function useSuspects(): SovereignResource<TergovSuspect[]> {
+    return isDemoMode() ? ready(suspectsData.suspects as TergovSuspect[]) : unavailable([]);
 }
 
-export function useEvidence(): TergovEvidence[] {
-    return evidenceData.evidence as TergovEvidence[];
+export function useEvidence(): SovereignResource<TergovEvidence[]> {
+    return isDemoMode() ? ready(evidenceData.evidence as TergovEvidence[]) : unavailable([]);
 }
 
-export function useReports(): TergovReport[] {
-    return reportsData.reports as TergovReport[];
+export function useReports(): SovereignResource<TergovReport[]> {
+    return isDemoMode() ? ready(reportsData.reports as TergovReport[]) : unavailable([]);
 }
 
-export function useCourtMaterials(): TergovCourtMaterial[] {
-    return courtMaterialsData.courtMaterials as TergovCourtMaterial[];
-}
-
-// ── Combined Aggregate Provider Hook ──────────────────────────────────────────
-
-export function useSovereignData() {
-    return {
-        organization: useOrganization(),
-        users: useUsers(),
-        ...useChannels(),
-        messages: useMessages().messages,
-        tasks: useTasks(),
-        documents: useDocuments(),
-        calendarEvents: useCalendar(),
-        dashboardStats: useDashboard(),
-    };
+export function useCourtMaterials(): SovereignResource<TergovCourtMaterial[]> {
+    return isDemoMode()
+        ? ready(courtMaterialsData.courtMaterials as TergovCourtMaterial[])
+        : unavailable([]);
 }

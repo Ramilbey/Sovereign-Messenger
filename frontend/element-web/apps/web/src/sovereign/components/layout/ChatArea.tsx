@@ -19,8 +19,8 @@ import { MessageComposer } from "../chat/MessageComposer";
 export function ChatArea(): JSX.Element {
     const { activeChannelId, setActiveChannelId, activeChannel, messages, sendMessage } = useChat();
     const { currentUser, canPostInChannel } = usePermissions();
-    const users = useUsers();
-    const { channels, groups } = useChannels();
+    const { data: users } = useUsers();
+    const { data: { channels, groups } } = useChannels();
 
     // Map user Initials for MessageTimeline avatar circles
     const userInitialsMap = useMemo(() => {

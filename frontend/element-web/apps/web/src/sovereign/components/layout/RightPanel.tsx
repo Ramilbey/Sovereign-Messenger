@@ -8,12 +8,15 @@
 import React, { type JSX } from "react";
 import { usePermissions } from "../../context/PermissionContext";
 import { useUsers, useOrganization } from "../../providers/useSovereignData";
+import { EmptyState } from "../ui";
+import { SURFACE_COPY } from "../../config/stateCopy";
 
 export function RightPanel(): JSX.Element {
     const { currentUser } = usePermissions();
-    const users = useUsers();
-    const org = useOrganization();
+    const { data: users, state: usersState } = useUsers();
+    const { data: org } = useOrganization();
 
+    const staffReady = usersState === "ready";
     const onlineCount = users.filter((u) => u.status === "online").length;
 
     return (
@@ -51,21 +54,40 @@ export function RightPanel(): JSX.Element {
                     <span style={{ fontSize: "11px", color: "#7d8e9e", textTransform: "uppercase", letterSpacing: "0.5px" }}>
                         Xodimlar Statusi
                     </span>
-                    <span style={{ fontSize: "11px", color: "#4caf50", fontWeight: "600" }}>
-                        {onlineCount} online
-                    </span>
+                    {staffReady && (
+                        <span style={{ fontSize: "11px", color: "#4caf50", fontWeight: "600" }}>
+                            {onlineCount} online
+                        </span>
+                    )}
                 </div>
 
-                <ul style={{ listStyle: "none", padding: 0, margin: 0 }}>
-                    {users.slice(0, 5).map((user) => (
-                        <li key={user.id} style={{ display: "flex", alignItems: "center", justifyContent: "space-between", padding: "6px 0", fontSize: "12px" }}>
-                            <span style={{ color: "#ffffff" }}>{user.displayName}</span>
-                            <span style={{ color: user.status === "online" ? "#4caf50" : "#7d8e9e", fontSize: "11px" }}>
-                                {user.statusLabel}
-                            </span>
-                        </li>
-                    ))}
-                </ul>
+                {/*
+                 * FR-1: in Production Mode this panel previously listed fabricated
+                 * colleagues with fabricated presence. Real membership arrives with
+                 * the member surfaces, so until then it states the position honestly
+                 * rather than inventing staff.
+                 */}
+                {staffReady ? (
+                    <ul style={{ listStyle: "none", padding: 0, margin: 0 }}>
+                        {users.slice(0, 5).map((user) => (
+                            <li key={user.id} style={{ display: "flex", alignItems: "center", justifyContent: "space-between", padding: "6px 0", fontSize: "12px" }}>
+                                <span style={{ color: "#ffffff" }}>{user.displayName}</span>
+                                <span style={{ color: user.status === "online" ? "#4caf50" : "#7d8e9e", fontSize: "11px" }}>
+                                    {user.statusLabel}
+                                </span>
+                            </li>
+                        ))}
+                    </ul>
+                ) : (
+                    <EmptyState
+                        variant={usersState === "unavailable" ? "unavailable" : "empty"}
+                        title={
+                            usersState === "unavailable"
+                                ? SURFACE_COPY.members.unavailable ?? SURFACE_COPY.members.empty
+                                : SURFACE_COPY.members.empty
+                        }
+                    />
+                )}
             </div>
         </div>
     );

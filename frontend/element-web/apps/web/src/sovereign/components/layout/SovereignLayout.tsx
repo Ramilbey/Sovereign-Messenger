@@ -28,7 +28,7 @@ export function SovereignLayout(): JSX.Element {
     const [activeModuleId, setActiveModuleId] = useState<string>("channels");
     const { getAllowedModules } = usePermissions();
     const { setActiveChannelId } = useChat();
-    const { channels, groups } = useChannels();
+    const { data: { channels, groups } } = useChannels();
 
     const allowedModules = getAllowedModules();
 

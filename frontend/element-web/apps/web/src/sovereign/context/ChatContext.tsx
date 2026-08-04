@@ -31,7 +31,7 @@ export function ChatProvider({
     children,
 }: ChatProviderProps): JSX.Element {
     const [activeChannelId, setActiveChannelId] = useState<string>(defaultChannelId);
-    const { channels, groups } = useChannels();
+    const { data: { channels, groups } } = useChannels();
     const allChannels = useMemo(() => [...channels, ...groups], [channels, groups]);
 
     React.useEffect(() => {

@@ -6,6 +6,7 @@
 
 import React, { memo, type JSX } from "react";
 import { useEvidence } from "../../providers/useSovereignData";
+import { ModuleStateBoundary } from "./ModuleStateBoundary";
 import "./ModuleViews.css";
 
 const TYPE_ICONS: Record<string, string> = {
@@ -15,40 +16,42 @@ const TYPE_ICONS: Record<string, string> = {
 };
 
 export const EvidenceView = memo(function EvidenceView(): JSX.Element {
-    const evidence = useEvidence();
+    const { data: evidence, state } = useEvidence();
 
     return (
         <div id="module-view-evidence" className="svr-module-view-root">
             <div className="svr-module-header">
                 <span className="svr-module-header-icon">📷</span>
                 <span className="svr-module-header-title">Dalillar</span>
-                <span className="svr-module-header-count">{evidence.length} ta dalil</span>
+                {state === "ready" && (<span className="svr-module-header-count">{evidence.length} ta dalil</span>)}
             </div>
 
-            <div className="svr-inv-list">
-                {evidence.map((e) => (
-                    <div key={e.id} className="svr-inv-card">
-                        <div className="svr-inv-card-row">
-                            <div>
-                                <div className="svr-inv-card-title">
-                                    {TYPE_ICONS[e.type] || "📷"} {e.description}
+            <ModuleStateBoundary state={state} surface="evidence">
+                <div className="svr-inv-list">
+                    {evidence.map((e) => (
+                        <div key={e.id} className="svr-inv-card">
+                            <div className="svr-inv-card-row">
+                                <div>
+                                    <div className="svr-inv-card-title">
+                                        {TYPE_ICONS[e.type] || "📷"} {e.description}
+                                    </div>
+                                    <div className="svr-inv-card-meta">
+                                        Ish: <span className="svr-inv-card-accent">#{e.caseNumber}</span>{" "}
+                                        • Tur: {e.typeLabel}
+                                        <br />
+                                        Yig'gan: {e.collectedBy} • Sana: {e.collectedDate}
+                                        <br />
+                                        Joylashuv: {e.storageLocation}
+                                    </div>
                                 </div>
-                                <div className="svr-inv-card-meta">
-                                    Ish: <span className="svr-inv-card-accent">#{e.caseNumber}</span>{" "}
-                                    • Tur: {e.typeLabel}
-                                    <br />
-                                    Yig'gan: {e.collectedBy} • Sana: {e.collectedDate}
-                                    <br />
-                                    Joylashuv: {e.storageLocation}
+                                <div className="svr-inv-card-badges">
+                                    <span className={`svr-inv-badge ${e.status}`}>{e.statusLabel}</span>
                                 </div>
-                            </div>
-                            <div className="svr-inv-card-badges">
-                                <span className={`svr-inv-badge ${e.status}`}>{e.statusLabel}</span>
                             </div>
                         </div>
-                    </div>
-                ))}
-            </div>
+                    ))}
+                </div>
+            </ModuleStateBoundary>
         </div>
     );
 });

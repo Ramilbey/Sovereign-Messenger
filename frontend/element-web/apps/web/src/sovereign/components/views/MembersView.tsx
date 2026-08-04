@@ -6,6 +6,7 @@
 
 import React, { memo, type JSX } from "react";
 import { useUsers } from "../../providers/useSovereignData";
+import { ModuleStateBoundary } from "./ModuleStateBoundary";
 import "./ModuleViews.css";
 
 const ROLE_LABELS: Record<string, string> = {
@@ -15,16 +16,17 @@ const ROLE_LABELS: Record<string, string> = {
 };
 
 export const MembersView = memo(function MembersView(): JSX.Element {
-    const users = useUsers();
+    const { data: users, state } = useUsers();
 
     return (
         <div id="module-view-members" className="svr-module-view-root">
             <div className="svr-module-header">
                 <span className="svr-module-header-icon">👥</span>
                 <span className="svr-module-header-title">Xodimlar</span>
-                <span className="svr-module-header-count">{users.length} ta xodim</span>
+                {state === "ready" && (<span className="svr-module-header-count">{users.length} ta xodim</span>)}
             </div>
 
+            <ModuleStateBoundary state={state} surface="members">
             <div className="svr-members-grid">
                 {users.map((user) => (
                     <div key={user.id} className="svr-member-card">
@@ -42,6 +44,7 @@ export const MembersView = memo(function MembersView(): JSX.Element {
                     </div>
                 ))}
             </div>
+            </ModuleStateBoundary>
         </div>
     );
 });

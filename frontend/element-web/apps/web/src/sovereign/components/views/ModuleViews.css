@@ -446,3 +446,13 @@
     justify-content: flex-end;
 }
 
+
+/* ── Sprint 3, M2: per-surface state container (ES-1, ES-6) ──────────────── */
+/* Reserves vertical space so a state swap does not shift the layout (UX-13). */
+.svr-module-state {
+    display: flex;
+    flex-direction: column;
+    gap: var(--svr-space-3);
+    padding: var(--svr-space-4);
+    min-height: calc(var(--svr-space-7) * 4);
+}

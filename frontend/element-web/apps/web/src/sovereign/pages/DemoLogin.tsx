@@ -30,7 +30,8 @@ const ROLE_LABELS: Record<DemoUser["role"], string> = {
  * to transition from the login screen to the main application shell.
  */
 export function DemoLogin({ onLogin }: Props): JSX.Element {
-    const users = useUsers();
+    // Demo Mode always resolves to the demonstration dataset (ADR-004).
+    const { data: users } = useUsers();
 
     return (
         <div

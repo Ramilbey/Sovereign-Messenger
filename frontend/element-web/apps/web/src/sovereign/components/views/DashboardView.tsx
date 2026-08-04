@@ -6,19 +6,22 @@
 
 import React, { memo, type JSX } from "react";
 import { useDashboard } from "../../providers/useSovereignData";
+import { ModuleStateBoundary } from "./ModuleStateBoundary";
 import "./ModuleViews.css";
 
 export const DashboardView = memo(function DashboardView(): JSX.Element {
-    const stats = useDashboard();
+    const { data: stats, state } = useDashboard();
 
     return (
         <div id="module-view-dashboard" className="svr-module-view-root">
             <div className="svr-module-header">
                 <span className="svr-module-header-icon">📊</span>
                 <span className="svr-module-header-title">Dashboard</span>
-                <span className="svr-module-header-count">Statistika</span>
+                {state === "ready" && (<span className="svr-module-header-count">Statistika</span>)}
             </div>
 
+            <ModuleStateBoundary state={state} surface="dashboard">
+            {stats && (
             <div className="svr-dashboard-grid">
                 <div className="svr-dashboard-stat-card">
                     <span className="svr-stat-label">Online Xodimlar</span>
@@ -41,6 +44,8 @@ export const DashboardView = memo(function DashboardView(): JSX.Element {
                     <span className="svr-stat-value svr-stat-alert">{stats.emergencyAlerts}</span>
                 </div>
             </div>
+            )}
+            </ModuleStateBoundary>
         </div>
     );
 });
