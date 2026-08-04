@@ -8,6 +8,11 @@
 
 import React, { useState, useCallback, type JSX } from "react";
 
+// Sprint 3 design tokens (PRD Appendix A). Imported at the layout root so the
+// token custom properties are available to every Sovereign surface. Defining a
+// custom property has no rendering effect until it is referenced, so this is
+// visually inert until surfaces are migrated onto the tokens.
+import "../../styles/tokens.css";
 import "./SovereignLayout.css";
 import { Sidebar } from "./Sidebar";
 import { Topbar } from "./Topbar";

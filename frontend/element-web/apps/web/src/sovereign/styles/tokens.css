@@ -1,0 +1,382 @@
+/*
+ * Sovereign Messenger — Sprint 3, Milestone 1 (Design Foundation)
+ * tokens.css — Design Token Definitions
+ *
+ * Implements PRD Appendix A (TOK-1 … TOK-16).
+ *
+ * TOK-1: Every visual property is expressed as a named semantic token.
+ *        Literal values appear ONLY in this file.
+ * TOK-2: Tokens are named by purpose, not appearance.
+ * TOK-3: Every token is defined for all three themes: dark, light, high-contrast.
+ *
+ * Prefix `--svr-` avoids collision with the host platform's own token namespace.
+ *
+ * NOTE: Defining a custom property has no rendering effect until it is
+ * referenced. This file is therefore visually inert until surfaces are
+ * migrated onto it in later milestones.
+ */
+
+/* ═══════════════════════════════════════════════════════════════════════════
+   THEME-INDEPENDENT TOKENS
+   Structure, rhythm, and motion do not change between themes.
+   ═══════════════════════════════════════════════════════════════════════════ */
+
+:root {
+    /* ── A.2 Typography Scale ─────────────────────────────────────────────── */
+    --svr-font-family-base:
+        "Inter", "Segoe UI", system-ui, -apple-system, "Helvetica Neue", Arial, sans-serif;
+    --svr-font-family-mono: "SF Mono", "Cascadia Mono", "Roboto Mono", Consolas, monospace;
+
+    --svr-type-display-size: 24px;
+    --svr-type-display-weight: 700;
+    --svr-type-display-line: 32px;
+    --svr-type-display-tracking: -0.01em;
+
+    --svr-type-heading-1-size: 20px;
+    --svr-type-heading-1-weight: 600;
+    --svr-type-heading-1-line: 28px;
+
+    --svr-type-heading-2-size: 17px;
+    --svr-type-heading-2-weight: 600;
+    --svr-type-heading-2-line: 24px;
+
+    --svr-type-heading-3-size: 15px;
+    --svr-type-heading-3-weight: 600;
+    --svr-type-heading-3-line: 22px;
+
+    /* Minimum body size 14px per Appendix A.2 */
+    --svr-type-body-size: 14px;
+    --svr-type-body-weight: 400;
+    --svr-type-body-line: 21px;
+
+    --svr-type-body-strong-weight: 600;
+
+    --svr-type-label-size: 12px;
+    --svr-type-label-weight: 600;
+    --svr-type-label-line: 16px;
+    --svr-type-label-tracking: 0.04em;
+
+    --svr-type-caption-size: 11px;
+    --svr-type-caption-weight: 400;
+    --svr-type-caption-line: 15px;
+
+    --svr-type-mono-size: 13px;
+
+    /* ── A.3 Spacing Scale (base unit 4px) ────────────────────────────────── */
+    --svr-space-0: 0;
+    --svr-space-1: 4px;
+    --svr-space-2: 8px;
+    --svr-space-3: 12px;
+    --svr-space-4: 16px;
+    --svr-space-5: 24px;
+    --svr-space-6: 32px;
+    --svr-space-7: 48px;
+
+    /* ── A.7 Radius and Borders ───────────────────────────────────────────── */
+    --svr-radius-none: 0;
+    --svr-radius-sm: 4px;
+    --svr-radius-md: 8px;
+    --svr-radius-lg: 12px;
+    --svr-radius-full: 9999px;
+
+    --svr-border-width-thin: 1px;
+    --svr-border-width-thick: 2px;
+
+    /* ── A.8 Motion and Animation ─────────────────────────────────────────── */
+    --svr-duration-instant: 100ms;
+    --svr-duration-short: 180ms;
+    --svr-duration-medium: 280ms;
+
+    --svr-easing-standard: cubic-bezier(0.2, 0, 0.2, 1);
+    --svr-easing-decelerate: cubic-bezier(0, 0, 0.2, 1);
+    --svr-easing-accelerate: cubic-bezier(0.4, 0, 1, 1);
+
+    /* ── A.9 Icon Sizes ───────────────────────────────────────────────────── */
+    --svr-icon-size-sm: 16px;
+    --svr-icon-size-md: 20px;
+    --svr-icon-size-lg: 24px;
+    --svr-icon-stroke: 1.75;
+
+    /* ── Component Geometry ───────────────────────────────────────────────── */
+    --svr-control-height-sm: 28px;
+    --svr-control-height-md: 36px;
+    --svr-control-height-lg: 44px; /* UI-17 minimum touch target */
+
+    --svr-avatar-size-sm: 24px;
+    --svr-avatar-size-md: 32px;
+    --svr-avatar-size-lg: 40px;
+    --svr-avatar-size-xl: 64px;
+}
+
+/* ═══════════════════════════════════════════════════════════════════════════
+   THEME: DARK (default — matches the current Sovereign appearance)
+   ═══════════════════════════════════════════════════════════════════════════ */
+
+:root,
+:root[data-svr-theme="dark"] {
+    color-scheme: dark;
+
+    /* ── A.4 Surface ──────────────────────────────────────────────────────── */
+    --svr-surface-sunken: #060c1a;
+    --svr-surface-base: #0e1621;
+    --svr-surface-raised: #17212b;
+    --svr-surface-overlay: #1e2d3d;
+    --svr-surface-hover: #182533;
+    --svr-surface-selected: #2b5278;
+
+    /* ── A.4 Content ──────────────────────────────────────────────────────── */
+    --svr-content-primary: #ffffff;
+    --svr-content-secondary: #7d8e9e;
+    --svr-content-tertiary: #64748b;
+    --svr-content-disabled: #475569;
+    --svr-content-inverse: #0e1621;
+    --svr-content-on-accent: #ffffff;
+
+    /* ── A.4 Border ───────────────────────────────────────────────────────── */
+    --svr-border-subtle: rgba(43, 58, 74, 0.5);
+    --svr-border-default: #2b3a4a;
+    --svr-border-strong: #3d5064;
+    --svr-border-focus: #5288c1;
+
+    /* ── A.4 Brand ────────────────────────────────────────────────────────── */
+    --svr-brand-primary: #5288c1;
+    --svr-brand-emphasis: #6ba3dc;
+    --svr-brand-subtle: rgba(82, 136, 193, 0.15);
+
+    /* ── A.4 Interactive ──────────────────────────────────────────────────── */
+    --svr-action-primary-rest: #5288c1;
+    --svr-action-primary-hover: #6ba3dc;
+    --svr-action-primary-active: #4374a8;
+    --svr-action-primary-disabled: #2b3a4a;
+
+    --svr-action-secondary-rest: transparent;
+    --svr-action-secondary-hover: rgba(255, 255, 255, 0.05);
+    --svr-action-secondary-active: rgba(255, 255, 255, 0.08);
+
+    --svr-action-danger-rest: #f44336;
+    --svr-action-danger-hover: #f66a5f;
+    --svr-action-danger-active: #d32f2f;
+
+    /* ── A.5 Semantic and State ───────────────────────────────────────────── */
+    --svr-status-success: #4caf50;
+    --svr-status-success-subtle: rgba(76, 175, 80, 0.15);
+    --svr-status-warning: #ff9800;
+    --svr-status-warning-subtle: rgba(255, 152, 0, 0.15);
+    --svr-status-danger: #f44336;
+    --svr-status-danger-subtle: rgba(244, 67, 54, 0.15);
+    --svr-status-info: #5288c1;
+    --svr-status-info-subtle: rgba(82, 136, 193, 0.15);
+    --svr-status-urgent: #ff9800;
+    --svr-status-urgent-subtle: rgba(255, 152, 0, 0.15);
+    --svr-status-neutral: #9e9e9e;
+    --svr-status-neutral-subtle: rgba(158, 158, 158, 0.15);
+
+    /* Presence (FR-12, FR-16 — always paired with shape/label in markup) */
+    --svr-presence-online: #4caf50;
+    --svr-presence-away: #ff9800;
+    --svr-presence-busy: #f44336;
+    --svr-presence-offline: #9e9e9e;
+
+    /* Unread and mention (NT-2 — mention must remain distinct from unread) */
+    --svr-unread-indicator: #5288c1;
+    --svr-unread-content: #ffffff;
+    --svr-mention-indicator: #ff9800;
+    --svr-mention-content: #0e1621;
+
+    /* ── A.6 Elevation and Shadow ─────────────────────────────────────────── */
+    --svr-elevation-0: none;
+    --svr-elevation-1: 0 1px 2px rgba(0, 0, 0, 0.32);
+    --svr-elevation-2: 0 4px 12px rgba(0, 0, 0, 0.4);
+    --svr-elevation-3: 0 12px 32px rgba(0, 0, 0, 0.52);
+
+    --svr-shadow-subtle: var(--svr-elevation-1);
+    --svr-shadow-default: var(--svr-elevation-2);
+    --svr-shadow-overlay: var(--svr-elevation-3);
+
+    /* Scrim behind modal surfaces */
+    --svr-scrim: rgba(6, 12, 26, 0.72);
+
+    /* ── A.10 Focus ───────────────────────────────────────────────────────── */
+    --svr-focus-ring-color: #6ba3dc;
+    --svr-focus-ring-width: 2px;
+    --svr-focus-ring-offset: 2px;
+}
+
+/* ═══════════════════════════════════════════════════════════════════════════
+   THEME: LIGHT
+   ═══════════════════════════════════════════════════════════════════════════ */
+
+:root[data-svr-theme="light"] {
+    color-scheme: light;
+
+    --svr-surface-sunken: #eef1f5;
+    --svr-surface-base: #ffffff;
+    --svr-surface-raised: #f7f9fb;
+    --svr-surface-overlay: #ffffff;
+    --svr-surface-hover: #eef2f6;
+    --svr-surface-selected: #d6e6f7;
+
+    --svr-content-primary: #0e1621;
+    --svr-content-secondary: #52606d;
+    --svr-content-tertiary: #6b7885;
+    --svr-content-disabled: #9aa5b1;
+    --svr-content-inverse: #ffffff;
+    --svr-content-on-accent: #ffffff;
+
+    --svr-border-subtle: rgba(14, 22, 33, 0.08);
+    --svr-border-default: #d3dce6;
+    --svr-border-strong: #aebccc;
+    --svr-border-focus: #2c6ba8;
+
+    --svr-brand-primary: #2c6ba8;
+    --svr-brand-emphasis: #1f558a;
+    --svr-brand-subtle: rgba(44, 107, 168, 0.12);
+
+    --svr-action-primary-rest: #2c6ba8;
+    --svr-action-primary-hover: #1f558a;
+    --svr-action-primary-active: #17436e;
+    --svr-action-primary-disabled: #cbd5e0;
+
+    --svr-action-secondary-rest: transparent;
+    --svr-action-secondary-hover: rgba(14, 22, 33, 0.05);
+    --svr-action-secondary-active: rgba(14, 22, 33, 0.09);
+
+    --svr-action-danger-rest: #c62828;
+    --svr-action-danger-hover: #a91d1d;
+    --svr-action-danger-active: #8e1616;
+
+    --svr-status-success: #2e7d32;
+    --svr-status-success-subtle: rgba(46, 125, 50, 0.12);
+    --svr-status-warning: #b26500;
+    --svr-status-warning-subtle: rgba(178, 101, 0, 0.12);
+    --svr-status-danger: #c62828;
+    --svr-status-danger-subtle: rgba(198, 40, 40, 0.12);
+    --svr-status-info: #2c6ba8;
+    --svr-status-info-subtle: rgba(44, 107, 168, 0.12);
+    --svr-status-urgent: #b26500;
+    --svr-status-urgent-subtle: rgba(178, 101, 0, 0.12);
+    --svr-status-neutral: #6b7885;
+    --svr-status-neutral-subtle: rgba(107, 120, 133, 0.12);
+
+    --svr-presence-online: #2e7d32;
+    --svr-presence-away: #b26500;
+    --svr-presence-busy: #c62828;
+    --svr-presence-offline: #9aa5b1;
+
+    --svr-unread-indicator: #2c6ba8;
+    --svr-unread-content: #ffffff;
+    --svr-mention-indicator: #b26500;
+    --svr-mention-content: #ffffff;
+
+    --svr-elevation-0: none;
+    --svr-elevation-1: 0 1px 2px rgba(14, 22, 33, 0.08);
+    --svr-elevation-2: 0 4px 12px rgba(14, 22, 33, 0.12);
+    --svr-elevation-3: 0 12px 32px rgba(14, 22, 33, 0.18);
+
+    --svr-shadow-subtle: var(--svr-elevation-1);
+    --svr-shadow-default: var(--svr-elevation-2);
+    --svr-shadow-overlay: var(--svr-elevation-3);
+
+    --svr-scrim: rgba(14, 22, 33, 0.48);
+
+    --svr-focus-ring-color: #1f558a;
+    --svr-focus-ring-width: 2px;
+    --svr-focus-ring-offset: 2px;
+}
+
+/* ═══════════════════════════════════════════════════════════════════════════
+   THEME: HIGH CONTRAST (A11Y-4, A11Y-12)
+   TOK-6: elevation is expressed as borders rather than shadow.
+   ═══════════════════════════════════════════════════════════════════════════ */
+
+:root[data-svr-theme="contrast"] {
+    color-scheme: dark;
+
+    --svr-surface-sunken: #000000;
+    --svr-surface-base: #000000;
+    --svr-surface-raised: #000000;
+    --svr-surface-overlay: #000000;
+    --svr-surface-hover: #1a1a1a;
+    --svr-surface-selected: #003a75;
+
+    --svr-content-primary: #ffffff;
+    --svr-content-secondary: #e8e8e8;
+    --svr-content-tertiary: #d0d0d0;
+    --svr-content-disabled: #9a9a9a;
+    --svr-content-inverse: #000000;
+    --svr-content-on-accent: #000000;
+
+    --svr-border-subtle: #ffffff;
+    --svr-border-default: #ffffff;
+    --svr-border-strong: #ffffff;
+    --svr-border-focus: #ffff00;
+
+    --svr-brand-primary: #66b3ff;
+    --svr-brand-emphasis: #99ccff;
+    --svr-brand-subtle: #003a75;
+
+    --svr-action-primary-rest: #66b3ff;
+    --svr-action-primary-hover: #99ccff;
+    --svr-action-primary-active: #3399ff;
+    --svr-action-primary-disabled: #4a4a4a;
+
+    --svr-action-secondary-rest: transparent;
+    --svr-action-secondary-hover: #1a1a1a;
+    --svr-action-secondary-active: #2a2a2a;
+
+    --svr-action-danger-rest: #ff6b6b;
+    --svr-action-danger-hover: #ff9999;
+    --svr-action-danger-active: #ff4444;
+
+    --svr-status-success: #4dff4d;
+    --svr-status-success-subtle: #003300;
+    --svr-status-warning: #ffcc00;
+    --svr-status-warning-subtle: #332900;
+    --svr-status-danger: #ff6b6b;
+    --svr-status-danger-subtle: #330000;
+    --svr-status-info: #66b3ff;
+    --svr-status-info-subtle: #002233;
+    --svr-status-urgent: #ffcc00;
+    --svr-status-urgent-subtle: #332900;
+    --svr-status-neutral: #d0d0d0;
+    --svr-status-neutral-subtle: #262626;
+
+    --svr-presence-online: #4dff4d;
+    --svr-presence-away: #ffcc00;
+    --svr-presence-busy: #ff6b6b;
+    --svr-presence-offline: #d0d0d0;
+
+    --svr-unread-indicator: #66b3ff;
+    --svr-unread-content: #000000;
+    --svr-mention-indicator: #ffcc00;
+    --svr-mention-content: #000000;
+
+    /* TOK-6: borders substitute for shadow in high contrast */
+    --svr-elevation-0: none;
+    --svr-elevation-1: none;
+    --svr-elevation-2: none;
+    --svr-elevation-3: none;
+
+    --svr-shadow-subtle: none;
+    --svr-shadow-default: none;
+    --svr-shadow-overlay: none;
+
+    --svr-scrim: rgba(0, 0, 0, 0.9);
+
+    --svr-focus-ring-color: #ffff00;
+    --svr-focus-ring-width: 3px;
+    --svr-focus-ring-offset: 2px;
+}
+
+/* ═══════════════════════════════════════════════════════════════════════════
+   TOK-9 / A11Y-10 — Reduced motion
+   All motion durations collapse when the user has requested reduced motion.
+   ═══════════════════════════════════════════════════════════════════════════ */
+
+@media (prefers-reduced-motion: reduce) {
+    :root {
+        --svr-duration-instant: 1ms;
+        --svr-duration-short: 1ms;
+        --svr-duration-medium: 1ms;
+    }
+}
