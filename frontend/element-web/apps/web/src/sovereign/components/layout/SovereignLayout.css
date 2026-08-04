@@ -65,14 +65,27 @@
     box-sizing: border-box;
 }
 
-/* 3. Main content wrapper — holds ChatArea and WorkspaceArea side by side */
+/*
+ * 3. Main content wrapper.
+ * Sprint 3 M2: a column so the connection banner (CMP-45) can sit above the
+ * working area in one consistent location (SUX-16) without overlaying it.
+ * The side-by-side chat/workspace grid moves to .svr-main-content.
+ */
 .svr-main {
     grid-area: main;
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
+    box-sizing: border-box;
+}
+
+.svr-main-content {
+    flex: 1;
     display: grid;
     grid-template-columns: 1fr 1fr;
     grid-template-areas: "chat workspace";
     overflow: hidden;
-    box-sizing: border-box;
+    min-height: 0;
 }
 
 /* 4. ChatArea */

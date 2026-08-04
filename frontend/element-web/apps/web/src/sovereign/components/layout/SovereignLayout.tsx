@@ -22,6 +22,8 @@ import { RightPanel } from "./RightPanel";
 import { usePermissions } from "../../context/PermissionContext";
 import { useChat } from "../../context/ChatContext";
 import { useChannels } from "../../providers/useSovereignData";
+import { useConnectionState } from "../../hooks/useConnectionState";
+import { ConnectionBanner } from "../ui";
 
 export function SovereignLayout(): JSX.Element {
     const [activeWorkspaceId, setActiveWorkspaceId] = useState<string>("tergov");
@@ -29,6 +31,7 @@ export function SovereignLayout(): JSX.Element {
     const { getAllowedModules } = usePermissions();
     const { setActiveChannelId } = useChat();
     const { data: { channels, groups } } = useChannels();
+    const connectionState = useConnectionState();
 
     const allowedModules = getAllowedModules();
 
@@ -60,10 +63,18 @@ export function SovereignLayout(): JSX.Element {
             {/* Column 2, row 1 */}
             <Topbar />
 
-            {/* Column 2, row 2 — contains ChatArea + WorkspaceArea side by side */}
+            {/*
+              * Column 2, row 2 — ChatArea + WorkspaceArea side by side.
+              * SUX-16: connection state appears in one consistent location,
+              * directly above the working area. SUX-5: it is non-blocking —
+              * the content below stays readable and interactive.
+              */}
             <div className="svr-main">
-                <ChatArea />
-                <WorkspaceArea activeModuleId={activeModuleId} />
+                <ConnectionBanner state={connectionState} />
+                <div className="svr-main-content">
+                    <ChatArea />
+                    <WorkspaceArea activeModuleId={activeModuleId} />
+                </div>
             </div>
 
             {/* Column 3 — full height */}

@@ -652,3 +652,48 @@
 .svr-state__action {
     margin-top: var(--svr-space-2);
 }
+
+/* ── CMP-45 Connection Banner ────────────────────────────────────────────── */
+/* SUX-5: persistent but non-blocking — it occupies its own row and never
+   overlays the composer or the message being read (NT-10). */
+
+.svr-connection-banner {
+    display: flex;
+    align-items: center;
+    gap: var(--svr-space-2);
+    flex: none;
+    padding: var(--svr-space-2) var(--svr-space-4);
+    border-bottom: var(--svr-border-width-thin) solid var(--svr-border-default);
+    font-family: var(--svr-font-family-base);
+    font-size: var(--svr-type-caption-size);
+    line-height: var(--svr-type-caption-line);
+}
+
+.svr-connection-banner__indicator {
+    display: inline-flex;
+    align-items: center;
+    flex: none;
+}
+
+.svr-connection-banner__title {
+    font-weight: var(--svr-type-body-strong-weight);
+}
+
+.svr-connection-banner__description {
+    color: var(--svr-content-secondary);
+}
+
+.svr-connection-banner--warning {
+    background-color: var(--svr-status-warning-subtle);
+    color: var(--svr-status-warning);
+}
+
+.svr-connection-banner--danger {
+    background-color: var(--svr-status-danger-subtle);
+    color: var(--svr-status-danger);
+}
+
+.svr-connection-banner--success {
+    background-color: var(--svr-status-success-subtle);
+    color: var(--svr-status-success);
+}
