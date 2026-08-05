@@ -6,7 +6,7 @@
  * Contains permanently visible ChatArea on the left and WorkspaceArea on the right.
  */
 
-import React, { useState, useCallback, type JSX } from "react";
+import React, { useState, useCallback, useEffect, type JSX } from "react";
 
 // Sprint 3 design tokens (PRD Appendix A). Imported at the layout root so the
 // token custom properties are available to every Sovereign surface. Defining a
@@ -23,6 +23,7 @@ import { usePermissions } from "../../context/PermissionContext";
 import { useChat } from "../../context/ChatContext";
 import { useChannels } from "../../providers/useSovereignData";
 import { useConnectionState } from "../../hooks/useConnectionState";
+import { SessionLifecycleService } from "../../services/SessionLifecycleService";
 import { ConnectionBanner } from "../ui";
 
 export function SovereignLayout(): JSX.Element {
@@ -32,6 +33,12 @@ export function SovereignLayout(): JSX.Element {
     const { setActiveChannelId } = useChat();
     const { data: { channels, groups } } = useChannels();
     const connectionState = useConnectionState();
+
+    // Observe sign-out so locally held drafts and outbox records do not
+    // outlive the session on a shared workstation. Idempotent.
+    useEffect(() => {
+        SessionLifecycleService.getInstance().initialize();
+    }, []);
 
     const allowedModules = getAllowedModules();
 

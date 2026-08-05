@@ -6,9 +6,9 @@
  * Manages active channel selection, active channel metadata, and message sending.
  */
 
-import React, { createContext, useContext, useState, useMemo, useCallback, useEffect, type ReactNode, type JSX } from "react";
+import React, { createContext, useContext, useState, useMemo, useCallback, type ReactNode, type JSX } from "react";
 import { usePermissions } from "./PermissionContext";
-import { OutboxService } from "../services/OutboxService";
+import { useOutbox } from "../hooks/useOutbox";
 import { useChannels, useMessages, type SovereignChannel, type SovereignMessage } from "../providers/useSovereignData";
 
 
@@ -41,7 +41,8 @@ export function ChatProvider({
         }
     }, [allChannels, activeChannelId]);
 
-    const { messages, sendMessage: sendDemoMessage } = useMessages(activeChannelId);
+    // Sending goes through the outbox; this hook supplies the timeline only.
+    const { messages } = useMessages(activeChannelId);
     const { currentUser } = usePermissions();
 
     const activeChannel = useMemo(
@@ -50,26 +51,32 @@ export function ChatProvider({
     );
 
     /*
-     * SUX-6 / ST-38: while disconnected, a composed message is queued rather
-     * than lost, and sent automatically in original order once the connection
-     * returns (EDGE-11). The outbox decides only WHEN to hand the message to
-     * the existing send path — it does not change how messages are sent.
+     * SUX-6 / ST-38: a message is recorded durably before it is sent, so it
+     * survives a reload and can be re-sent if the SDK abandons it on a
+     * connection error. The outbox is bound to a conversation-explicit send,
+     * so a message always reaches the conversation it was written in.
      */
-    const outbox = OutboxService.getInstance();
-
-    useEffect(() => {
-        if (!currentUser) return;
-        outbox.start((_conversationId, content) =>
-            sendDemoMessage(content, currentUser.id, currentUser.displayName, currentUser.role),
-        );
-    }, [outbox, currentUser, sendDemoMessage]);
+    const outboxSender = useMemo(
+        () =>
+            currentUser
+                ? {
+                      id: currentUser.id,
+                      displayName: currentUser.displayName,
+                      role: currentUser.role,
+                  }
+                : null,
+        [currentUser],
+    );
+    const { submit } = useOutbox(outboxSender);
 
     const handleSendMessage = useCallback(
         async (content: string) => {
             if (!currentUser) return;
 
             try {
-                await outbox.submit(activeChannelId, content);
+                // The active conversation is captured at submit time and
+                // recorded with the message; it is not re-derived at send time.
+                await submit(activeChannelId, content);
             } catch (error: unknown) {
                 // Transport-level failures (send rejected, network drop) must not
                 // surface as an unhandled promise rejection — ChatArea's composer
@@ -78,7 +85,7 @@ export function ChatProvider({
                 console.error("[ChatContext] Failed to send message:", detail);
             }
         },
-        [currentUser, outbox, activeChannelId],
+        [currentUser, submit, activeChannelId],
     );
 
     const value = useMemo<ChatContextValue>(

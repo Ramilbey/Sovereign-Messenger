@@ -52,9 +52,33 @@ export function useMessages(
         [channelId, activeService]
     );
 
+    /**
+     * Send to an explicitly named conversation rather than the one this hook
+     * is bound to.
+     *
+     * Required by the outbox: a message queued in one conversation must be
+     * delivered to THAT conversation when it is eventually sent, never to
+     * whichever conversation happens to be open at the time. Binding the send
+     * to the active channel would misdeliver official correspondence.
+     */
+    const sendToConversation = useCallback(
+        async (
+            conversationId: string,
+            content: string,
+            senderId: string,
+            senderName: string,
+            senderRole: string,
+        ) => {
+            if (!conversationId || !content.trim()) return;
+            await activeService.sendMessage(conversationId, content, senderId, senderName, senderRole);
+        },
+        [activeService]
+    );
+
     return {
         messages,
         sendMessage,
+        sendToConversation,
         isLoading,
     };
 }

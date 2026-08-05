@@ -72,15 +72,34 @@ export class ConnectionStateService {
 
         return () => {
             this.listeners.delete(listener);
+            // Every registration has a matching cleanup: once nobody is
+            // listening, release the SDK listener rather than leaving it
+            // attached to a client that may later be discarded.
+            if (this.listeners.size === 0) {
+                this.detach();
+            }
         };
     }
 
+    /**
+     * Attach to the current client.
+     *
+     * If the peg has swapped in a different client (for example after a
+     * re-login), the previous client's listener is removed first. Without this
+     * the old client retains a listener and a strong reference to this
+     * singleton, and a dead client keeps mutating shared connection state.
+     */
     private attach(): void {
         const client = MatrixClientService.getInstance().getClient();
-        if (!client || this.attachedTo === client) {
+        if (!client) {
+            return;
+        }
+        if (this.attachedTo === client) {
             return;
         }
 
+        // The client changed — detach from the previous one before re-attaching.
+        this.detach();
         this.attachedTo = client;
 
         try {
@@ -89,6 +108,34 @@ export class ConnectionStateService {
             this.applySyncState(client.getSyncState());
         } catch {
             // Observation is best-effort; failure must never break the UI.
+        }
+    }
+
+    /**
+     * Remove the SDK listener and cancel any pending timer.
+     *
+     * Public so session teardown can release the listener explicitly rather
+     * than relying on the last subscriber unsubscribing.
+     */
+    public detach(): void {
+        const previous = this.attachedTo as { removeListener?: unknown } | null;
+
+        if (previous && typeof previous.removeListener === "function") {
+            try {
+                (previous.removeListener as (e: string, f: unknown) => void)(
+                    ClientEvent.Sync,
+                    this.onSync,
+                );
+            } catch {
+                // Best-effort: a failed detach must not throw during teardown.
+            }
+        }
+
+        this.attachedTo = null;
+
+        if (this.restoredTimer) {
+            clearTimeout(this.restoredTimer);
+            this.restoredTimer = null;
         }
     }
 

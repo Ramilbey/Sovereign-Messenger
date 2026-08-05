@@ -10,8 +10,18 @@
  * reload and is restored when the user returns to the conversation.
  *
  * Scope: drafts only. This service stores no credentials, no message history,
- * and no personal data beyond text the user has typed and not yet sent. It
- * performs no network calls and touches no Matrix state.
+ * and no Matrix state, and performs no network calls.
+ *
+ * SENSITIVITY: the text it does store is precisely the sensitive payload —
+ * unsent official correspondence, which may contain case details or names.
+ * Sovereign Messenger runs on SHARED government workstations, so drafts must
+ * not outlive the session: SessionLifecycleService calls clearAll() on
+ * sign-out.
+ *
+ * FUTURE ENHANCEMENT (not implemented here): encryption at rest. Drafts are
+ * currently stored in plain text. Encrypting them is tied to the platform's
+ * unresolved encryption and retention model (PRD Future Recommendations
+ * FUT-1) and should be decided there rather than invented locally.
  */
 
 const STORAGE_KEY = "sovereign_drafts";
@@ -72,6 +82,22 @@ export class DraftService {
     /** Whether a conversation currently holds unsent text. */
     public has(conversationId: string): boolean {
         return this.get(conversationId) !== "";
+    }
+
+    /**
+     * Remove every stored draft.
+     *
+     * Called on sign-out so unsent official correspondence does not remain
+     * readable to the next person to use a shared workstation.
+     */
+    public clearAll(): void {
+        this.drafts = {};
+        this.loaded = true;
+        try {
+            localStorage.removeItem(STORAGE_KEY);
+        } catch {
+            // In-memory state is already cleared; nothing further to do.
+        }
     }
 
     private load(): void {
