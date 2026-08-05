@@ -1,17 +1,19 @@
 /*
- * Sovereign Messenger — Sprint 1, Step 6 / Step 8
- * SovereignLayout.tsx — Root layout shell with PermissionContext integration.
+ * Sovereign Messenger — Sprint 1, Step 6 / Step 8 · Sprint 3, Milestone 3
+ * SovereignLayout.tsx — Root layout shell.
  *
  * Blueprint §6 Split Layout Architecture:
  * Contains permanently visible ChatArea on the left and WorkspaceArea on the right.
+ *
+ * Milestone 3: the layout resolves the user's organisational position and the
+ * modules that position enables, and passes both down. It holds navigation
+ * state only — no data access, no permission logic of its own.
  */
 
-import React, { useState, useCallback, useEffect, type JSX } from "react";
+import React, { useState, useCallback, useEffect, useMemo, type JSX } from "react";
 
 // Sprint 3 design tokens (PRD Appendix A). Imported at the layout root so the
-// token custom properties are available to every Sovereign surface. Defining a
-// custom property has no rendering effect until it is referenced, so this is
-// visually inert until surfaces are migrated onto the tokens.
+// token custom properties are available to every Sovereign surface.
 import "../../styles/tokens.css";
 import "./SovereignLayout.css";
 import { Sidebar } from "./Sidebar";
@@ -23,16 +25,30 @@ import { usePermissions } from "../../context/PermissionContext";
 import { useChat } from "../../context/ChatContext";
 import { useChannels } from "../../providers/useSovereignData";
 import { useConnectionState } from "../../hooks/useConnectionState";
+import { useOrganisation } from "../../hooks/useOrganisation";
+import { scopeModulesToNode } from "../../config/workspaceModules";
 import { SessionLifecycleService } from "../../services/SessionLifecycleService";
 import { ConnectionBanner } from "../ui";
 
 export function SovereignLayout(): JSX.Element {
-    const [activeWorkspaceId, setActiveWorkspaceId] = useState<string>("tergov");
+    /*
+     * ORG-4: the user's position decides their default context, so the active
+     * node starts undefined and resolves to that position rather than to a
+     * department named in code.
+     */
+    const [activeNodeId, setActiveNodeId] = useState<string | undefined>(undefined);
     const [activeModuleId, setActiveModuleId] = useState<string>("channels");
-    const { getAllowedModules } = usePermissions();
+    const [sidebarCollapsed, setSidebarCollapsed] = useState<boolean>(false);
+
+    const { getAllowedModules, currentUser } = usePermissions();
     const { setActiveChannelId } = useChat();
     const { data: { channels, groups } } = useChannels();
     const connectionState = useConnectionState();
+
+    const { data: organisation, state: organisationState } = useOrganisation({
+        departmentHint: currentUser.department,
+        currentNodeId: activeNodeId,
+    });
 
     // Observe sign-out so locally held drafts and outbox records do not
     // outlive the session on a shared workstation. Idempotent.
@@ -40,31 +56,54 @@ export function SovereignLayout(): JSX.Element {
         SessionLifecycleService.getInstance().initialize();
     }, []);
 
-    const allowedModules = getAllowedModules();
+    /*
+     * IA-9 / ORG-6: role first (a module the user may not hold is never
+     * offered), then the modules this organisational node enables.
+     */
+    const modules = useMemo(
+        () => scopeModulesToNode(getAllowedModules(), organisation.enabledModuleIds),
+        [getAllowedModules, organisation.enabledModuleIds],
+    );
+
+    /*
+     * Moving to a node that does not enable the current module would otherwise
+     * leave the workspace showing a module that is no longer in the list.
+     */
+    useEffect(() => {
+        if (modules.length === 0) return;
+        if (modules.some((module) => module.id === activeModuleId)) return;
+        setActiveModuleId(modules[0].id);
+    }, [modules, activeModuleId]);
 
     const handleSelectModule = useCallback(
         (modId: string) => {
             setActiveModuleId(modId);
 
-            // Automatically synchronize active channel in ChatArea based on selected navigation category
+            // Keep the conversation surface consistent with the category the
+            // user just opened, where that category has conversations.
             if (modId === "groups" && groups.length > 0) {
-                setActiveChannelId(groups[0].id); // Default to 'group_umumiy'
+                setActiveChannelId(groups[0].id);
             } else if (modId === "channels" && channels.length > 0) {
-                setActiveChannelId(channels[0].id); // Default to 'channel_elonlar'
+                setActiveChannelId(channels[0].id);
             }
         },
-        [channels, groups, setActiveChannelId]
+        [channels, groups, setActiveChannelId],
     );
 
     return (
         <div id="sovereign-layout" className="svr-layout">
             {/* Column 1 — full height */}
             <Sidebar
-                activeWorkspaceId={activeWorkspaceId}
-                onSelectWorkspace={(wsId) => setActiveWorkspaceId(wsId)}
+                tree={organisation.tree}
+                organisationState={organisationState}
+                activeNodeId={organisation.currentId}
+                onSelectNode={setActiveNodeId}
                 activeModuleId={activeModuleId}
                 onSelectModule={handleSelectModule}
-                modules={allowedModules}
+                modules={modules}
+                collapsed={sidebarCollapsed}
+                onToggleCollapsed={() => setSidebarCollapsed((collapsed) => !collapsed)}
+                language={organisation.language}
             />
 
             {/* Column 2, row 1 */}

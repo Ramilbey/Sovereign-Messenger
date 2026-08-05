@@ -50,12 +50,14 @@
 
 /* ── Five named regions ───────────────────────────────────────────────────── */
 
-/* 1. Sidebar */
+/*
+ * 1. Sidebar — CMP-14.
+ * Placement only; the sidebar's own appearance lives in navigation.css so it
+ * is defined once alongside the components it frames.
+ */
 .svr-sidebar {
     grid-area: sidebar;
-    border-right: 1px solid #999;
-    overflow-y: auto;
-    box-sizing: border-box;
+    overflow: hidden;
 }
 
 /* 2. Topbar */
@@ -109,159 +111,6 @@
     border-left: 1px solid #999;
     overflow-y: auto;
     box-sizing: border-box;
-}
-
-/* ── Step 3: GovernmentNavigation tree ────────────────────────────────────── */
-
-.svr-gov-nav {
-    padding: 8px 0;
-}
-
-.svr-gov-nav-header {
-    padding: 4px 12px;
-    font-size: 11px;
-    font-weight: 700;
-    text-transform: uppercase;
-    color: #7d8e9e;
-    letter-spacing: 0.5px;
-    margin-bottom: 4px;
-}
-
-.svr-gov-nav-tree {
-    list-style: none;
-    margin: 0;
-    padding: 0;
-}
-
-.svr-gov-nav-item {
-    user-select: none;
-}
-
-.svr-gov-nav-row {
-    display: flex;
-    align-items: center;
-    gap: 6px;
-    padding: 6px 12px;
-    cursor: pointer;
-    font-size: 13px;
-    line-height: 1.4;
-    border-radius: 4px;
-    margin: 1px 6px;
-}
-
-.svr-gov-nav-row:hover {
-    background: rgba(255, 255, 255, 0.05);
-}
-
-.svr-gov-nav-row.selected {
-    background: #2b5278;
-    color: #ffffff;
-    font-weight: 600;
-}
-
-.svr-gov-nav-arrow {
-    font-size: 10px;
-    width: 12px;
-    display: inline-block;
-    text-align: center;
-}
-
-.svr-gov-nav-bullet {
-    font-size: 8px;
-    width: 12px;
-    display: inline-block;
-    text-align: center;
-    opacity: 0.5;
-}
-
-.svr-gov-nav-icon {
-    font-size: 14px;
-}
-
-.svr-gov-nav-label {
-    white-space: nowrap;
-    overflow: hidden;
-    text-overflow: ellipsis;
-}
-
-/* ── Sidebar divider ──────────────────────────────────────────────────────── */
-.svr-sidebar-divider {
-    height: 1px;
-    background: #333;
-    margin: 8px 12px;
-}
-
-/* ── Step 4: WorkspaceNavigation ─────────────────────────────────────────── */
-
-.svr-workspace-nav {
-    padding: 4px 0 16px 0;
-}
-
-.svr-workspace-nav-section {
-    margin-bottom: 4px;
-}
-
-.svr-workspace-nav-section-title {
-    padding: 4px 12px;
-    font-size: 10px;
-    font-weight: 700;
-    text-transform: uppercase;
-    color: #5288c1;
-    letter-spacing: 0.5px;
-}
-
-.svr-workspace-nav-divider {
-    height: 1px;
-    background: rgba(255, 255, 255, 0.08);
-    margin: 6px 12px;
-}
-
-.svr-workspace-nav-list {
-    list-style: none;
-    margin: 0;
-    padding: 0;
-}
-
-.svr-workspace-nav-item {
-    margin: 1px 6px;
-}
-
-.svr-workspace-nav-btn {
-    width: 100%;
-    display: flex;
-    align-items: center;
-    gap: 8px;
-    padding: 6px 10px;
-    background: transparent;
-    border: none;
-    border-radius: 4px;
-    color: #cccccc;
-    font-size: 13px;
-    cursor: pointer;
-    text-align: left;
-}
-
-.svr-workspace-nav-btn:hover {
-    background: rgba(255, 255, 255, 0.05);
-    color: #ffffff;
-}
-
-.svr-workspace-nav-btn.active {
-    background: #2b5278;
-    color: #ffffff;
-    font-weight: 600;
-}
-
-.svr-workspace-nav-icon {
-    font-size: 14px;
-    width: 18px;
-    text-align: center;
-}
-
-.svr-workspace-nav-label {
-    white-space: nowrap;
-    overflow: hidden;
-    text-overflow: ellipsis;
 }
 
 /* ── Step 4: ModulePlaceholderView ────────────────────────────────────────── */

@@ -1,0 +1,227 @@
+/*
+ * Sovereign Messenger — Sprint 3, Milestone 3 (Structure & Navigation)
+ * navigation.css — CMP-14, CMP-15, CMP-16 styles
+ *
+ * AC-16 / TOK-1: no literal colour, spacing, radius, duration, or typography
+ * value appears here. Every value is a token reference. The only literals are
+ * structural primitives with no design meaning (0, 1, 100%).
+ */
+
+@import "../../styles/tokens.css";
+
+/* ── CMP-14 Organisation Sidebar shell ───────────────────────────────────── */
+
+.svr-sidebar {
+    display: flex;
+    flex-direction: column;
+    min-height: 0;
+    background-color: var(--svr-surface-raised);
+    border-inline-end: var(--svr-border-width-thin) solid var(--svr-border-default);
+    box-sizing: border-box;
+    font-family: var(--svr-font-family-base);
+    color: var(--svr-content-primary);
+}
+
+.svr-sidebar__controls {
+    display: flex;
+    justify-content: flex-end;
+    padding: var(--svr-space-2);
+    border-block-end: var(--svr-border-width-thin) solid var(--svr-border-subtle);
+    flex: none;
+}
+
+.svr-sidebar__scroll {
+    flex: 1;
+    min-height: 0;
+    overflow-y: auto;
+    padding-block-end: var(--svr-space-4);
+}
+
+.svr-sidebar__divider {
+    height: var(--svr-border-width-thin);
+    background-color: var(--svr-border-subtle);
+    margin: var(--svr-space-2) var(--svr-space-3);
+}
+
+/* ── CMP-14 Hierarchy tree region ────────────────────────────────────────── */
+
+.svr-gov-nav {
+    padding-block: var(--svr-space-2);
+}
+
+.svr-gov-nav__heading {
+    margin: 0;
+    padding: var(--svr-space-1) var(--svr-space-3) var(--svr-space-2);
+    font-size: var(--svr-type-label-size);
+    font-weight: var(--svr-type-label-weight);
+    line-height: var(--svr-type-label-line);
+    letter-spacing: var(--svr-type-label-tracking);
+    text-transform: uppercase;
+    color: var(--svr-content-secondary);
+}
+
+.svr-gov-nav__tree {
+    display: flex;
+    flex-direction: column;
+    gap: var(--svr-space-0);
+}
+
+/* ── CMP-15 Hierarchy node ───────────────────────────────────────────────── */
+
+.svr-hierarchy-node {
+    display: flex;
+    align-items: center;
+    gap: var(--svr-space-2);
+    box-sizing: border-box;
+    /* UI-17: a comfortable target on touch-capable devices. */
+    min-height: var(--svr-control-height-md);
+    padding-block: var(--svr-space-1);
+    padding-inline-end: var(--svr-space-3);
+    margin-inline: var(--svr-space-2);
+    border-radius: var(--svr-radius-sm);
+    color: var(--svr-content-primary);
+    font-size: var(--svr-type-body-size);
+    line-height: var(--svr-type-body-line);
+    cursor: pointer;
+    user-select: none;
+    transition: background-color var(--svr-duration-short) var(--svr-easing-standard);
+}
+
+.svr-hierarchy-node:hover {
+    background-color: var(--svr-surface-hover);
+}
+
+/* A11Y-2 / TOK-14: the one focus treatment, never removed. */
+.svr-hierarchy-node:focus-visible {
+    outline: var(--svr-focus-ring-width) solid var(--svr-focus-ring-color);
+    outline-offset: var(--svr-focus-ring-offset);
+}
+
+.svr-hierarchy-node.is-active {
+    background-color: var(--svr-surface-selected);
+    font-weight: var(--svr-type-body-strong-weight);
+}
+
+.svr-hierarchy-node__twisty {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    flex: none;
+    width: var(--svr-icon-size-sm);
+    color: var(--svr-content-secondary);
+}
+
+.svr-hierarchy-node__twisty-hit {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 100%;
+    cursor: pointer;
+}
+
+.svr-hierarchy-node__icon {
+    flex: none;
+    color: var(--svr-content-secondary);
+}
+
+.svr-hierarchy-node.is-active .svr-hierarchy-node__icon {
+    color: var(--svr-content-primary);
+}
+
+.svr-hierarchy-node__label {
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+/* NAV-1: collapsed rail keeps the icons and drops the labels and indent. */
+.svr-gov-nav.is-collapsed .svr-hierarchy-node {
+    justify-content: center;
+    /* stylelint-disable-next-line declaration-no-important -- overrides the
+       computed indent, which is an inline style set from configured depth. */
+    padding-inline: var(--svr-space-1) !important;
+}
+
+.svr-gov-nav.is-collapsed .svr-hierarchy-node__label,
+.svr-gov-nav.is-collapsed .svr-hierarchy-node__twisty {
+    display: none;
+}
+
+/* ── CMP-16 Module list ──────────────────────────────────────────────────── */
+
+.svr-module-nav {
+    padding-block: var(--svr-space-1) var(--svr-space-4);
+}
+
+.svr-module-nav__section + .svr-module-nav__section {
+    margin-block-start: var(--svr-space-2);
+    padding-block-start: var(--svr-space-2);
+    border-block-start: var(--svr-border-width-thin) solid var(--svr-border-subtle);
+}
+
+.svr-module-nav__heading {
+    margin: 0;
+    padding: var(--svr-space-1) var(--svr-space-3);
+    font-size: var(--svr-type-caption-size);
+    font-weight: var(--svr-type-label-weight);
+    line-height: var(--svr-type-label-line);
+    letter-spacing: var(--svr-type-label-tracking);
+    text-transform: uppercase;
+    color: var(--svr-brand-primary);
+}
+
+.svr-module-nav__list {
+    list-style: none;
+    margin: 0;
+    padding: 0;
+}
+
+.svr-module-nav__item {
+    display: flex;
+    align-items: center;
+    gap: var(--svr-space-2);
+    box-sizing: border-box;
+    width: calc(100% - var(--svr-space-4));
+    min-height: var(--svr-control-height-md);
+    margin-inline: var(--svr-space-2);
+    padding-inline: var(--svr-space-3);
+    background-color: var(--svr-action-secondary-rest);
+    border: var(--svr-border-width-thin) solid transparent;
+    border-radius: var(--svr-radius-sm);
+    color: var(--svr-content-secondary);
+    font-family: var(--svr-font-family-base);
+    font-size: var(--svr-type-body-size);
+    line-height: var(--svr-type-body-line);
+    text-align: start;
+    cursor: pointer;
+    transition:
+        background-color var(--svr-duration-short) var(--svr-easing-standard),
+        color var(--svr-duration-short) var(--svr-easing-standard);
+}
+
+.svr-module-nav__item:hover {
+    background-color: var(--svr-action-secondary-hover);
+    color: var(--svr-content-primary);
+}
+
+.svr-module-nav__item:focus-visible {
+    outline: var(--svr-focus-ring-width) solid var(--svr-focus-ring-color);
+    outline-offset: var(--svr-focus-ring-offset);
+}
+
+.svr-module-nav__item.is-active {
+    background-color: var(--svr-surface-selected);
+    color: var(--svr-content-primary);
+    font-weight: var(--svr-type-body-strong-weight);
+}
+
+.svr-module-nav__label {
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+.svr-module-nav.is-collapsed .svr-module-nav__item {
+    justify-content: center;
+    padding-inline: var(--svr-space-1);
+}

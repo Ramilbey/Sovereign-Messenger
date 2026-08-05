@@ -1,126 +1,240 @@
 /*
- * Sovereign Messenger — Sprint 1, Step 3
- * GovernmentNavigation.tsx — Government hierarchy navigation tree.
+ * Sovereign Messenger — Sprint 1, Step 3 · Sprint 3, Milestone 3
+ * GovernmentNavigation.tsx — CMP-14 Organisation Sidebar (tree region)
  *
- * Blueprint §3 & §3.1:
- * Pilot branch only: Samarqand viloyati → Ichki Ishlar → Tergov.
+ * The pilot branch is no longer embedded here. The tree renders whatever the
+ * organisation configuration declares, at arbitrary depth and breadth (IA-2,
+ * ORG-3), so a department is added by configuration alone (AC-14).
+ *
+ * IA-4: only the branch the user is authorised for reaches this component;
+ * the authorisation decision belongs to OrganisationService, not the view.
  */
 
-import React, { useState, type JSX } from "react";
+import React, { useCallback, useEffect, useMemo, useRef, useState, type JSX, type KeyboardEvent } from "react";
 
-export interface GovernmentNode {
-    id: string;
-    label: string;
-    icon?: string;
-    children?: GovernmentNode[];
-    isWorkspace?: boolean;
-}
-
-/**
- * Strict pilot hierarchy data per Blueprint §3.1:
- * Only Samarqand viloyati -> Ichki Ishlar -> Tergov.
- */
-const PILOT_GOVERNMENT_HIERARCHY: GovernmentNode[] = [
-    {
-        id: "samarqand",
-        label: "Samarqand viloyati",
-        icon: "🏛",
-        children: [
-            {
-                id: "ichki_ishlar",
-                label: "Ichki Ishlar",
-                icon: "👮",
-                children: [
-                    { id: "tergov", label: "Tergov", icon: "📂", isWorkspace: true },
-                ],
-            },
-        ],
-    },
-];
+import { HierarchyNode } from "./HierarchyNode";
+import { ModuleStateBoundary } from "../views/ModuleStateBoundary";
+import { NAVIGATION_COPY } from "../../config/navigationCopy";
+import { orgNodeName, type OrgLanguage, type OrgNode } from "../../services/OrganisationService";
+import type { ResourceState } from "../../types/resource";
 
 interface Props {
-    activeWorkspaceId?: string;
-    onSelectWorkspace?: (workspaceId: string) => void;
+    /** IA-4: the branch this user may see. */
+    tree: OrgNode | null;
+    /** ES-1: the organisation surface carries the same four states as any other. */
+    state: ResourceState;
+    activeNodeId: string;
+    onSelectNode: (nodeId: string) => void;
+    /** NAV-1: icon-only rail when the sidebar is collapsed. */
+    collapsed?: boolean;
+    language?: OrgLanguage;
+    onRetry?: () => void;
+}
+
+/** One row as the user sees it, in visual order — the basis for arrow-key movement. */
+interface VisibleRow {
+    node: OrgNode;
+    level: number;
+    parentId: string | null;
+    hasChildren: boolean;
+    isExpanded: boolean;
+}
+
+/** Ancestors of the active node are open, so the user's position is never hidden. */
+function ancestorIds(tree: OrgNode | null, targetId: string): string[] {
+    const found: string[] = [];
+
+    const walk = (node: OrgNode, trail: string[]): boolean => {
+        if (node.id === targetId) {
+            found.push(...trail);
+            return true;
+        }
+        return node.children.some((child) => walk(child, [...trail, node.id]));
+    };
+
+    if (tree) walk(tree, []);
+    return found;
 }
 
 export function GovernmentNavigation({
-    activeWorkspaceId = "tergov",
-    onSelectWorkspace,
+    tree,
+    state,
+    activeNodeId,
+    onSelectNode,
+    collapsed = false,
+    language = "uz",
+    onRetry,
 }: Props): JSX.Element {
-    // Default open nodes for pilot: Samarqand viloyati and Ichki Ishlar
-    const [expandedNodeIds, setExpandedNodeIds] = useState<Record<string, boolean>>({
-        samarqand: true,
-        ichki_ishlar: true,
+    const [expanded, setExpanded] = useState<Set<string>>(() => new Set(ancestorIds(tree, activeNodeId)));
+    const [focusedId, setFocusedId] = useState<string>(activeNodeId);
+    const rowRefs = useRef<Map<string, HTMLDivElement>>(new Map());
+    // Focus is moved only in response to a key press, never on re-render —
+    // otherwise arriving data would steal focus from wherever the user is.
+    const pendingFocusId = useRef<string | null>(null);
+
+    // Reveal the active node whenever the position changes, without closing
+    // branches the user opened themselves.
+    useEffect(() => {
+        setExpanded((previous) => {
+            const next = new Set(previous);
+            ancestorIds(tree, activeNodeId).forEach((id) => next.add(id));
+            return next;
+        });
+    }, [tree, activeNodeId]);
+
+    const rows = useMemo<VisibleRow[]>(() => {
+        const result: VisibleRow[] = [];
+
+        const walk = (node: OrgNode, level: number, parentId: string | null): void => {
+            const hasChildren = node.children.length > 0;
+            const isExpanded = expanded.has(node.id);
+
+            result.push({ node, level, parentId, hasChildren, isExpanded });
+
+            if (hasChildren && isExpanded) {
+                node.children.forEach((child) => walk(child, level + 1, node.id));
+            }
+        };
+
+        if (tree) walk(tree, 1, null);
+        return result;
+    }, [tree, expanded]);
+
+    // A row can disappear when a branch is collapsed; keep the tab stop on a
+    // row that still exists so the tree never loses its single entry point.
+    const tabbableId = rows.some((row) => row.node.id === focusedId)
+        ? focusedId
+        : (rows.find((row) => row.node.id === activeNodeId)?.node.id ?? rows[0]?.node.id ?? "");
+
+    useEffect(() => {
+        if (!pendingFocusId.current) return;
+        rowRefs.current.get(pendingFocusId.current)?.focus();
+        pendingFocusId.current = null;
     });
 
-    const toggleNode = (nodeId: string, e: React.MouseEvent) => {
-        e.stopPropagation();
-        setExpandedNodeIds((prev) => ({
-            ...prev,
-            [nodeId]: !prev[nodeId],
-        }));
-    };
+    const moveFocus = useCallback((nodeId: string) => {
+        setFocusedId(nodeId);
+        pendingFocusId.current = nodeId;
+    }, []);
 
-    const handleSelect = (node: GovernmentNode) => {
-        if (node.isWorkspace && onSelectWorkspace) {
-            onSelectWorkspace(node.id);
-        }
-    };
+    const toggle = useCallback((nodeId: string) => {
+        setExpanded((previous) => {
+            const next = new Set(previous);
+            if (next.has(nodeId)) {
+                next.delete(nodeId);
+            } else {
+                next.add(nodeId);
+            }
+            return next;
+        });
+    }, []);
 
-    const renderTree = (nodes: GovernmentNode[], depth = 0) => {
-        return (
-            <ul className={`svr-gov-nav-tree depth-${depth}`}>
-                {nodes.map((node) => {
-                    const hasChildren = Boolean(node.children && node.children.length > 0);
-                    const isExpanded = Boolean(expandedNodeIds[node.id]);
-                    const isSelected = node.id === activeWorkspaceId;
+    /**
+     * A11Y-1: the tree is fully operable by keyboard, following the standard
+     * tree pattern so the behaviour matches what assistive technology users
+     * already expect.
+     */
+    const handleKeyDown = useCallback(
+        (event: KeyboardEvent<HTMLDivElement>, nodeId: string) => {
+            const index = rows.findIndex((row) => row.node.id === nodeId);
+            if (index === -1) return;
 
-                    return (
-                        <li key={node.id} className="svr-gov-nav-item">
-                            <div
-                                id={`gov-nav-node-${node.id}`}
-                                className={`svr-gov-nav-row ${isSelected ? "selected" : ""} ${
-                                    node.isWorkspace ? "workspace-node" : "dept-node"
-                                }`}
-                                style={{ paddingLeft: `${12 + depth * 14}px` }}
-                                onClick={() => {
-                                    if (hasChildren) {
-                                        setExpandedNodeIds((prev) => ({
-                                            ...prev,
-                                            [node.id]: !prev[node.id],
-                                        }));
-                                    }
-                                    if (node.isWorkspace) {
-                                        handleSelect(node);
-                                    }
-                                }}
-                            >
-                                {hasChildren ? (
-                                    <span
-                                        className="svr-gov-nav-arrow"
-                                        onClick={(e) => toggleNode(node.id, e)}
-                                    >
-                                        {isExpanded ? "▾" : "▸"}
-                                    </span>
-                                ) : (
-                                    <span className="svr-gov-nav-bullet">•</span>
-                                )}
-                                <span className="svr-gov-nav-icon">{node.icon || "📁"}</span>
-                                <span className="svr-gov-nav-label">{node.label}</span>
-                            </div>
+            const row = rows[index];
 
-                            {hasChildren && isExpanded && renderTree(node.children!, depth + 1)}
-                        </li>
-                    );
-                })}
-            </ul>
-        );
-    };
+            switch (event.key) {
+                case "ArrowDown":
+                    event.preventDefault();
+                    if (index < rows.length - 1) moveFocus(rows[index + 1].node.id);
+                    break;
+
+                case "ArrowUp":
+                    event.preventDefault();
+                    if (index > 0) moveFocus(rows[index - 1].node.id);
+                    break;
+
+                case "ArrowRight":
+                    event.preventDefault();
+                    if (row.hasChildren && !row.isExpanded) {
+                        toggle(nodeId);
+                    } else if (row.hasChildren && index < rows.length - 1) {
+                        moveFocus(rows[index + 1].node.id);
+                    }
+                    break;
+
+                case "ArrowLeft":
+                    event.preventDefault();
+                    if (row.hasChildren && row.isExpanded) {
+                        toggle(nodeId);
+                    } else if (row.parentId) {
+                        moveFocus(row.parentId);
+                    }
+                    break;
+
+                case "Home":
+                    event.preventDefault();
+                    if (rows.length > 0) moveFocus(rows[0].node.id);
+                    break;
+
+                case "End":
+                    event.preventDefault();
+                    if (rows.length > 0) moveFocus(rows[rows.length - 1].node.id);
+                    break;
+
+                case "Enter":
+                case " ":
+                    event.preventDefault();
+                    onSelectNode(nodeId);
+                    break;
+
+                default:
+                    break;
+            }
+        },
+        [rows, moveFocus, toggle, onSelectNode],
+    );
+
+    const registerRow = useCallback((nodeId: string) => {
+        return (element: HTMLDivElement | null): void => {
+            if (element) {
+                rowRefs.current.set(nodeId, element);
+            } else {
+                rowRefs.current.delete(nodeId);
+            }
+        };
+    }, []);
 
     return (
-        <div id="sovereign-gov-nav" className="svr-gov-nav">
-            <div className="svr-gov-nav-header">Davlat Boshqaruvi</div>
-            {renderTree(PILOT_GOVERNMENT_HIERARCHY)}
-        </div>
+        <nav
+            id="sovereign-gov-nav"
+            className={`svr-gov-nav${collapsed ? " is-collapsed" : ""}`}
+            aria-label={NAVIGATION_COPY.hierarchyLabel}
+        >
+            {!collapsed && <h2 className="svr-gov-nav__heading">{NAVIGATION_COPY.hierarchyLabel}</h2>}
+
+            {/* ES-1: loading, empty, unavailable, and error come from one place. */}
+            <ModuleStateBoundary state={state} surface="organisation" onRetry={onRetry} loadingRows={4}>
+                <div role="tree" aria-label={NAVIGATION_COPY.hierarchyLabel} className="svr-gov-nav__tree">
+                    {rows.map((row) => (
+                        <HierarchyNode
+                            key={row.node.id}
+                            ref={registerRow(row.node.id)}
+                            nodeId={row.node.id}
+                            name={orgNodeName(row.node, language)}
+                            type={row.node.type}
+                            level={row.level}
+                            hasChildren={row.hasChildren}
+                            isExpanded={row.isExpanded}
+                            isActive={row.node.id === activeNodeId}
+                            isTabbable={row.node.id === tabbableId}
+                            collapsed={collapsed}
+                            onSelect={onSelectNode}
+                            onToggle={toggle}
+                            onKeyDown={handleKeyDown}
+                            onFocus={setFocusedId}
+                        />
+                    ))}
+                </div>
+            </ModuleStateBoundary>
+        </nav>
     );
 }

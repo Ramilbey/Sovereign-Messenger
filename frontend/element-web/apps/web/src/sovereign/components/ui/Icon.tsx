@@ -49,7 +49,14 @@ export type IconName =
     | "more"
     | "calendar"
     | "folder"
-    | "task";
+    | "task"
+    | "chart"
+    | "briefcase"
+    | "scale"
+    | "message"
+    | "building"
+    | "menu"
+    | "filter";
 
 export type IconSize = "sm" | "md" | "lg";
 
@@ -102,6 +109,13 @@ const ICON_PATHS: Record<IconName, string> = {
     "calendar": "M4 6h16v14H4zM4 10h16M8 3v4M16 3v4",
     "folder": "M3 6h6l2 2.5h10V19H3V6z",
     "task": "M9 5h10M9 12h10M9 19h10M4 5l1.5 1.5L8 4M4 12l1.5 1.5L8 11M4 19l1.5 1.5L8 18",
+    "chart": "M4 20h16M7.5 20v-6M12 20V8M16.5 20v-9",
+    "briefcase": "M3.5 8h17v11h-17zM8.5 8V5.5A1.5 1.5 0 0 1 10 4h4a1.5 1.5 0 0 1 1.5 1.5V8M3.5 13h17",
+    "scale": "M12 4.5v15M6.5 19.5h11M4 8.5h16M4 8.5l-2 5h4zM20 8.5l2 5h-4z",
+    "message": "M20.5 4.5h-17v11h4v4l5-4h8z",
+    "building": "M4 20.5V6l7-2.5v17M11 20.5h9V10h-9M14.5 13.5v.01M17.5 13.5v.01M14.5 17v.01M17.5 17v.01M7.5 8.5v.01M7.5 12v.01M7.5 15.5v.01",
+    "menu": "M4 7h16M4 12h16M4 17h16",
+    "filter": "M4 5.5h16l-6 7v6l-4 2v-8z",
 };
 
 /** Icons drawn as filled shapes rather than strokes. */
