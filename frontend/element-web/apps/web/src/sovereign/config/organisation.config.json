@@ -1,0 +1,108 @@
+{
+    "version": 1,
+    "rootId": "uz",
+    "defaultNodeId": "tergov_workspace",
+    "nodes": [
+        {
+            "id": "uz",
+            "parentId": null,
+            "type": "Republic",
+            "code": "UZ",
+            "name": {
+                "uz": "O'zbekiston Respublikasi",
+                "ru": "Республика Узбекистан"
+            }
+        },
+        {
+            "id": "samarqand",
+            "parentId": "uz",
+            "type": "Viloyat",
+            "code": "SAM",
+            "name": {
+                "uz": "Samarqand viloyati",
+                "ru": "Самаркандская область"
+            }
+        },
+        {
+            "id": "sam_iib",
+            "parentId": "samarqand",
+            "type": "Idora",
+            "code": "SAM-IIB",
+            "name": {
+                "uz": "Ichki Ishlar",
+                "ru": "Внутренние дела"
+            }
+        },
+        {
+            "id": "tergov",
+            "parentId": "sam_iib",
+            "type": "Bolim",
+            "code": "SAM-IIB-TERGOV",
+            "name": {
+                "uz": "Tergov",
+                "ru": "Следствие"
+            }
+        },
+        {
+            "id": "tergov_workspace",
+            "parentId": "tergov",
+            "type": "Workspace",
+            "name": {
+                "uz": "Tergov bo'limi Workspace",
+                "ru": "Рабочее пространство отдела следствия"
+            },
+            "modules": [
+                "channels",
+                "groups",
+                "members",
+                "documents",
+                "tasks",
+                "calendar",
+                "dashboard",
+                "pinned",
+                "workspace_settings",
+                "cases",
+                "suspects",
+                "evidence",
+                "records",
+                "court_materials",
+                "direct_chats",
+                "favorites",
+                "settings"
+            ]
+        },
+        {
+            "id": "jinoyat_qidiruv",
+            "parentId": "sam_iib",
+            "type": "Bolim",
+            "code": "SAM-IIB-JQ",
+            "name": {
+                "uz": "Jinoyat qidiruv",
+                "ru": "Уголовный розыск"
+            }
+        },
+        {
+            "id": "jinoyat_qidiruv_workspace",
+            "parentId": "jinoyat_qidiruv",
+            "type": "Workspace",
+            "name": {
+                "uz": "Jinoyat qidiruv bo'limi Workspace",
+                "ru": "Рабочее пространство отдела уголовного розыска"
+            },
+            "modules": [
+                "channels",
+                "groups",
+                "members",
+                "documents",
+                "tasks",
+                "calendar",
+                "dashboard",
+                "pinned",
+                "workspace_settings",
+                "direct_chats",
+                "favorites",
+                "settings"
+            ]
+        }
+    ]
+}

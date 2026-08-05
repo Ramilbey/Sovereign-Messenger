@@ -11,7 +11,6 @@
  */
 
 import { useState, useEffect } from "react";
-import organizationConfig from "../config/organization.config.json";
 import usersData from "../demo/users.json";
 import channelsData from "../demo/channels.json";
 import tasksData from "../demo/tasks.json";
@@ -28,6 +27,7 @@ import { ClientEvent } from "matrix-js-sdk/src/matrix";
 import {
     ready,
     loading,
+    failed,
     unavailable,
     type SovereignResource,
 } from "../types/resource";
@@ -36,6 +36,7 @@ import { useMessages } from "../hooks/useMessages";
 import { isDemoMode } from "../config/SovereignConfig";
 import { MatrixRoomService, type SovereignRoom } from "../services/MatrixRoomService";
 import { MatrixClientService } from "../services/MatrixClientService";
+import { OrganisationService, orgNodeName } from "../services/OrganisationService";
 
 export type { SovereignMessage };
 export { useMessages };
@@ -201,14 +202,40 @@ function mapMatrixRoomToChannel(room: SovereignRoom): SovereignChannel {
 // ── Specialized Hooks ────────────────────────────────────────────────────────
 
 /**
- * The organisational identity of this deployment.
+ * The organisational identity of the user's current position.
  *
- * Sourced from deployment configuration rather than the demonstration dataset,
- * so it is authoritative in both runtime modes. The full multi-level hierarchy
- * model (ORG-1) replaces this in a later milestone.
+ * Derived from the hierarchy model (ORG-1) rather than a flat record, so the
+ * labels shown in the application frame follow whatever the configuration
+ * declares. Surfaces needing the hierarchy itself — sidebar, breadcrumbs —
+ * consume `useOrganisation` directly; this stays as the frame's summary view.
+ *
+ * ORG-4: `departmentHint` is the department carried on the user's identity
+ * data where present (AS-1). Absent or unrecognised, the configured default
+ * position applies; a position is never invented.
  */
-export function useOrganization(): SovereignResource<SovereignOrganization> {
-    return ready(organizationConfig, false);
+export function useOrganization(departmentHint?: string | null): SovereignResource<SovereignOrganization> {
+    const service = OrganisationService.getInstance();
+    const positionId = service.resolvePosition(departmentHint);
+
+    const viloyat = service.getAncestorOfType(positionId, "Viloyat");
+    const idora = service.getAncestorOfType(positionId, "Idora");
+    const bolim = service.getAncestorOfType(positionId, "Bolim");
+    const workspace = service.getAncestorOfType(positionId, "Workspace");
+
+    if (!service.isValid()) {
+        return failed({ region: "", department: "", subDepartment: "", workspaceName: "", code: "" });
+    }
+
+    return ready(
+        {
+            region: viloyat ? orgNodeName(viloyat) : "",
+            department: idora ? orgNodeName(idora) : "",
+            subDepartment: bolim ? orgNodeName(bolim) : "",
+            workspaceName: workspace ? orgNodeName(workspace) : "",
+            code: service.getCode(positionId) ?? "",
+        },
+        false,
+    );
 }
 
 /**
