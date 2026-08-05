@@ -32,6 +32,9 @@ interface PolicyDocument {
     search?: {
         include_unsearchable_notice?: boolean;
     };
+    media?: {
+        use_authenticated_endpoint?: boolean;
+    };
 }
 
 export interface FilePolicy {
@@ -57,6 +60,22 @@ export interface ReceiptPolicy {
      * the pilot department to choose and is not yet implementable.
      */
     acknowledgement: "read-position" | "explicit";
+}
+
+export interface MediaPolicy {
+    /**
+     * Which media endpoint the deployment's homeserver serves.
+     *
+     * Authenticated media (MSC3916, `/_matrix/client/v1/media/...`) arrived in
+     * Synapse around v1.111. The deployment pins v1.100.0, which serves only
+     * the unauthenticated `/_matrix/media/v3/...` endpoints — requesting the
+     * newer one there returns 404 for every download. The SDK does not check
+     * server support and states that doing so is the caller's responsibility.
+     *
+     * Default follows the pinned server. Upgrading Synapse is then a
+     * configuration change here, not a code change.
+     */
+    useAuthenticatedEndpoint: boolean;
 }
 
 export interface SearchPolicy {
@@ -102,6 +121,7 @@ const PROVISIONAL: Required<PolicyDocument> = {
     },
     receipts: { acknowledgement: "read-position" },
     search: { include_unsearchable_notice: true },
+    media: { use_authenticated_endpoint: false },
 };
 
 let document: PolicyDocument | null = null;
@@ -130,6 +150,14 @@ export function getReceiptPolicy(): ReceiptPolicy {
     return {
         acknowledgement:
             document?.receipts?.acknowledgement ?? PROVISIONAL.receipts.acknowledgement!,
+    };
+}
+
+export function getMediaPolicy(): MediaPolicy {
+    return {
+        useAuthenticatedEndpoint:
+            document?.media?.use_authenticated_endpoint ??
+            PROVISIONAL.media.use_authenticated_endpoint!,
     };
 }
 

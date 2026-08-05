@@ -15,6 +15,7 @@
 import { Direction, type EventTimeline } from "matrix-js-sdk/src/matrix";
 
 import { MatrixClientService } from "./MatrixClientService";
+import { isPreviewableImage, type MessageAttachment } from "../types/attachment";
 
 /**
  * COM-5 / ST-38: where a message has got to.
@@ -34,6 +35,8 @@ export interface SovereignMessage {
     eventId: string;
     type: "text" | "unavailable";
     delivery: TimelineDeliveryState;
+    /** FR-26: the file this message carries, where it carries one. */
+    attachment?: MessageAttachment;
 }
 
 /** How many earlier messages one backward page requests (FR-36, EDGE-2). */
@@ -212,6 +215,33 @@ export class MatrixTimelineService {
     }
 
     /**
+     * FR-26: the file a message carries, where it carries one.
+     *
+     * EDGE-8: a message whose media reference is missing keeps its filename so
+     * the card can present the unavailable state rather than vanishing.
+     */
+    private readAttachment(content: any): MessageAttachment | undefined {
+        const msgtype = content?.msgtype;
+        if (msgtype !== "m.image" && msgtype !== "m.file" && msgtype !== "m.video" && msgtype !== "m.audio") {
+            return undefined;
+        }
+
+        const contentUri = typeof content?.url === "string" ? content.url : "";
+        const info = content?.info ?? {};
+        const mimeType = typeof info?.mimetype === "string" ? info.mimetype : "application/octet-stream";
+
+        return {
+            contentUri,
+            name: typeof content?.body === "string" ? content.body : "",
+            size: typeof info?.size === "number" ? info.size : null,
+            mimeType,
+            isImage: msgtype === "m.image" && isPreviewableImage(mimeType),
+            width: typeof info?.w === "number" ? info.w : undefined,
+            height: typeof info?.h === "number" ? info.h : undefined,
+        };
+    }
+
+    /**
      * COM-5 / ST-38: the platform's own send status for a message.
      *
      * A message the user composed while disconnected sits in the pending queue
@@ -309,6 +339,6 @@ export class MatrixTimelineService {
             return null;
         }
 
-        return { ...base, body, type: "text" };
+        return { ...base, body, type: "text", attachment: this.readAttachment(content) };
     }
 }

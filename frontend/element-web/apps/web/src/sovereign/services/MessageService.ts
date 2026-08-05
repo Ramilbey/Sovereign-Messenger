@@ -13,6 +13,8 @@
  * are reported once that capability exists — until then a message is never
  * shown as read on evidence the platform does not have.
  */
+import type { MessageAttachment } from "../types/attachment";
+
 export type MessageDeliveryState = "queued" | "sending" | "sent" | "delivered" | "read" | "failed";
 
 export interface SovereignMessage {
@@ -45,6 +47,8 @@ export interface SovereignMessage {
      * a defined interface state, never as message text (COM-6, SUX-12).
      */
     unavailable?: boolean;
+    /** FR-26: the file this message carries, where it carries one. */
+    attachment?: MessageAttachment;
 }
 
 export type TimelineCallback = (messages: SovereignMessage[]) => void;

@@ -208,6 +208,7 @@ export class MatrixMessageService implements MessageService {
         eventId: string;
         type: "text" | "unavailable";
         delivery: "queued" | "sending" | "sent" | "read" | "failed";
+        attachment?: SovereignMessage["attachment"];
     }): SovereignMessage {
         return {
             id: msg.id,
@@ -234,6 +235,7 @@ export class MatrixMessageService implements MessageService {
              */
             readState: msg.delivery,
             unavailable: msg.type === "unavailable",
+            attachment: msg.attachment,
         };
     }
 }
