@@ -207,7 +207,7 @@ export class MatrixMessageService implements MessageService {
         timestamp: number;
         eventId: string;
         type: "text" | "unavailable";
-        delivery: "queued" | "sending" | "sent" | "failed";
+        delivery: "queued" | "sending" | "sent" | "read" | "failed";
     }): SovereignMessage {
         return {
             id: msg.id,

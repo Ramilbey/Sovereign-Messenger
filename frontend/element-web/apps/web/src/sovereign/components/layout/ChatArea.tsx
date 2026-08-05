@@ -13,20 +13,23 @@
  * is explained where it happens, with composed text preserved (SUX-15).
  */
 
-import React, { useCallback, type JSX } from "react";
+import React, { useCallback, useState, type JSX } from "react";
 
 import "../chat/ChatArea.css";
 import { useChat } from "../../context/ChatContext";
 import { usePermissions } from "../../context/PermissionContext";
 import { usePostingPermission } from "../../hooks/usePostingPermission";
 import { useTyping } from "../../hooks/useTyping";
+import { useAcknowledgement, useReadReporting } from "../../hooks/useReceipts";
+import { AcknowledgementSummary } from "../chat/AcknowledgementSummary";
+import { MatrixReceiptService } from "../../services/MatrixReceiptService";
 import { ConversationHeader } from "../chat/ConversationHeader";
 import { MessageTimeline } from "../chat/MessageTimeline";
 import { TypingIndicator } from "../chat/TypingIndicator";
 import { MessageComposer } from "../chat/MessageComposer";
 import { PermissionNotice } from "../chat/PermissionNotice";
 import { EmptyState } from "../ui";
-import { CHAT_COPY } from "../../config/chatCopy";
+import { ACKNOWLEDGEMENT_COPY, CHAT_COPY } from "../../config/chatCopy";
 
 export function ChatArea(): JSX.Element {
     const {
@@ -52,6 +55,17 @@ export function ChatArea(): JSX.Element {
 
     // FR-11 / ST-5: typing is never reported where the user may not post.
     const { typingUsers, reportTyping, reportStopped } = useTyping(activeChannelId, canPost);
+
+    // FR-21: reading a message records that it has been read.
+    const reportRead = useReadReporting(activeChannelId);
+
+    // FR-19 / GW-2: the issuer inspects the acknowledgement of one message.
+    const [ackEventId, setAckEventId] = useState<string | null>(null);
+    const { data: acknowledgement, state: ackState } = useAcknowledgement(
+        activeChannelId,
+        ackEventId,
+        currentUser.id,
+    );
 
     const handleSendMessage = useCallback(
         (text: string) => {
@@ -97,7 +111,27 @@ export function ChatArea(): JSX.Element {
                 isLoadingEarlier={isLoadingEarlierMessages}
                 onLoadEarlier={loadEarlierMessages}
                 readUpToId={readUpToId}
+                onMessageRead={reportRead}
+                onShowAcknowledgement={setAckEventId}
             />
+
+            {/* FR-19 / FR-20 / GW-2: who has read this directive, and who has not. */}
+            {ackEventId && (
+                <div className="svr-ack-panel">
+                    <AcknowledgementSummary
+                        summary={acknowledgement}
+                        state={ackState}
+                        semantic={MatrixReceiptService.getInstance().getSemantic()}
+                    />
+                    <button
+                        type="button"
+                        className="svr-ack-panel__close"
+                        onClick={() => setAckEventId(null)}
+                    >
+                        {ACKNOWLEDGEMENT_COPY.close}
+                    </button>
+                </div>
+            )}
 
             <TypingIndicator typingUsers={typingUsers} />
 

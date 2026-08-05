@@ -583,3 +583,106 @@ button.svr-member-item:focus-visible {
     display: inline-flex;
     align-items: center;
 }
+
+/* ── CMP-31 Acknowledgement Summary (FR-19, FR-20, GW-2, GW-3) ───────────── */
+
+.svr-msg-ack-button {
+    padding: 0;
+    background: none;
+    border: 0;
+    color: var(--svr-brand-emphasis);
+    font-family: var(--svr-font-family-base);
+    font-size: var(--svr-type-caption-size);
+    line-height: var(--svr-type-caption-line);
+    text-decoration: underline;
+    cursor: pointer;
+}
+
+.svr-msg-ack-button:focus-visible {
+    outline: var(--svr-focus-ring-width) solid var(--svr-focus-ring-color);
+    outline-offset: var(--svr-focus-ring-offset);
+}
+
+.svr-ack-panel {
+    display: flex;
+    flex-direction: column;
+    gap: var(--svr-space-2);
+    flex: none;
+    padding: var(--svr-space-3) var(--svr-space-4);
+    background-color: var(--svr-surface-raised);
+    border-block-start: var(--svr-border-width-thin) solid var(--svr-border-default);
+}
+
+.svr-ack-panel__close {
+    align-self: flex-end;
+    padding: var(--svr-space-1) var(--svr-space-3);
+    background-color: var(--svr-action-secondary-rest);
+    border: var(--svr-border-width-thin) solid var(--svr-border-default);
+    border-radius: var(--svr-radius-sm);
+    color: var(--svr-content-primary);
+    font-family: var(--svr-font-family-base);
+    font-size: var(--svr-type-caption-size);
+    cursor: pointer;
+}
+
+.svr-ack-panel__close:focus-visible {
+    outline: var(--svr-focus-ring-width) solid var(--svr-focus-ring-color);
+    outline-offset: var(--svr-focus-ring-offset);
+}
+
+.svr-ack {
+    display: flex;
+    flex-direction: column;
+    gap: var(--svr-space-1);
+}
+
+.svr-ack__heading {
+    margin: 0;
+    font-size: var(--svr-type-caption-size);
+    font-weight: var(--svr-type-label-weight);
+    line-height: var(--svr-type-label-line);
+    letter-spacing: var(--svr-type-label-tracking);
+    text-transform: uppercase;
+    color: var(--svr-content-secondary);
+}
+
+.svr-ack__count {
+    margin: 0;
+    font-size: var(--svr-type-body-size);
+    font-weight: var(--svr-type-body-strong-weight);
+    line-height: var(--svr-type-body-line);
+}
+
+.svr-ack__subheading {
+    margin: var(--svr-space-1) 0 0;
+    color: var(--svr-content-secondary);
+    font-size: var(--svr-type-caption-size);
+    font-weight: var(--svr-type-body-strong-weight);
+    line-height: var(--svr-type-caption-line);
+}
+
+.svr-ack__list {
+    list-style: none;
+    margin: 0;
+    padding: 0;
+}
+
+.svr-ack__person {
+    font-size: var(--svr-type-caption-size);
+    line-height: var(--svr-type-body-line);
+}
+
+.svr-ack__complete {
+    margin: 0;
+    color: var(--svr-status-success);
+    font-size: var(--svr-type-caption-size);
+    line-height: var(--svr-type-caption-line);
+}
+
+/* R-2: what the figure counts, so it cannot be over-read when reported. */
+.svr-ack__semantic {
+    margin: var(--svr-space-1) 0 0;
+    color: var(--svr-content-tertiary);
+    font-size: var(--svr-type-caption-size);
+    line-height: var(--svr-type-caption-line);
+}

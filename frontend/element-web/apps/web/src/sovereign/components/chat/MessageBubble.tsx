@@ -18,7 +18,7 @@
 import React, { memo, type JSX } from "react";
 
 import { Avatar, Icon, type IconName } from "../ui";
-import { CHAT_COPY } from "../../config/chatCopy";
+import { ACKNOWLEDGEMENT_COPY, CHAT_COPY } from "../../config/chatCopy";
 import type { MessageDeliveryState, SovereignMessage } from "../../services/MessageService";
 
 /** COM-5: every state carries an icon and a label, never shape alone. */
@@ -39,12 +39,18 @@ export interface MessageBubbleProps {
      * neither avatar nor sender identity.
      */
     showSender: boolean;
+    /**
+     * FR-19: opens the acknowledgement state of one of the reader's own
+     * messages. Absent where the surface does not offer it.
+     */
+    onShowAcknowledgement?: (eventId: string) => void;
 }
 
 export const MessageBubble = memo(function MessageBubble({
     message,
     isOutgoing,
     showSender,
+    onShowAcknowledgement,
 }: MessageBubbleProps): JSX.Element {
     const state = message.readState ? STATE_PRESENTATION[message.readState] : null;
 
@@ -93,6 +99,21 @@ export const MessageBubble = memo(function MessageBubble({
                         <span className="svr-msg-state">
                             <Icon name={state.icon} size="sm" label={state.label} />
                         </span>
+                    )}
+
+                    {/*
+                     * FR-19 / GW-2: the issuer of a message can see who has
+                     * read it. Offered only on the reader's own messages —
+                     * who has read somebody else's is not theirs to inspect.
+                     */}
+                    {isOutgoing && onShowAcknowledgement && (
+                        <button
+                            type="button"
+                            className="svr-msg-ack-button"
+                            onClick={() => onShowAcknowledgement(message.id)}
+                        >
+                            {ACKNOWLEDGEMENT_COPY.open}
+                        </button>
                     )}
                 </div>
             </div>

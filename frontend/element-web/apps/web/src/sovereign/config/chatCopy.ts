@@ -65,3 +65,21 @@ export const MEMBER_COPY = {
     departed: "Suhbatni tark etgan",
     readOnly: "Faqat o'qiy oladi",
 } as const;
+
+/** CMP-31 acknowledgement summary (FR-19, FR-20, GW-2, GW-3). */
+export const ACKNOWLEDGEMENT_COPY = {
+    title: "Tanishib chiqilganlik",
+    readOf: (read: number, total: number): string => `${total} tadan ${read} ta xodim o'qidi`,
+    pending: "Hali o'qimaganlar",
+    allRead: "Barcha xodimlar o'qib chiqdi",
+    open: "Kim o'qiganini ko'rish",
+    close: "Yopish",
+    /*
+     * R-2: what the figure counts. Stated because a department head may report
+     * it upward, and a number whose meaning is ambiguous is worse than none.
+     */
+    semantic: {
+        "read-position": "Xodim ushbu xabarga yetib borgani hisobga olinadi.",
+        explicit: "Xodim tanishganini alohida tasdiqlagani hisobga olinadi.",
+    },
+} as const;

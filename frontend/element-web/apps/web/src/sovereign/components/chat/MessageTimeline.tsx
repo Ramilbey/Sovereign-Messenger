@@ -65,6 +65,10 @@ interface MessageTimelineProps {
     onLoadEarlier?: () => void;
     /** FR-37: the message the reader had read up to on entering. */
     readUpToId?: string | null;
+    /** FR-21: called when a message becomes visible to a focused window. */
+    onMessageRead?: (eventId: string) => void;
+    /** FR-19: opens the acknowledgement summary for one of my messages. */
+    onShowAcknowledgement?: (eventId: string) => void;
 }
 
 type TimelineItem =
@@ -80,6 +84,8 @@ export const MessageTimeline = memo(function MessageTimeline({
     isLoadingEarlier = false,
     onLoadEarlier,
     readUpToId = null,
+    onMessageRead,
+    onShowAcknowledgement,
 }: MessageTimelineProps): JSX.Element {
     const scrollRef = useRef<HTMLDivElement | null>(null);
     const [showScrollBottomBtn, setShowScrollBottomBtn] = useState<boolean>(false);
@@ -174,6 +180,31 @@ export const MessageTimeline = memo(function MessageTimeline({
     useEffect(() => {
         scrollToBottom("instant");
     }, [scrollToBottom]);
+
+    /*
+     * FR-21: a message is read when it becomes visible and the window has
+     * focus. The newest visible message carries the position, so reporting it
+     * marks everything above it too — that is what a read position means.
+     */
+    useEffect(() => {
+        if (!onMessageRead || messages.length === 0) return;
+
+        const container = scrollRef.current;
+        if (!container) return;
+
+        const report = (): void => {
+            const distanceFromBottom =
+                container.scrollHeight - container.scrollTop - container.clientHeight;
+            if (distanceFromBottom > 150) return;
+
+            const newest = messages[messages.length - 1];
+            if (newest && !newest.unavailable) onMessageRead(newest.id);
+        };
+
+        report();
+        window.addEventListener("focus", report);
+        return () => window.removeEventListener("focus", report);
+    }, [messages, onMessageRead]);
 
     /**
      * FR-32 / FR-33: day boundaries and sender grouping are decided once here,
@@ -290,6 +321,7 @@ export const MessageTimeline = memo(function MessageTimeline({
                                 message={message}
                                 isOutgoing={message.senderId === currentUserId}
                                 showSender={item.showSender}
+                                onShowAcknowledgement={onShowAcknowledgement}
                             />
                         );
                     })}

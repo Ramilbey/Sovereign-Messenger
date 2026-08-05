@@ -22,7 +22,7 @@ import { MatrixClientService } from "./MatrixClientService";
  * Read from the platform's own send status rather than assumed: a message
  * still queued or already rejected must not be presented as delivered.
  */
-export type TimelineDeliveryState = "queued" | "sending" | "sent" | "failed";
+export type TimelineDeliveryState = "queued" | "sending" | "sent" | "read" | "failed";
 
 export interface SovereignMessage {
     id: string;
@@ -113,7 +113,7 @@ export class MatrixTimelineService {
 
             const messages: SovereignMessage[] = [];
             for (const event of allEvents) {
-                const msg = this.transformEvent(event, roomId);
+                const msg = this.transformEvent(event, roomId, room, client.getUserId() ?? undefined);
                 if (msg) {
                     messages.push(msg);
                 }
@@ -218,9 +218,29 @@ export class MatrixTimelineService {
      * and is reported as queued, not as sent — the timeline merges pending
      * events, so without this every unsent message claimed to have arrived.
      */
-    private readDeliveryState(event: any): TimelineDeliveryState {
+    private readDeliveryState(event: any, room?: any, myUserId?: string): TimelineDeliveryState {
         const status = event?.status;
-        if (!status) return "sent";
+
+        if (!status) {
+            /*
+             * FR-18: a message the user sent has been read once another
+             * participant's read position has reached it. Only the sender's
+             * own messages carry a read state — reporting one on somebody
+             * else's message would tell them about their own reading.
+             */
+            if (room && myUserId && event?.getSender?.() === myUserId) {
+                try {
+                    const others: string[] = (room.getUsersReadUpTo?.(event) ?? []).filter(
+                        (id: string) => id !== myUserId,
+                    );
+                    if (others.length > 0) return "read";
+                } catch {
+                    // Receipts are supplementary; their absence leaves the
+                    // message at "sent" rather than losing it.
+                }
+            }
+            return "sent";
+        }
 
         switch (status) {
             case "not_sent":
@@ -238,7 +258,12 @@ export class MatrixTimelineService {
     /**
      * Transforms Matrix SDK Event object into clean SovereignMessage.
      */
-    private transformEvent(event: any, fallbackRoomId: string): SovereignMessage | null {
+    private transformEvent(
+        event: any,
+        fallbackRoomId: string,
+        room?: any,
+        myUserId?: string,
+    ): SovereignMessage | null {
         if (!event) {
             return null;
         }
@@ -257,7 +282,7 @@ export class MatrixTimelineService {
             senderName,
             timestamp,
             eventId,
-            delivery: this.readDeliveryState(event),
+            delivery: this.readDeliveryState(event, room, myUserId),
         };
 
         /*
