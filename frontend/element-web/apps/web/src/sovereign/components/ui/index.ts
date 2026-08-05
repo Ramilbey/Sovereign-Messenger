@@ -19,4 +19,5 @@ export { Divider, type DividerTone } from "./Divider";
 export { EmptyState, type EmptyStateVariant } from "./EmptyState";
 export { ErrorState } from "./ErrorState";
 export { ConnectionBanner } from "./ConnectionBanner";
+export { ConnectionStatus } from "./ConnectionStatus";
 export { SecurityNotice, type SecurityNoticeSeverity } from "./SecurityNotice";

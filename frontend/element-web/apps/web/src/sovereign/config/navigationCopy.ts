@@ -42,4 +42,16 @@ export const NAVIGATION_COPY = {
     /** CMP-15 expand and collapse affordances. */
     nodeExpand: "Ochish",
     nodeCollapse: "Yig'ish",
+
+    /** CMP-17 breadcrumbs. */
+    breadcrumbLabel: "Tashkiliy yo'l",
+    breadcrumbExpand: "To'liq yo'lni ko'rsatish",
+} as const;
+
+/** CMP-18 application frame (UI-9, ORG-7, PR-7). */
+export const FRAME_COPY = {
+    headerLabel: "Dastur sarlavhasi",
+    /** UI-9: the official name the platform carries. */
+    productName: "Sovereign Messenger",
+    organisationCode: "Tashkilot kodi",
 } as const;

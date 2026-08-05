@@ -7,13 +7,8 @@
 import React, { memo, type JSX } from "react";
 import { useUsers } from "../../providers/useSovereignData";
 import { ModuleStateBoundary } from "./ModuleStateBoundary";
+import { roleLabel } from "../../config/roleCopy";
 import "./ModuleViews.css";
-
-const ROLE_LABELS: Record<string, string> = {
-    Manager: "Rahbar",
-    Employee: "Xodim",
-    NationalAdmin: "Milliy Administrator",
-};
 
 export const MembersView = memo(function MembersView(): JSX.Element {
     const { data: users, state } = useUsers();
@@ -34,7 +29,7 @@ export const MembersView = memo(function MembersView(): JSX.Element {
                         <div>
                             <div className="svr-member-name">{user.displayName}</div>
                             <div className="svr-member-role">
-                                {ROLE_LABELS[user.role] || user.role}
+                                {roleLabel(user.role)}
                             </div>
                             <div className="svr-member-dept">
                                 <span className={`svr-member-status-pill ${user.status}`} />

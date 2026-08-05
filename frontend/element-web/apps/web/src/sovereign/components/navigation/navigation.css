@@ -225,3 +225,69 @@
     justify-content: center;
     padding-inline: var(--svr-space-1);
 }
+
+/* ── CMP-17 Breadcrumb ───────────────────────────────────────────────────── */
+
+.svr-breadcrumb {
+    min-width: 0;
+    overflow: hidden;
+}
+
+.svr-breadcrumb__list {
+    display: flex;
+    align-items: center;
+    gap: var(--svr-space-1);
+    list-style: none;
+    margin: 0;
+    padding: 0;
+    min-width: 0;
+}
+
+.svr-breadcrumb__item {
+    display: inline-flex;
+    align-items: center;
+    gap: var(--svr-space-1);
+    min-width: 0;
+}
+
+.svr-breadcrumb__separator {
+    flex: none;
+    color: var(--svr-content-tertiary);
+}
+
+.svr-breadcrumb__link,
+.svr-breadcrumb__overflow {
+    display: inline-flex;
+    align-items: center;
+    box-sizing: border-box;
+    max-width: 100%;
+    padding: var(--svr-space-1) var(--svr-space-2);
+    background-color: var(--svr-action-secondary-rest);
+    border: var(--svr-border-width-thin) solid transparent;
+    border-radius: var(--svr-radius-sm);
+    color: var(--svr-content-secondary);
+    font-family: var(--svr-font-family-base);
+    font-size: var(--svr-type-body-size);
+    line-height: var(--svr-type-body-line);
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    cursor: pointer;
+}
+
+.svr-breadcrumb__link:hover,
+.svr-breadcrumb__overflow:hover {
+    background-color: var(--svr-action-secondary-hover);
+    color: var(--svr-content-primary);
+}
+
+.svr-breadcrumb__link:focus-visible,
+.svr-breadcrumb__overflow:focus-visible {
+    outline: var(--svr-focus-ring-width) solid var(--svr-focus-ring-color);
+    outline-offset: var(--svr-focus-ring-offset);
+}
+
+.svr-breadcrumb__link.is-current {
+    color: var(--svr-content-primary);
+    font-weight: var(--svr-type-body-strong-weight);
+}

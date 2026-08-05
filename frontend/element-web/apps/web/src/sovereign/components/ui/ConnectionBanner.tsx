@@ -16,9 +16,9 @@
 
 import React, { memo, type JSX } from "react";
 
-import { Icon, type IconName } from "./Icon";
+import { Icon } from "./Icon";
 import { Spinner } from "./Spinner";
-import { ERROR_CATALOGUE } from "../../config/errorCatalogue";
+import { CONNECTION_COPY } from "../../config/connectionCopy";
 import type { ConnectionState } from "../../services/ConnectionStateService";
 import "./ui.css";
 
@@ -26,60 +26,14 @@ interface ConnectionBannerProps {
     state: ConnectionState;
 }
 
-interface BannerContent {
-    tone: "warning" | "danger" | "success";
-    icon: IconName | null;
-    title: string;
-    description?: string;
-    /** Whether to show an indeterminate progress indicator. */
-    busy: boolean;
-}
-
-function resolve(state: ConnectionState): BannerContent | null {
-    switch (state) {
-        case "reconnecting":
-            return {
-                tone: "warning",
-                icon: null,
-                title: ERROR_CATALOGUE.connectionLost.title,
-                description: ERROR_CATALOGUE.connectionLost.description,
-                busy: true,
-            };
-        case "disconnected":
-            return {
-                tone: "warning",
-                icon: "warning",
-                title: ERROR_CATALOGUE.connectionLost.title,
-                description: ERROR_CATALOGUE.connectionLost.description,
-                busy: false,
-            };
-        case "serverUnavailable":
-            // SUX-7: distinct from local connectivity loss.
-            return {
-                tone: "danger",
-                icon: "error",
-                title: ERROR_CATALOGUE.homeserverUnavailable.title,
-                description: ERROR_CATALOGUE.homeserverUnavailable.description,
-                busy: false,
-            };
-        case "restored":
-            return {
-                tone: "success",
-                icon: "check",
-                title: "Ulanish tiklandi",
-                busy: false,
-            };
-        case "connected":
-        default:
-            return null;
-    }
-}
-
 export const ConnectionBanner = memo(function ConnectionBanner({
     state,
 }: ConnectionBannerProps): JSX.Element | null {
-    const content = resolve(state);
-    if (!content) {
+    const content = CONNECTION_COPY[state];
+
+    // CMP-45 hidden state: a healthy connection is reported by the header
+    // indicator (SUX-16) and does not occupy the working area (ERR-20).
+    if (!content?.banner) {
         return null;
     }
 

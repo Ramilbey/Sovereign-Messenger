@@ -698,6 +698,50 @@
     color: var(--svr-status-success);
 }
 
+/* ── Connection Status (SUX-16, part of CMP-18) ──────────────────────────── */
+/* Always present, unlike the banner, so the user can answer "am I connected?"
+   without waiting for something to go wrong. */
+
+.svr-connection-status {
+    display: inline-flex;
+    align-items: center;
+    gap: var(--svr-space-2);
+    flex: none;
+    padding: var(--svr-space-1) var(--svr-space-2);
+    border-radius: var(--svr-radius-full);
+    font-family: var(--svr-font-family-base);
+    font-size: var(--svr-type-caption-size);
+    font-weight: var(--svr-type-body-strong-weight);
+    line-height: var(--svr-type-caption-line);
+    white-space: nowrap;
+}
+
+.svr-connection-status__indicator {
+    display: inline-flex;
+    align-items: center;
+    flex: none;
+}
+
+.svr-connection-status--success {
+    background-color: var(--svr-status-success-subtle);
+    color: var(--svr-status-success);
+}
+
+.svr-connection-status--warning {
+    background-color: var(--svr-status-warning-subtle);
+    color: var(--svr-status-warning);
+}
+
+.svr-connection-status--danger {
+    background-color: var(--svr-status-danger-subtle);
+    color: var(--svr-status-danger);
+}
+
+.svr-connection-status--neutral {
+    background-color: var(--svr-status-neutral-subtle);
+    color: var(--svr-status-neutral);
+}
+
 /* ── CMP-46 Security Notice ──────────────────────────────────────────────── */
 /* SUX-14: an action-required notice renders no dismiss control, so it cannot
    be hidden while unresolved. */

@@ -1,0 +1,113 @@
+/*
+ * Sovereign Messenger — Sprint 3, Milestone 3 (Structure & Navigation)
+ * frame.css — CMP-18 Application Header
+ *
+ * AC-16 / TOK-1: no literal colour, spacing, radius, or typography value
+ * appears here. The only literals are structural primitives with no design
+ * meaning (0, 1, 100%).
+ */
+
+@import "../../styles/tokens.css";
+
+.svr-topbar {
+    display: flex;
+    align-items: center;
+    gap: var(--svr-space-4);
+    box-sizing: border-box;
+    padding-inline: var(--svr-space-4);
+    background-color: var(--svr-surface-raised);
+    border-block-end: var(--svr-border-width-thin) solid var(--svr-border-default);
+    font-family: var(--svr-font-family-base);
+    color: var(--svr-content-primary);
+    overflow: hidden;
+}
+
+/* ── UI-9 / UI-11 Institutional identity and organisational context ──────── */
+
+.svr-topbar__identity {
+    display: flex;
+    align-items: center;
+    gap: var(--svr-space-2);
+    flex: none;
+}
+
+/*
+ * UI-8 / UI-11: the region reserved for the State Emblem. The emblem is a
+ * controlled state symbol; it is rendered only when the deployment supplies
+ * the approved asset (branding deliverable D-2), so the space is held open
+ * rather than filled with a substitute.
+ */
+.svr-topbar__emblem {
+    display: block;
+    flex: none;
+    width: var(--svr-icon-size-lg);
+    height: var(--svr-icon-size-lg);
+}
+
+.svr-topbar__product {
+    font-size: var(--svr-type-heading-3-size);
+    font-weight: var(--svr-type-heading-3-weight);
+    line-height: var(--svr-type-heading-3-line);
+    white-space: nowrap;
+}
+
+/* ORG-7: the identifying code of the current organisational node. */
+.svr-topbar__code {
+    padding: var(--svr-space-0) var(--svr-space-2);
+    border: var(--svr-border-width-thin) solid var(--svr-border-default);
+    border-radius: var(--svr-radius-sm);
+    color: var(--svr-content-secondary);
+    font-family: var(--svr-font-family-mono);
+    font-size: var(--svr-type-caption-size);
+    line-height: var(--svr-type-caption-line);
+    white-space: nowrap;
+}
+
+/* ── NAV-5 Breadcrumb region ─────────────────────────────────────────────── */
+
+.svr-topbar__context {
+    flex: 1;
+    min-width: 0;
+    display: flex;
+    align-items: center;
+}
+
+/* ── SUX-16 connection state and PR-7 identity ───────────────────────────── */
+
+.svr-topbar__system {
+    display: flex;
+    align-items: center;
+    gap: var(--svr-space-3);
+    flex: none;
+}
+
+.svr-topbar__user {
+    display: flex;
+    align-items: center;
+    gap: var(--svr-space-2);
+    min-width: 0;
+}
+
+.svr-topbar__user-text {
+    display: flex;
+    flex-direction: column;
+    min-width: 0;
+}
+
+.svr-topbar__user-name {
+    font-size: var(--svr-type-body-size);
+    font-weight: var(--svr-type-body-strong-weight);
+    line-height: var(--svr-type-label-line);
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+.svr-topbar__user-role {
+    color: var(--svr-content-secondary);
+    font-size: var(--svr-type-caption-size);
+    line-height: var(--svr-type-caption-line);
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}

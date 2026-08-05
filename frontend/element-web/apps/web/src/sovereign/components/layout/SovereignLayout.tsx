@@ -26,6 +26,7 @@ import { useChat } from "../../context/ChatContext";
 import { useChannels } from "../../providers/useSovereignData";
 import { useConnectionState } from "../../hooks/useConnectionState";
 import { useOrganisation } from "../../hooks/useOrganisation";
+import { orgNodeName } from "../../services/OrganisationService";
 import { scopeModulesToNode } from "../../config/workspaceModules";
 import { SessionLifecycleService } from "../../services/SessionLifecycleService";
 import { ConnectionBanner } from "../ui";
@@ -64,6 +65,16 @@ export function SovereignLayout(): JSX.Element {
         () => scopeModulesToNode(getAllowedModules(), organisation.enabledModuleIds),
         [getAllowedModules, organisation.enabledModuleIds],
     );
+
+    /*
+     * PR-7 / NFR-8: the department shown in the frame is the name the
+     * organisation model gives it, not the internal reference the identity
+     * data carries.
+     */
+    const departmentLabel = useMemo(() => {
+        const bolim = organisation.path.find((node) => node.type === "Bolim");
+        return bolim ? orgNodeName(bolim, organisation.language) : null;
+    }, [organisation.path, organisation.language]);
 
     /*
      * Moving to a node that does not enable the current module would otherwise
@@ -106,8 +117,16 @@ export function SovereignLayout(): JSX.Element {
                 language={organisation.language}
             />
 
-            {/* Column 2, row 1 */}
-            <Topbar />
+            {/* Column 2, row 1 — CMP-18 application header */}
+            <Topbar
+                path={organisation.path}
+                onSelectNode={setActiveNodeId}
+                code={organisation.code}
+                connectionState={connectionState}
+                currentUser={currentUser}
+                departmentLabel={departmentLabel}
+                language={organisation.language}
+            />
 
             {/*
               * Column 2, row 2 — ChatArea + WorkspaceArea side by side.
