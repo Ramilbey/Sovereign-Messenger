@@ -20,4 +20,5 @@ export { EmptyState, type EmptyStateVariant } from "./EmptyState";
 export { ErrorState } from "./ErrorState";
 export { ConnectionBanner } from "./ConnectionBanner";
 export { ConnectionStatus } from "./ConnectionStatus";
+export { PresenceBadge } from "./PresenceBadge";
 export { SecurityNotice, type SecurityNoticeSeverity } from "./SecurityNotice";

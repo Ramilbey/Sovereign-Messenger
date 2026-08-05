@@ -10,11 +10,12 @@
  * UI-19: hosts the message density control.
  */
 
-import React, { type JSX } from "react";
+import React, { useMemo, type JSX } from "react";
 
 import { usePermissions } from "../../context/PermissionContext";
 import { useChat } from "../../context/ChatContext";
 import { useMembers } from "../../hooks/useMembers";
+import { usePresenceFor } from "../../hooks/usePresence";
 import { useOrganization } from "../../providers/useSovereignData";
 import { useFramePreferences } from "../../hooks/useFramePreferences";
 import { Avatar, IconButton } from "../ui";
@@ -33,6 +34,8 @@ export function RightPanel({ overlay = false, onClose }: RightPanelProps): JSX.E
     const { currentUser } = usePermissions();
     const { activeChannelId } = useChat();
     const { data: members, state: membersState } = useMembers(activeChannelId);
+    const memberIds = useMemo(() => members.map((member) => member.id), [members]);
+    const presence = usePresenceFor(memberIds);
     const { data: org } = useOrganization(currentUser.department);
     const { preferences, update } = useFramePreferences();
 
@@ -83,7 +86,7 @@ export function RightPanel({ overlay = false, onClose }: RightPanelProps): JSX.E
              * the presence capability delivered in Milestone 4. Ordering by an
              * availability nobody reports would be ordering by nothing.
              */}
-            <MemberList members={members} state={membersState} />
+            <MemberList members={members} state={membersState} presence={presence} />
 
             {/* UI-19: message density, selectable by the user and persisted. */}
             <section className="svr-panel-section">

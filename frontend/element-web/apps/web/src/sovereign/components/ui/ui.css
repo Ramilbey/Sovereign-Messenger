@@ -795,3 +795,88 @@
 .svr-security-notice__action {
     flex: none;
 }
+
+/* ── CMP-9 Presence Badge (FR-12, FR-16, ST-10) ──────────────────────────── */
+/* Shape carries the state as well as colour, so availability survives a
+   colour vision deficiency and a monochrome display. */
+
+.svr-presence {
+    display: inline-flex;
+    align-items: center;
+    gap: var(--svr-space-1);
+}
+
+.svr-presence__mark {
+    flex: none;
+    width: var(--svr-space-2);
+    height: var(--svr-space-2);
+    border-radius: var(--svr-radius-full);
+    box-sizing: border-box;
+}
+
+/* Filled disc. */
+.svr-presence__mark--online {
+    background-color: var(--svr-presence-online);
+}
+
+/* Half bar: a filled lower half, distinct in shape from a full disc. */
+.svr-presence__mark--away {
+    background: linear-gradient(
+        to bottom,
+        transparent 0%,
+        transparent 50%,
+        var(--svr-presence-away) 50%,
+        var(--svr-presence-away) 100%
+    );
+    border: var(--svr-border-width-thin) solid var(--svr-presence-away);
+}
+
+/* Bar: a horizontal stroke, the "do not disturb" convention. */
+.svr-presence__mark--busy {
+    border-radius: var(--svr-radius-none);
+    height: var(--svr-border-width-thick);
+    background-color: var(--svr-presence-busy);
+}
+
+/* Hollow ring. */
+.svr-presence__mark--offline {
+    background-color: transparent;
+    border: var(--svr-border-width-thin) solid var(--svr-presence-offline);
+}
+
+/* Dashed outline — the platform has said nothing about this person (R-3). */
+.svr-presence__mark--unknown {
+    background-color: transparent;
+    border: var(--svr-border-width-thin) dashed var(--svr-content-tertiary);
+}
+
+/* ST-6: connecting reads distinctly from both online and offline. */
+.svr-presence__mark--connecting {
+    background-color: transparent;
+    border: var(--svr-border-width-thin) solid var(--svr-status-info);
+    animation: svr-presence-pulse 1.4s infinite var(--svr-easing-standard);
+}
+
+@keyframes svr-presence-pulse {
+    0%,
+    100% {
+        opacity: 0.4;
+    }
+
+    50% {
+        opacity: 1;
+    }
+}
+
+/* A11Y-10 / TOK-9: motion collapses under the reduced-motion preference. */
+@media (prefers-reduced-motion: reduce) {
+    .svr-presence__mark--connecting {
+        animation: none;
+    }
+}
+
+.svr-presence__label {
+    color: var(--svr-content-secondary);
+    font-size: var(--svr-type-caption-size);
+    line-height: var(--svr-type-caption-line);
+}

@@ -16,11 +16,14 @@ import { MemberListItem } from "./MemberListItem";
 import { ModuleStateBoundary } from "../views/ModuleStateBoundary";
 import { MEMBER_COPY } from "../../config/chatCopy";
 import type { SovereignMember } from "../../types/member";
+import type { SovereignPresence } from "../../types/presence";
 import type { ResourceState } from "../../types/resource";
 
 interface MemberListProps {
     members: SovereignMember[];
     state: ResourceState;
+    /** FR-13: availability per participant, where reported. */
+    presence?: ReadonlyMap<string, SovereignPresence>;
     onSelectMember?: (memberId: string) => void;
     onRetry?: () => void;
 }
@@ -28,6 +31,7 @@ interface MemberListProps {
 export const MemberList = memo(function MemberList({
     members,
     state,
+    presence,
     onSelectMember,
     onRetry,
 }: MemberListProps): JSX.Element {
@@ -46,6 +50,7 @@ export const MemberList = memo(function MemberList({
                         <MemberListItem
                             key={member.id}
                             member={member}
+                            presence={presence?.get(member.id)}
                             onSelect={onSelectMember}
                         />
                     ))}

@@ -11,19 +11,23 @@
  * removed, so their historical messages remain attributed to someone the
  * reader can still identify.
  *
- * Presence (FR-13) is delivered with the presence capability in Milestone 4.
- * No availability is shown here, because none is known — an "offline" dot
- * would be an assertion about a colleague that no source supports (FR-1).
+ * FR-13: availability appears here as it does wherever a person appears. A
+ * person the deployment reports nothing for reads as "holati noma'lum", not as
+ * offline — saying a colleague is offline when the server is silent asserts
+ * something no source supports (FR-1, R-3).
  */
 
 import React, { memo, type JSX } from "react";
 
-import { Avatar, Icon } from "../ui";
+import { Avatar, Icon, PresenceBadge } from "../ui";
 import { MEMBER_COPY } from "../../config/chatCopy";
 import type { SovereignMember } from "../../types/member";
+import type { SovereignPresence } from "../../types/presence";
 
 interface MemberListItemProps {
     member: SovereignMember;
+    /** FR-13: availability, where the deployment reports it. */
+    presence?: SovereignPresence;
     /** CMP-12 selected state, where the surface tracks a selection. */
     isSelected?: boolean;
     /** PR-2: opens the person's profile. Absent until profiles exist (M5). */
@@ -32,6 +36,7 @@ interface MemberListItemProps {
 
 export const MemberListItem = memo(function MemberListItem({
     member,
+    presence,
     isSelected = false,
     onSelect,
 }: MemberListItemProps): JSX.Element {
@@ -50,6 +55,15 @@ export const MemberListItem = memo(function MemberListItem({
                 <span className="svr-member-item__name">{member.displayName}</span>
 
                 <span className="svr-member-item__meta">
+                    {/*
+                     * FR-13: shown only for a participant still in the
+                     * conversation — availability of someone who has left is
+                     * not a useful claim.
+                     */}
+                    {presence && member.status === "joined" && (
+                        <PresenceBadge state={presence.state} showLabel />
+                    )}
+
                     {/* GW-11: the official designation, only where it is known. */}
                     {member.role && <span>{member.role}</span>}
 
