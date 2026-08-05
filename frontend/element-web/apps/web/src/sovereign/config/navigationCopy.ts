@@ -48,6 +48,35 @@ export const NAVIGATION_COPY = {
     breadcrumbExpand: "To'liq yo'lni ko'rsatish",
 } as const;
 
+/** CMP-19 / CMP-20 conversation list (NAV-2, NAV-3, IA-7, IA-8). */
+export const CONVERSATION_COPY = {
+    listLabel: "Suhbatlar",
+    /** IA-8: favourites and pinned appear above all other groupings. */
+    groupFavourites: "Sevimlilar",
+    groupChannels: "Rasmiy kanallar",
+    groupGroups: "Ishchi guruhlar",
+    groupDirect: "Shaxsiy suhbatlar",
+
+    /** NAV-3: filter and sort controls. */
+    filterLabel: "Turi bo'yicha saralash",
+    filterAll: "Barchasi",
+    sortLabel: "Tartiblash",
+    sortRecent: "Oxirgi faollik",
+    sortName: "Nomi",
+
+    /** ES-2: filtered-out is not the same as "there are none" (ES-4 action). */
+    filteredEmpty: "Tanlangan turdagi suhbatlar yo'q",
+    filteredEmptyAction: "Barcha turlarni ko'rsatish",
+
+    /** CMP-19 state descriptions, so no state is carried by colour alone. */
+    unreadLabel: (count: number): string => `${count} ta o'qilmagan xabar`,
+    mentionLabel: (count: number): string => `${count} ta murojaat`,
+    mutedLabel: "Ovozsiz",
+    favouriteLabel: "Sevimli",
+    draftLabel: "Qoralama",
+    noPreview: "Xabarlar yo'q",
+} as const;
+
 /** CMP-18 application frame (UI-9, ORG-7, PR-7). */
 export const FRAME_COPY = {
     headerLabel: "Dastur sarlavhasi",

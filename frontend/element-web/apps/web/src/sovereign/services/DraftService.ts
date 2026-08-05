@@ -28,12 +28,16 @@ const STORAGE_KEY = "sovereign_drafts";
 
 type DraftMap = Record<string, string>;
 
+/** Notified whenever the set of conversations holding a draft may have changed. */
+export type DraftListener = () => void;
+
 export class DraftService {
     private static instance: DraftService | null = null;
 
     /** In-memory cache so reads do not hit storage on every keystroke. */
     private drafts: DraftMap = {};
     private loaded = false;
+    private listeners = new Set<DraftListener>();
 
     private constructor() {}
 
@@ -60,6 +64,8 @@ export class DraftService {
         if (!conversationId) return;
         this.load();
 
+        const had = conversationId in this.drafts;
+
         if (text.trim() === "") {
             delete this.drafts[conversationId];
         } else {
@@ -67,6 +73,13 @@ export class DraftService {
         }
 
         this.persist();
+
+        // CMP-19: the conversation list marks conversations holding unsent
+        // text, so it is told when that set changes — but only then, not on
+        // every keystroke within a draft that already exists.
+        if (had !== (conversationId in this.drafts)) {
+            this.notify();
+        }
     }
 
     /** Remove a draft, e.g. once its message has been sent successfully. */
@@ -76,12 +89,27 @@ export class DraftService {
         if (conversationId in this.drafts) {
             delete this.drafts[conversationId];
             this.persist();
+            this.notify();
         }
     }
 
     /** Whether a conversation currently holds unsent text. */
     public has(conversationId: string): boolean {
         return this.get(conversationId) !== "";
+    }
+
+    /** CMP-19: conversations currently holding unsent text. */
+    public getConversationIdsWithDrafts(): string[] {
+        this.load();
+        return Object.keys(this.drafts);
+    }
+
+    /** Observe changes to which conversations hold a draft. */
+    public subscribe(listener: DraftListener): () => void {
+        this.listeners.add(listener);
+        return () => {
+            this.listeners.delete(listener);
+        };
     }
 
     /**
@@ -98,6 +126,11 @@ export class DraftService {
         } catch {
             // In-memory state is already cleared; nothing further to do.
         }
+        this.notify();
+    }
+
+    private notify(): void {
+        this.listeners.forEach((listener) => listener());
     }
 
     private load(): void {

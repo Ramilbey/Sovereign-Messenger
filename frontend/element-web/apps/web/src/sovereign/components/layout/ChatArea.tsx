@@ -11,16 +11,15 @@ import React, { useCallback, useMemo, type JSX } from "react";
 import "../chat/ChatArea.css";
 import { useChat } from "../../context/ChatContext";
 import { usePermissions } from "../../context/PermissionContext";
-import { useUsers, useChannels } from "../../providers/useSovereignData";
+import { useUsers } from "../../providers/useSovereignData";
 import { MessageTimeline } from "../chat/MessageTimeline";
 import { TypingIndicator } from "../chat/TypingIndicator";
 import { MessageComposer } from "../chat/MessageComposer";
 
 export function ChatArea(): JSX.Element {
-    const { activeChannelId, setActiveChannelId, activeChannel, messages, sendMessage } = useChat();
+    const { activeChannelId, activeChannel, messages, sendMessage } = useChat();
     const { currentUser, canPostInChannel } = usePermissions();
     const { data: users } = useUsers();
-    const { data: { channels, groups } } = useChannels();
 
     // Map user Initials for MessageTimeline avatar circles
     const userInitialsMap = useMemo(() => {
@@ -46,48 +45,19 @@ export function ChatArea(): JSX.Element {
 
     return (
         <div id="sovereign-chat-area" className="svr-chat-root">
-            {/* Header: Channel icon, name, and quick channel switcher */}
+            {/*
+              * Header. The channel switcher that used to sit here has been
+              * replaced by the conversation list in the application frame
+              * (NAV-2); the header now describes the conversation rather than
+              * doubling as navigation. It becomes CMP-30 in the next commit.
+              */}
             <div className="svr-chat-header">
                 <div className="svr-chat-header-info">
-                    <span className="svr-chat-header-icon">{activeChannel?.icon || "📢"}</span>
-                    <span className="svr-chat-header-name">{activeChannel?.name || "Kanal"}</span>
+                    <span className="svr-chat-header-name">{activeChannel?.name ?? ""}</span>
                     {activeChannel?.description && (
-                        <span className="svr-chat-header-desc">— {activeChannel.description}</span>
+                        <span className="svr-chat-header-desc">{activeChannel.description}</span>
                     )}
                 </div>
-
-                {/* Channel Switcher Selector */}
-                <select
-                    id="sovereign-channel-select"
-                    value={activeChannelId}
-                    onChange={(e) => setActiveChannelId(e.target.value)}
-                    style={{
-                        backgroundColor: "#0e1621",
-                        color: "#5288c1",
-                        border: "1px solid #2b3a4a",
-                        borderRadius: "8px",
-                        padding: "4px 10px",
-                        fontSize: "12px",
-                        fontWeight: "600",
-                        cursor: "pointer",
-                        outline: "none",
-                    }}
-                >
-                    <optgroup label="📢 Rasmiy Kanallar">
-                        {channels.map((c) => (
-                            <option key={c.id} value={c.id}>
-                                📢 {c.name}
-                            </option>
-                        ))}
-                    </optgroup>
-                    <optgroup label="💬 Guruhlar">
-                        {groups.map((g) => (
-                            <option key={g.id} value={g.id}>
-                                💬 {g.name}
-                            </option>
-                        ))}
-                    </optgroup>
-                </select>
             </div>
 
             {/* Scrollable Message Timeline */}

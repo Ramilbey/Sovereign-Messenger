@@ -291,3 +291,190 @@
     color: var(--svr-content-primary);
     font-weight: var(--svr-type-body-strong-weight);
 }
+
+/* ── CMP-20 Conversation List ────────────────────────────────────────────── */
+
+.svr-conversation-list {
+    display: flex;
+    flex-direction: column;
+    min-height: 0;
+    height: 100%;
+    box-sizing: border-box;
+    background-color: var(--svr-surface-base);
+    border-inline-end: var(--svr-border-width-thin) solid var(--svr-border-default);
+    font-family: var(--svr-font-family-base);
+    color: var(--svr-content-primary);
+}
+
+.svr-conversation-list__controls {
+    display: flex;
+    gap: var(--svr-space-2);
+    flex: none;
+    padding: var(--svr-space-2) var(--svr-space-3);
+    border-block-end: var(--svr-border-width-thin) solid var(--svr-border-subtle);
+}
+
+.svr-conversation-list__control {
+    flex: 1;
+    min-width: 0;
+}
+
+.svr-conversation-list__select {
+    width: 100%;
+    box-sizing: border-box;
+    min-height: var(--svr-control-height-sm);
+    padding-inline: var(--svr-space-2);
+    background-color: var(--svr-surface-raised);
+    border: var(--svr-border-width-thin) solid var(--svr-border-default);
+    border-radius: var(--svr-radius-sm);
+    color: var(--svr-content-primary);
+    font-family: var(--svr-font-family-base);
+    font-size: var(--svr-type-caption-size);
+    cursor: pointer;
+}
+
+.svr-conversation-list__select:focus-visible {
+    outline: var(--svr-focus-ring-width) solid var(--svr-focus-ring-color);
+    outline-offset: var(--svr-focus-ring-offset);
+}
+
+.svr-conversation-list__scroll {
+    flex: 1;
+    min-height: 0;
+    overflow-y: auto;
+}
+
+.svr-conversation-list__group + .svr-conversation-list__group {
+    margin-block-start: var(--svr-space-2);
+}
+
+.svr-conversation-list__heading {
+    margin: 0;
+    padding: var(--svr-space-2) var(--svr-space-3) var(--svr-space-1);
+    font-size: var(--svr-type-caption-size);
+    font-weight: var(--svr-type-label-weight);
+    line-height: var(--svr-type-label-line);
+    letter-spacing: var(--svr-type-label-tracking);
+    text-transform: uppercase;
+    color: var(--svr-content-secondary);
+}
+
+.svr-conversation-list__items {
+    list-style: none;
+    margin: 0;
+    padding: 0;
+}
+
+/* ── CMP-19 Conversation Item ────────────────────────────────────────────── */
+
+.svr-conversation-item {
+    display: flex;
+    align-items: center;
+    gap: var(--svr-space-3);
+    box-sizing: border-box;
+    width: 100%;
+    /* UI-17: comfortably above the minimum touch target. */
+    min-height: var(--svr-control-height-lg);
+    padding: var(--svr-space-2) var(--svr-space-3);
+    background-color: var(--svr-action-secondary-rest);
+    border: 0;
+    border-inline-start: var(--svr-border-width-thick) solid transparent;
+    color: var(--svr-content-primary);
+    font-family: var(--svr-font-family-base);
+    text-align: start;
+    cursor: pointer;
+    transition: background-color var(--svr-duration-short) var(--svr-easing-standard);
+}
+
+.svr-conversation-item:hover {
+    background-color: var(--svr-surface-hover);
+}
+
+.svr-conversation-item:focus-visible {
+    outline: var(--svr-focus-ring-width) solid var(--svr-focus-ring-color);
+    outline-offset: calc(0px - var(--svr-focus-ring-width));
+}
+
+/* A11Y-5: the active conversation is marked by a border as well as fill. */
+.svr-conversation-item.is-active {
+    background-color: var(--svr-surface-selected);
+    border-inline-start-color: var(--svr-brand-emphasis);
+}
+
+.svr-conversation-item.is-muted .svr-conversation-item__name,
+.svr-conversation-item.is-muted .svr-conversation-item__preview {
+    color: var(--svr-content-tertiary);
+}
+
+.svr-conversation-item__body {
+    display: flex;
+    flex-direction: column;
+    gap: var(--svr-space-1);
+    flex: 1;
+    min-width: 0;
+}
+
+.svr-conversation-item__line {
+    display: flex;
+    align-items: center;
+    gap: var(--svr-space-2);
+    min-width: 0;
+}
+
+.svr-conversation-item__type {
+    flex: none;
+    color: var(--svr-content-secondary);
+}
+
+.svr-conversation-item__name {
+    flex: 1;
+    min-width: 0;
+    font-size: var(--svr-type-body-size);
+    line-height: var(--svr-type-label-line);
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+.svr-conversation-item.is-unread .svr-conversation-item__name {
+    font-weight: var(--svr-type-body-strong-weight);
+}
+
+.svr-conversation-item__flag {
+    flex: none;
+    color: var(--svr-content-secondary);
+}
+
+.svr-conversation-item__time {
+    flex: none;
+    color: var(--svr-content-secondary);
+    font-size: var(--svr-type-caption-size);
+    line-height: var(--svr-type-caption-line);
+    white-space: nowrap;
+}
+
+.svr-conversation-item__preview {
+    flex: 1;
+    min-width: 0;
+    color: var(--svr-content-secondary);
+    font-size: var(--svr-type-caption-size);
+    line-height: var(--svr-type-caption-line);
+    /* EDGE-16: a very long message truncates rather than breaking the layout. */
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+.svr-conversation-item__draft {
+    color: var(--svr-status-warning);
+    font-weight: var(--svr-type-body-strong-weight);
+}
+
+/*
+ * The list embedded inside a module surface sits within an existing panel, so
+ * it drops the frame column's own border and background.
+ */
+.svr-conversation-list--embedded {
+    border-inline-end: 0;
+    background-color: transparent;
+}

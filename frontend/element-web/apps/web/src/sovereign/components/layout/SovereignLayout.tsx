@@ -23,12 +23,14 @@ import { WorkspaceArea } from "./WorkspaceArea";
 import { RightPanel } from "./RightPanel";
 import { usePermissions } from "../../context/PermissionContext";
 import { useChat } from "../../context/ChatContext";
-import { useChannels } from "../../providers/useSovereignData";
+import { useChannels, useConversations } from "../../providers/useSovereignData";
 import { useConnectionState } from "../../hooks/useConnectionState";
+import { useDrafts } from "../../hooks/useDrafts";
 import { useOrganisation } from "../../hooks/useOrganisation";
 import { orgNodeName } from "../../services/OrganisationService";
 import { scopeModulesToNode } from "../../config/workspaceModules";
 import { SessionLifecycleService } from "../../services/SessionLifecycleService";
+import { ConversationList } from "../navigation/ConversationList";
 import { ConnectionBanner } from "../ui";
 
 export function SovereignLayout(): JSX.Element {
@@ -42,9 +44,11 @@ export function SovereignLayout(): JSX.Element {
     const [sidebarCollapsed, setSidebarCollapsed] = useState<boolean>(false);
 
     const { getAllowedModules, currentUser } = usePermissions();
-    const { setActiveChannelId } = useChat();
+    const { activeChannelId, setActiveChannelId } = useChat();
     const { data: { channels, groups } } = useChannels();
+    const { data: conversations, state: conversationsState } = useConversations();
     const connectionState = useConnectionState();
+    const draftConversationIds = useDrafts();
 
     const { data: organisation, state: organisationState } = useOrganisation({
         departmentHint: currentUser.department,
@@ -117,7 +121,7 @@ export function SovereignLayout(): JSX.Element {
                 language={organisation.language}
             />
 
-            {/* Column 2, row 1 — CMP-18 application header */}
+            {/* Row 1 — CMP-18 application header, spanning the working columns */}
             <Topbar
                 path={organisation.path}
                 onSelectNode={setActiveNodeId}
@@ -129,7 +133,19 @@ export function SovereignLayout(): JSX.Element {
             />
 
             {/*
-              * Column 2, row 2 — ChatArea + WorkspaceArea side by side.
+              * Column 2 — NAV-2 conversation navigation. Replaces the
+              * selection control that previously sat inside the chat surface.
+              */}
+            <ConversationList
+                conversations={conversations}
+                state={conversationsState}
+                activeConversationId={activeChannelId}
+                onSelect={setActiveChannelId}
+                draftConversationIds={draftConversationIds}
+            />
+
+            {/*
+              * Column 3, row 2 — ChatArea + WorkspaceArea side by side.
               * SUX-16: connection state appears in one consistent location,
               * directly above the working area. SUX-5: it is non-blocking —
               * the content below stays readable and interactive.
@@ -142,7 +158,7 @@ export function SovereignLayout(): JSX.Element {
                 </div>
             </div>
 
-            {/* Column 3 — full height */}
+            {/* Column 4 — full height */}
             <RightPanel />
         </div>
     );

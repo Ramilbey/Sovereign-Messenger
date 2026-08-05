@@ -1,18 +1,24 @@
 /*
- * Sovereign Messenger — Sprint 1, Step 2
- * SovereignLayout.css — Layout skeleton CSS.
+ * Sovereign Messenger — Sprint 1, Step 2 · Sprint 3, Milestone 3
+ * SovereignLayout.css — Application frame grid.
  *
- * SCOPE: Structural grid only. No colors, no fonts, no design.
- * Colors (Blueprint §6 values) are applied in Step 7/8.
- * Blueprint §6 ASCII art:
+ * SCOPE: placement and structure. Each region's own appearance is defined
+ * alongside its components, so no surface is styled in two places.
  *
- *   ┌─────────┬──────────────────────────────┬─────────┐
- *   │         │           Topbar             │         │
- *   │ Sidebar ├──────────────┬───────────────┤  Right  │
- *   │         │  Chat Area   │  Workspace    │  Panel  │
- *   │         │              │               │         │
- *   └─────────┴──────────────┴───────────────┴─────────┘
+ * AC-16 / TOK-1: every value here is a token reference. The only literals are
+ * structural primitives with no design meaning (0, 1fr, 100vw, 100vh).
+ *
+ * Frame (UI-13 … UI-16 make this responsive in the milestone's final commit):
+ *
+ *   ┌─────────┬──────────────────────────────────────────────┬─────────┐
+ *   │         │                  Header                      │         │
+ *   │ Sidebar ├──────────────┬──────────────┬────────────────┤  Right  │
+ *   │         │ Conversation │   Chat Area  │   Workspace    │  Panel  │
+ *   │         │     List     │              │                │         │
+ *   └─────────┴──────────────┴──────────────┴────────────────┴─────────┘
  */
+
+@import "../../styles/tokens.css";
 
 /* ── Root shell ───────────────────────────────────────────────────────────── */
 
@@ -20,58 +26,59 @@
     display: grid;
 
     /*
-     * 3 columns: Sidebar | MainContent | RightPanel
-     * MainContent subdivides internally (see svr-main below).
+     * 4 columns: Sidebar | Conversation list | Main content | Right panel.
+     * The main content subdivides internally (see .svr-main-content).
      */
-    grid-template-columns: 240px 1fr 260px;
+    grid-template-columns:
+        var(--svr-frame-sidebar-width)
+        var(--svr-frame-conversation-width)
+        1fr
+        var(--svr-frame-panel-width);
+
+    /* 2 rows: header, then the working area filling the viewport. */
+    grid-template-rows: var(--svr-frame-header-height) 1fr;
 
     /*
-     * 2 rows: Topbar | Body
-     * Topbar is a fixed height; body expands to fill remaining viewport.
-     */
-    grid-template-rows: 52px 1fr;
-
-    /*
-     * Named grid areas following Blueprint §6 layout:
-     *   sidebar   spans both rows (col 1)
-     *   topbar    spans row 1, col 2
-     *   main      spans row 2, col 2 (contains chat + workspace side-by-side)
-     *   rpanel    spans both rows (col 3)
+     * NAV-2: conversation navigation is a column of the frame rather than a
+     * control inside the chat surface, so it is reachable from anywhere in
+     * the working area.
      */
     grid-template-areas:
-        "sidebar topbar  rpanel"
-        "sidebar main    rpanel";
+        "sidebar header header header"
+        "sidebar convlist main   rpanel";
 
     width: 100vw;
     height: 100vh;
     overflow: hidden;
     box-sizing: border-box;
+    background-color: var(--svr-surface-base);
 }
 
-/* ── Five named regions ───────────────────────────────────────────────────── */
+/* ── Named regions ────────────────────────────────────────────────────────── */
 
 /*
- * 1. Sidebar — CMP-14.
- * Placement only; the sidebar's own appearance lives in navigation.css so it
- * is defined once alongside the components it frames.
+ * CMP-14 Organisation sidebar. Placement only; its appearance lives in
+ * navigation.css alongside the components it frames.
  */
 .svr-sidebar {
     grid-area: sidebar;
     overflow: hidden;
 }
 
-/* 2. Topbar */
+/* CMP-18 Application header. Appearance lives in frame.css. */
 .svr-topbar {
-    grid-area: topbar;
-    border-bottom: 1px solid #999;
-    box-sizing: border-box;
+    grid-area: header;
+}
+
+/* CMP-20 Conversation list. Appearance lives in navigation.css. */
+.svr-conversation-list {
+    grid-area: convlist;
 }
 
 /*
- * 3. Main content wrapper.
- * Sprint 3 M2: a column so the connection banner (CMP-45) can sit above the
- * working area in one consistent location (SUX-16) without overlaying it.
- * The side-by-side chat/workspace grid moves to .svr-main-content.
+ * Main content wrapper. A column so the connection banner (CMP-45) can sit
+ * above the working area in one consistent location (SUX-16) without
+ * overlaying it.
  */
 .svr-main {
     grid-area: main;
@@ -79,72 +86,37 @@
     flex-direction: column;
     overflow: hidden;
     box-sizing: border-box;
+    min-width: 0;
 }
 
 .svr-main-content {
     flex: 1;
     display: grid;
-    grid-template-columns: 1fr 1fr;
+    /* UX-2: the conversation is the dominant surface; the workspace supports it. */
+    grid-template-columns: 3fr 2fr;
     grid-template-areas: "chat workspace";
     overflow: hidden;
     min-height: 0;
 }
 
-/* 4. ChatArea */
 .svr-chat-area {
     grid-area: chat;
-    border-right: 1px solid #ccc;
-    overflow-y: auto;
+    border-inline-end: var(--svr-border-width-thin) solid var(--svr-border-default);
+    overflow: hidden;
     box-sizing: border-box;
+    min-width: 0;
 }
 
-/* 5. WorkspaceArea */
 .svr-workspace-area {
     grid-area: workspace;
     overflow-y: auto;
     box-sizing: border-box;
+    min-width: 0;
 }
 
-/* 6. RightPanel */
 .svr-right-panel {
     grid-area: rpanel;
-    border-left: 1px solid #999;
+    border-inline-start: var(--svr-border-width-thin) solid var(--svr-border-default);
     overflow-y: auto;
     box-sizing: border-box;
 }
-
-/* ── Step 4: ModulePlaceholderView ────────────────────────────────────────── */
-
-.svr-module-placeholder-view {
-    padding: 24px;
-}
-
-.svr-module-placeholder-header {
-    display: flex;
-    align-items: center;
-    gap: 12px;
-    padding-bottom: 16px;
-    border-bottom: 1px solid #333;
-    margin-bottom: 16px;
-}
-
-.svr-module-placeholder-icon {
-    font-size: 24px;
-}
-
-.svr-module-placeholder-title {
-    font-size: 18px;
-    font-weight: 700;
-}
-
-.svr-module-placeholder-body {
-    line-height: 1.6;
-}
-
-.svr-module-placeholder-sub {
-    font-size: 12px;
-    color: #7d8e9e;
-    margin-top: 8px;
-}
-
-

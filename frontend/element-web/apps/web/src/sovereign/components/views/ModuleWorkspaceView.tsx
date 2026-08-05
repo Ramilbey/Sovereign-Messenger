@@ -1,11 +1,12 @@
 /*
- * Sovereign Messenger — Step 8 / Step 9
+ * Sovereign Messenger — Step 8 / Step 9 · Sprint 3, Milestone 3
  * ModuleWorkspaceView.tsx — Router/Dispatcher for active workspace module views.
  *
  * Renders real domain-backed views for WorkspaceArea:
- *   Universal modules:
- *     channels ➔ ChannelsView
- *     groups ➔ GroupsView
+ *   Communication modules (IA-6, one directory surface per type):
+ *     channels ➔ ConversationDirectoryView
+ *     groups ➔ ConversationDirectoryView
+ *     direct_chats ➔ ConversationDirectoryView
  *     members ➔ MembersView
  *     documents ➔ DocumentsView
  *     tasks ➔ TasksView
@@ -22,8 +23,7 @@
  */
 
 import React, { memo, type JSX } from "react";
-import { ChannelsView } from "./ChannelsView";
-import { GroupsView } from "./GroupsView";
+import { ConversationDirectoryView } from "./ConversationDirectoryView";
 import { MembersView } from "./MembersView";
 import { DocumentsView } from "./DocumentsView";
 import { TasksView } from "./TasksView";
@@ -44,11 +44,13 @@ export const ModuleWorkspaceView = memo(function ModuleWorkspaceView({
     activeModuleId,
 }: ModuleWorkspaceViewProps): JSX.Element {
     switch (activeModuleId) {
-        // Universal modules
+        // Communication modules — one directory surface, three types (IA-6)
         case "channels":
-            return <ChannelsView />;
+            return <ConversationDirectoryView type="channel" surface="channels" />;
         case "groups":
-            return <GroupsView />;
+            return <ConversationDirectoryView type="group" surface="groups" />;
+        case "direct_chats":
+            return <ConversationDirectoryView type="direct" surface="directChats" />;
         case "members":
             return <MembersView />;
         case "documents":

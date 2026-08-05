@@ -102,6 +102,13 @@
     --svr-control-height-md: 36px;
     --svr-control-height-lg: 44px; /* UI-17 minimum touch target */
 
+    /* ── Frame Geometry (UI-13 … UI-16) ──────────────────────────────────── */
+    --svr-frame-header-height: 56px;
+    --svr-frame-sidebar-width: 240px;
+    --svr-frame-sidebar-collapsed-width: 56px;
+    --svr-frame-conversation-width: 300px;
+    --svr-frame-panel-width: 280px;
+
     --svr-avatar-size-sm: 24px;
     --svr-avatar-size-md: 32px;
     --svr-avatar-size-lg: 40px;
