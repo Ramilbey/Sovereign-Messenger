@@ -14,7 +14,7 @@ interface WorkspaceAreaProps {
 
 export function WorkspaceArea({ activeModuleId }: WorkspaceAreaProps): JSX.Element {
     return (
-        <div id="sovereign-workspace-area" className="svr-workspace-area" style={{ height: "100%", overflow: "hidden" }}>
+        <div id="sovereign-workspace-area" className="svr-workspace-area">
             <ModuleWorkspaceView activeModuleId={activeModuleId} />
         </div>
     );

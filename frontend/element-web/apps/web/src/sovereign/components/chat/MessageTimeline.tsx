@@ -1,28 +1,52 @@
 /*
- * Sovereign Messenger — Sprint 1, Step 7.2
- * MessageTimeline.tsx — Pure presentation component for scrollable chat timeline.
+ * Sovereign Messenger — Sprint 1, Step 7.2 · Sprint 3, Milestone 3
+ * MessageTimeline.tsx — Conversation Timeline
  *
- * Implements Smart Auto-Scroll Policy:
- *   - Outgoing messages: Always auto-scrolls to bottom smoothly.
- *   - Incoming messages: Auto-scrolls ONLY IF user is near the bottom (<100px).
- *   - Otherwise preserves scroll position and shows "Yangi xabarlar" scroll button.
+ * FR-32: consecutive messages from one sender within a short interval are
+ * grouped, with the sender shown once (CMP-22).
+ * FR-33: date separators divide the timeline by day, using relative labels.
+ * FR-35: a message that cannot be displayed is rendered as a defined state,
+ * never as message text (CMP-23).
+ * COM-8: order follows server time, so a message does not move once shown.
+ *
+ * Auto-scroll policy: outgoing messages always scroll into view; incoming ones
+ * only when the reader is already at the bottom, so an arriving message never
+ * pulls a reader away from what they are reading (NT-10).
  */
 
 import React, { memo, useRef, useEffect, useState, useCallback, useMemo, type JSX } from "react";
-import type { SovereignMessage } from "../../services/MessageService";
+
 import { MessageBubble } from "./MessageBubble";
 import { DateSeparator } from "./DateSeparator";
+import { UnavailableMessage } from "./UnavailableMessage";
+import { ModuleStateBoundary } from "../views/ModuleStateBoundary";
+import { Icon } from "../ui";
+import { CHAT_COPY } from "../../config/chatCopy";
+import type { SovereignMessage } from "../../services/MessageService";
+import type { ResourceState } from "../../types/resource";
+
+/**
+ * FR-32: how close in time two messages from one sender must be to be grouped.
+ * Beyond this the sender is shown again, because a later message reads as a
+ * new contribution rather than a continuation.
+ */
+const GROUPING_WINDOW_MS = 5 * 60 * 1000;
 
 interface MessageTimelineProps {
     messages: SovereignMessage[];
     currentUserId: string;
-    userInitialsMap?: Record<string, string>;
+    /** ES-1: the timeline carries the same four states as any other surface. */
+    state?: ResourceState;
 }
+
+type TimelineItem =
+    | { kind: "date"; key: string; label: string }
+    | { kind: "message"; key: string; message: SovereignMessage; showSender: boolean };
 
 export const MessageTimeline = memo(function MessageTimeline({
     messages,
     currentUserId,
-    userInitialsMap = {},
+    state = "ready",
 }: MessageTimelineProps): JSX.Element {
     const scrollRef = useRef<HTMLDivElement | null>(null);
     const [showScrollBottomBtn, setShowScrollBottomBtn] = useState<boolean>(false);
@@ -30,21 +54,16 @@ export const MessageTimeline = memo(function MessageTimeline({
 
     const scrollToBottom = useCallback((behavior: ScrollBehavior = "smooth") => {
         if (scrollRef.current) {
-            scrollRef.current.scrollTo({
-                top: scrollRef.current.scrollHeight,
-                behavior,
-            });
+            scrollRef.current.scrollTo({ top: scrollRef.current.scrollHeight, behavior });
         }
     }, []);
 
     const handleScroll = useCallback(() => {
         if (!scrollRef.current) return;
         const { scrollTop, scrollHeight, clientHeight } = scrollRef.current;
-        const distanceFromBottom = scrollHeight - scrollTop - clientHeight;
-        setShowScrollBottomBtn(distanceFromBottom > 150);
+        setShowScrollBottomBtn(scrollHeight - scrollTop - clientHeight > 150);
     }, []);
 
-    // Smart Auto-Scroll Effect
     useEffect(() => {
         if (!scrollRef.current) return;
 
@@ -55,8 +74,8 @@ export const MessageTimeline = memo(function MessageTimeline({
         if (isNewMessage) {
             const lastMsg = messages[messages.length - 1];
             const isOutgoing = lastMsg?.senderId === currentUserId;
-            const distanceFromBottom = container.scrollHeight - container.scrollTop - container.clientHeight;
-            const isNearBottom = distanceFromBottom < 120;
+            const isNearBottom =
+                container.scrollHeight - container.scrollTop - container.clientHeight < 120;
 
             if (isOutgoing || isNearBottom) {
                 scrollToBottom("smooth");
@@ -64,22 +83,49 @@ export const MessageTimeline = memo(function MessageTimeline({
         }
     }, [messages, currentUserId, scrollToBottom]);
 
-    // Initial scroll on mount/channel switch
     useEffect(() => {
         scrollToBottom("instant");
     }, [scrollToBottom]);
 
-    // Group messages by date
-    const groupedItems = useMemo(() => {
-        const result: Array<{ type: "date"; label: string } | { type: "msg"; message: SovereignMessage }> = [];
+    /**
+     * FR-32 / FR-33: day boundaries and sender grouping are decided once here,
+     * so the render pass has no decisions left to make.
+     */
+    const items = useMemo<TimelineItem[]>(() => {
+        const result: TimelineItem[] = [];
         let lastDate = "";
+        let previous: SovereignMessage | null = null;
 
-        messages.forEach((msg) => {
-            if (msg.date !== lastDate) {
-                lastDate = msg.date;
-                result.push({ type: "date", label: msg.date });
+        messages.forEach((message, index) => {
+            if (message.date !== lastDate) {
+                lastDate = message.date;
+                result.push({ kind: "date", key: `date-${message.date}-${index}`, label: message.date });
+                previous = null;
             }
-            result.push({ type: "msg", message: msg });
+
+            /*
+             * A different sender, a gap longer than the grouping window, or an
+             * unavailable message on either side starts a new group — a
+             * continuation must genuinely continue something readable.
+             */
+            const previousMessage: SovereignMessage | null = previous;
+            const sameSender = previousMessage?.senderId === message.senderId;
+            const withinWindow =
+                previousMessage?.sentAt !== undefined && message.sentAt !== undefined
+                    ? message.sentAt - previousMessage.sentAt <= GROUPING_WINDOW_MS
+                    : // Demonstration data carries no clock, so grouping falls
+                      // back to sender identity rather than guessing a time.
+                      true;
+            const readable = !message.unavailable && !previousMessage?.unavailable;
+
+            result.push({
+                kind: "message",
+                key: message.id,
+                message,
+                showSender: !(sameSender && withinWindow && readable),
+            });
+
+            previous = message;
         });
 
         return result;
@@ -87,35 +133,54 @@ export const MessageTimeline = memo(function MessageTimeline({
 
     return (
         <div className="svr-timeline-container">
-            <div ref={scrollRef} className="svr-timeline-scroll" onScroll={handleScroll}>
-                {groupedItems.map((item, index) => {
-                    if (item.type === "date") {
-                        return <DateSeparator key={`date-${item.label}-${index}`} dateLabel={item.label} />;
-                    }
+            <ModuleStateBoundary state={state} surface="timeline" loadingRows={5}>
+                <div
+                    ref={scrollRef}
+                    className="svr-timeline-scroll"
+                    onScroll={handleScroll}
+                    /* A11Y-7: arriving messages are announced without stealing focus. */
+                    aria-live="polite"
+                    aria-relevant="additions"
+                >
+                    {items.map((item) => {
+                        if (item.kind === "date") {
+                            return <DateSeparator key={item.key} dateLabel={item.label} />;
+                        }
 
-                    const msg = item.message;
-                    const isOutgoing = msg.senderId === currentUserId;
-                    const avatarInitials = userInitialsMap[msg.senderId] || msg.senderName.slice(0, 2).toUpperCase();
+                        const { message } = item;
 
-                    return (
-                        <MessageBubble
-                            key={msg.id}
-                            message={msg}
-                            isOutgoing={isOutgoing}
-                            avatarInitials={avatarInitials}
-                        />
-                    );
-                })}
-            </div>
+                        // FR-35 / COM-6: never rendered as message text.
+                        if (message.unavailable) {
+                            return (
+                                <UnavailableMessage
+                                    key={item.key}
+                                    senderName={message.senderName}
+                                    timestamp={message.timestamp}
+                                />
+                            );
+                        }
 
-            {/* Floating scroll to bottom pill */}
+                        return (
+                            <MessageBubble
+                                key={item.key}
+                                message={message}
+                                isOutgoing={message.senderId === currentUserId}
+                                showSender={item.showSender}
+                            />
+                        );
+                    })}
+                </div>
+            </ModuleStateBoundary>
+
             {showScrollBottomBtn && (
                 <button
+                    type="button"
                     className="svr-scroll-bottom-btn"
                     onClick={() => scrollToBottom("smooth")}
-                    title="Pastga tushish"
+                    aria-label={CHAT_COPY.scrollToLatest}
                 >
-                    ↓ Yangi xabarlar
+                    <Icon name="chevron-down" size="sm" />
+                    {CHAT_COPY.newMessages}
                 </button>
             )}
         </div>

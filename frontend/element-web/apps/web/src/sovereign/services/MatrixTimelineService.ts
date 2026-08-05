@@ -22,7 +22,7 @@ export interface SovereignMessage {
     body: string;
     timestamp: number;
     eventId: string;
-    type: "text";
+    type: "text" | "unavailable";
 }
 
 export class MatrixTimelineService {
@@ -125,6 +125,35 @@ export class MatrixTimelineService {
         }
 
         const type = typeof event.getType === "function" ? event.getType() : "";
+        const eventId = typeof event.getId === "function" ? event.getId() || "" : "";
+        const senderId = typeof event.getSender === "function" ? event.getSender() || "" : "";
+        const senderName = event.sender?.name || senderId || "";
+        const timestamp = typeof event.getTs === "function" ? event.getTs() : Date.now();
+        const actualRoomId = typeof event.getRoomId === "function" ? event.getRoomId() || fallbackRoomId : fallbackRoomId;
+
+        const base = {
+            id: eventId || `msg_${timestamp}_${Math.random().toString(36).substring(2, 7)}`,
+            roomId: actualRoomId,
+            senderId,
+            senderName,
+            timestamp,
+            eventId,
+        };
+
+        /*
+         * FR-35 / COM-6: a message the client holds but cannot render is a
+         * message, not an absence. Dropping it silently left a gap in the
+         * conversation that the reader had no way to notice. It is reported as
+         * unavailable and the surface renders the defined state; the reason is
+         * never expressed in cryptographic terms (SUX-12).
+         */
+        const undecryptable =
+            typeof event.isDecryptionFailure === "function" && event.isDecryptionFailure();
+
+        if (type === "m.room.encrypted" || undecryptable) {
+            return { ...base, body: "", type: "unavailable" };
+        }
+
         if (type !== "m.room.message") {
             return null;
         }
@@ -135,21 +164,6 @@ export class MatrixTimelineService {
             return null;
         }
 
-        const eventId = typeof event.getId === "function" ? event.getId() || "" : "";
-        const senderId = typeof event.getSender === "function" ? event.getSender() || "" : "";
-        const senderName = event.sender?.name || senderId || "Unknown";
-        const timestamp = typeof event.getTs === "function" ? event.getTs() : Date.now();
-        const actualRoomId = typeof event.getRoomId === "function" ? event.getRoomId() || fallbackRoomId : fallbackRoomId;
-
-        return {
-            id: eventId || `msg_${timestamp}_${Math.random().toString(36).substring(2, 7)}`,
-            roomId: actualRoomId,
-            senderId,
-            senderName,
-            body,
-            timestamp,
-            eventId,
-            type: "text",
-        };
+        return { ...base, body, type: "text" };
     }
 }

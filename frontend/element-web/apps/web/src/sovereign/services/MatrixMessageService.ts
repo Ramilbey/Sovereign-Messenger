@@ -13,6 +13,7 @@
 import { MatrixEventEvent, RoomEvent } from "matrix-js-sdk/src/matrix";
 import type { MessageService, SovereignMessage, TimelineCallback } from "./MessageService";
 import { MatrixTimelineService } from "./MatrixTimelineService";
+import { formatClockTime, formatDayLabel } from "../config/timeCopy";
 import { MatrixClientService } from "./MatrixClientService";
 
 export class MatrixMessageService implements MessageService {
@@ -64,17 +65,18 @@ export class MatrixMessageService implements MessageService {
 
             const eventId = response?.event_id || `sent_${Date.now()}`;
             const timestamp = Date.now();
-            const dateObj = new Date(timestamp);
 
             return {
                 id: eventId,
                 channelId,
                 senderId: senderId || client.getUserId() || "",
                 senderName: senderName || client.getUserId() || "User",
-                senderRole: senderRole || "Xodim",
+                // The sender is the signed-in user, whose own role is known.
+                senderRole: senderRole || undefined,
                 content,
-                timestamp: dateObj.toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" }),
-                date: dateObj.toLocaleDateString(),
+                timestamp: formatClockTime(timestamp),
+                date: formatDayLabel(timestamp),
+                sentAt: timestamp,
                 readState: "sent",
             };
         } catch (error: unknown) {
@@ -187,22 +189,33 @@ export class MatrixMessageService implements MessageService {
         body: string;
         timestamp: number;
         eventId: string;
-        type: "text";
+        type: "text" | "unavailable";
     }): SovereignMessage {
-        const dateObj = new Date(msg.timestamp);
-        const timeStr = dateObj.toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" });
-        const dateStr = dateObj.toLocaleDateString();
-
         return {
             id: msg.id,
             channelId: msg.roomId,
             senderId: msg.senderId,
-            senderName: msg.senderName,
-            senderRole: "Xodim",
+            senderName: msg.senderName || msg.senderId,
+            /*
+             * FR-34: no role is asserted. Identity data carries the signed-in
+             * user's own role only (AS-1), so claiming one for another person
+             * would put unverified information in front of a reader (FR-1).
+             * The surface shows the name alone until a source exists.
+             */
             content: msg.body,
-            timestamp: timeStr,
-            date: dateStr,
-            readState: "read",
+            timestamp: formatClockTime(msg.timestamp),
+            // FR-33: relative day labels where appropriate.
+            date: formatDayLabel(msg.timestamp),
+            // COM-8 / EDGE-15: ordering follows server time, not local time.
+            sentAt: msg.timestamp,
+            /*
+             * COM-5: the event is on the server, which is what "sent" means
+             * and all that is known without read receipts. It was previously
+             * reported as "read", which asserted that every participant had
+             * seen every message.
+             */
+            readState: "sent",
+            unavailable: msg.type === "unavailable",
         };
     }
 }

@@ -137,6 +137,37 @@ export class MatrixRoomService {
     }
 
     /**
+     * COM-2 / SUX-9: whether this user may currently post in a room.
+     *
+     * The authority is the room's own power levels, which change during a
+     * session (EDGE-13). Returns null when the answer is not knowable — no
+     * client, or no such room — so the caller can fall back rather than treat
+     * "unknown" as "denied" and silently remove a composer.
+     */
+    public canSendMessage(roomId: string): boolean | null {
+        if (!roomId) return null;
+
+        const client = this.clientService.getClient();
+        if (!client) return null;
+
+        try {
+            const room: any = client.getRoom(roomId);
+            const userId = client.getUserId();
+            if (!room || !userId) return null;
+
+            // The live forward state — the same state the room list reads.
+            const state = room.currentState;
+            if (typeof state?.maySendMessage !== "function") return null;
+
+            return Boolean(state.maySendMessage(userId));
+        } catch (error: unknown) {
+            const detail = error instanceof Error ? error.message : String(error);
+            console.warn(`[MatrixRoomService] Error reading posting rights for ${roomId}:`, detail);
+            return null;
+        }
+    }
+
+    /**
      * Transforms Matrix SDK Room object to clean SovereignRoom interface.
      */
     private transformRoom(room: any): SovereignRoom {
