@@ -190,6 +190,7 @@ export class MatrixMessageService implements MessageService {
         timestamp: number;
         eventId: string;
         type: "text" | "unavailable";
+        delivery: "queued" | "sending" | "sent" | "failed";
     }): SovereignMessage {
         return {
             id: msg.id,
@@ -209,12 +210,12 @@ export class MatrixMessageService implements MessageService {
             // COM-8 / EDGE-15: ordering follows server time, not local time.
             sentAt: msg.timestamp,
             /*
-             * COM-5: the event is on the server, which is what "sent" means
-             * and all that is known without read receipts. It was previously
-             * reported as "read", which asserted that every participant had
-             * seen every message.
+             * COM-5 / ST-38 / ERR-1: the platform's own send status. A message
+             * still queued or already rejected is never presented as sent, and
+             * a message that reached the server is never presented as read —
+             * that requires receipts the platform does not yet report.
              */
-            readState: "sent",
+            readState: msg.delivery,
             unavailable: msg.type === "unavailable",
         };
     }

@@ -14,6 +14,14 @@
 
 import { MatrixClientService } from "./MatrixClientService";
 
+/**
+ * COM-5 / ST-38: where a message has got to.
+ *
+ * Read from the platform's own send status rather than assumed: a message
+ * still queued or already rejected must not be presented as delivered.
+ */
+export type TimelineDeliveryState = "queued" | "sending" | "sent" | "failed";
+
 export interface SovereignMessage {
     id: string;
     roomId: string;
@@ -23,6 +31,7 @@ export interface SovereignMessage {
     timestamp: number;
     eventId: string;
     type: "text" | "unavailable";
+    delivery: TimelineDeliveryState;
 }
 
 export class MatrixTimelineService {
@@ -117,6 +126,30 @@ export class MatrixTimelineService {
     }
 
     /**
+     * COM-5 / ST-38: the platform's own send status for a message.
+     *
+     * A message the user composed while disconnected sits in the pending queue
+     * and is reported as queued, not as sent — the timeline merges pending
+     * events, so without this every unsent message claimed to have arrived.
+     */
+    private readDeliveryState(event: any): TimelineDeliveryState {
+        const status = event?.status;
+        if (!status) return "sent";
+
+        switch (status) {
+            case "not_sent":
+                return "failed";
+            case "queued":
+                return "queued";
+            case "sending":
+            case "encrypting":
+                return "sending";
+            default:
+                return "sent";
+        }
+    }
+
+    /**
      * Transforms Matrix SDK Event object into clean SovereignMessage.
      */
     private transformEvent(event: any, fallbackRoomId: string): SovereignMessage | null {
@@ -138,6 +171,7 @@ export class MatrixTimelineService {
             senderName,
             timestamp,
             eventId,
+            delivery: this.readDeliveryState(event),
         };
 
         /*
