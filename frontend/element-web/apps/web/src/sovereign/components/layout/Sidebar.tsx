@@ -14,7 +14,7 @@ import { WorkspaceNavigation } from "../navigation/WorkspaceNavigation";
 import { IconButton } from "../ui";
 import { NAVIGATION_COPY } from "../../config/navigationCopy";
 import type { WorkspaceModuleItem } from "../../config/workspaceModules";
-import type { OrgLanguage, OrgNode } from "../../services/OrganisationService";
+import type { OrgLanguage, OrgNode } from "../../types/organisation";
 import type { ResourceState } from "../../types/resource";
 import "../navigation/navigation.css";
 
@@ -30,6 +30,8 @@ interface SidebarProps {
     collapsed?: boolean;
     onToggleCollapsed?: () => void;
     language?: OrgLanguage;
+    /** ES-5: offered when the hierarchy could not be read. */
+    onRetryOrganisation?: () => void;
 }
 
 export function Sidebar({
@@ -43,6 +45,7 @@ export function Sidebar({
     collapsed = false,
     onToggleCollapsed,
     language = "uz",
+    onRetryOrganisation,
 }: SidebarProps): JSX.Element {
     return (
         <div
@@ -74,6 +77,7 @@ export function Sidebar({
                     onSelectNode={onSelectNode}
                     collapsed={collapsed}
                     language={language}
+                    onRetry={onRetryOrganisation}
                 />
 
                 <div className="svr-sidebar__divider" role="presentation" />

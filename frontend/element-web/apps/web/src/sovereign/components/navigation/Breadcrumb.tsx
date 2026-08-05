@@ -16,7 +16,7 @@ import React, { memo, useState, type JSX } from "react";
 
 import { Icon } from "../ui";
 import { NAVIGATION_COPY, ORG_NODE_TYPE_LABEL } from "../../config/navigationCopy";
-import { orgNodeName, type OrgLanguage, type OrgNode } from "../../services/OrganisationService";
+import { orgNodeName, type OrgLanguage, type OrgNode } from "../../types/organisation";
 
 interface BreadcrumbProps {
     /** Root → current node, inclusive. */

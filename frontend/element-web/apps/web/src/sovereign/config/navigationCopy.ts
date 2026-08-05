@@ -11,7 +11,7 @@
  * appears in any string below.
  */
 
-import type { OrgNodeType } from "../services/OrganisationService";
+import type { OrgNodeType } from "../types/organisation";
 
 /**
  * GW-11 / IA-6: an organisational level is named by its official designation,

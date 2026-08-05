@@ -12,7 +12,12 @@
  * - Zero React/Provider/Context changes, zero UI rendering, zero timeline/message loading.
  */
 
-import { NotificationCountType } from "matrix-js-sdk/src/matrix";
+import {
+    ClientEvent,
+    NotificationCountType,
+    RoomEvent,
+    RoomStateEvent,
+} from "matrix-js-sdk/src/matrix";
 
 import { MatrixClientService } from "./MatrixClientService";
 import type { ConversationPreview } from "../types/conversation";
@@ -51,13 +56,31 @@ export interface SovereignRoom {
 /** The Matrix tag denoting a favourite conversation (FR-47). */
 const FAVOURITE_TAG = "m.favourite";
 
+/**
+ * How long room changes are gathered before subscribers are told.
+ *
+ * PERF-10: a busy department produces a burst of timeline and receipt events,
+ * and each notification costs a full re-read of every room. Coalescing keeps
+ * the conversation list responsive at 200 conversations without making it
+ * noticeably less current — the delay is well inside the 100ms feedback budget
+ * of UX-5.
+ */
+const COALESCE_MS = 60;
+
 /** How far back to look for a message to preview. Bounded, so a long-lived
  *  room costs no more than a short one (PERF-10). */
 const PREVIEW_SCAN_LIMIT = 40;
 
+/** Notified when the room list or any room's metadata may have changed. */
+export type RoomListListener = () => void;
+
 export class MatrixRoomService {
     private static instance: MatrixRoomService | null = null;
     private clientService: MatrixClientService;
+
+    private listeners = new Set<RoomListListener>();
+    private detach: (() => void) | null = null;
+    private coalesceTimer: ReturnType<typeof setTimeout> | null = null;
 
     private constructor() {
         this.clientService = MatrixClientService.getInstance();
@@ -137,6 +160,31 @@ export class MatrixRoomService {
     }
 
     /**
+     * Observe changes to the room list and to room metadata.
+     *
+     * NAV-2: a conversation's place in the list changes without the list
+     * itself changing — a new message moves it up, a read receipt from another
+     * device clears its unread count, a tag makes it a favourite. Observing
+     * only room creation would leave the list stale.
+     *
+     * This is the only place these platform events are read, so no hook,
+     * provider, or component imports the SDK to watch them (Blueprint §8).
+     * Unread counts arrive on the sync response, which `Sync` covers; the
+     * room-level unread event is not among the events the client re-emits.
+     */
+    public subscribe(listener: RoomListListener): () => void {
+        this.listeners.add(listener);
+        this.attach();
+
+        return () => {
+            this.listeners.delete(listener);
+            if (this.listeners.size === 0) {
+                this.detachListeners();
+            }
+        };
+    }
+
+    /**
      * COM-2 / SUX-9: whether this user may currently post in a room.
      *
      * The authority is the room's own power levels, which change during a
@@ -165,6 +213,74 @@ export class MatrixRoomService {
             console.warn(`[MatrixRoomService] Error reading posting rights for ${roomId}:`, detail);
             return null;
         }
+    }
+
+    /**
+     * Observation. This is the only place these platform events are read, so
+     * no hook, provider, or component imports the SDK to watch them.
+     */
+    private attach(): void {
+        if (this.detach) return;
+
+        const client = this.clientService.getClient();
+        if (!client) return;
+
+        const notify = (): void => this.scheduleNotify();
+
+        const events = [
+            ClientEvent.Sync,
+            ClientEvent.Room,
+            RoomEvent.Timeline,
+            RoomEvent.Receipt,
+            RoomEvent.Tags,
+            RoomEvent.Name,
+            RoomEvent.MyMembership,
+            // SUX-9: a change of posting rights arrives as a room state event.
+            RoomStateEvent.Events,
+            RoomStateEvent.Update,
+        ] as const;
+
+        try {
+            events.forEach((event) => client.on(event, notify));
+        } catch (error: unknown) {
+            const detail = error instanceof Error ? error.message : String(error);
+            console.warn("[MatrixRoomService] Unable to observe room changes:", detail);
+            return;
+        }
+
+        this.detach = () => {
+            try {
+                events.forEach((event) => client.removeListener(event, notify));
+            } catch {
+                // Graceful fallback: listeners go out of scope with the client.
+            }
+        };
+    }
+
+    private detachListeners(): void {
+        if (this.coalesceTimer !== null) {
+            clearTimeout(this.coalesceTimer);
+            this.coalesceTimer = null;
+        }
+        this.detach?.();
+        this.detach = null;
+    }
+
+    /** PERF-10: gathers a burst of events into a single notification. */
+    private scheduleNotify(): void {
+        if (this.coalesceTimer !== null) return;
+
+        this.coalesceTimer = setTimeout(() => {
+            this.coalesceTimer = null;
+            this.listeners.forEach((listener) => {
+                try {
+                    listener();
+                } catch (error: unknown) {
+                    const detail = error instanceof Error ? error.message : String(error);
+                    console.warn("[MatrixRoomService] Error in room list subscriber:", detail);
+                }
+            });
+        }, COALESCE_MS);
     }
 
     /**

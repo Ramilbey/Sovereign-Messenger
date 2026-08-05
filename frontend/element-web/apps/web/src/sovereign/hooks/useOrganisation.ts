@@ -10,7 +10,7 @@
  * service, which is the only layer permitted to.
  */
 
-import { useMemo } from "react";
+import { useCallback, useMemo, useState } from "react";
 
 import {
     OrganisationService,
@@ -20,6 +20,8 @@ import {
 import { failed, ready, type SovereignResource } from "../types/resource";
 
 export interface OrganisationView {
+    /** ES-5: re-reads the configuration after a failure. */
+    retry: () => void;
     /** IA-4: the branch of the hierarchy this user may see. */
     tree: OrgNode | null;
     /** NAV-5: root → current node, inclusive. Every entry is navigable. */
@@ -60,6 +62,14 @@ interface UseOrganisationOptions {
 export function useOrganisation(options: UseOrganisationOptions = {}): SovereignResource<OrganisationView> {
     const { departmentHint = null, currentNodeId, language = "uz" } = options;
 
+    // Bumped by retry, so the configuration is read again rather than the
+    // previous failed result being served from the memo.
+    const [attempt, setAttempt] = useState(0);
+    const retry = useCallback(() => {
+        OrganisationService.reset();
+        setAttempt((value) => value + 1);
+    }, []);
+
     return useMemo(() => {
         const service = OrganisationService.getInstance();
 
@@ -72,6 +82,7 @@ export function useOrganisation(options: UseOrganisationOptions = {}): Sovereign
         const currentId = service.isAuthorised(positionId, requested) ? requested : positionId;
 
         const view: OrganisationView = {
+            retry,
             tree: service.getVisibleTree(positionId),
             path: service.getPath(currentId),
             positionId,
@@ -88,5 +99,5 @@ export function useOrganisation(options: UseOrganisationOptions = {}): Sovereign
         }
 
         return ready(view, false);
-    }, [departmentHint, currentNodeId, language]);
+    }, [departmentHint, currentNodeId, language, retry, attempt]);
 }

@@ -29,7 +29,7 @@ import { Breadcrumb } from "../navigation/Breadcrumb";
 import { Avatar, ConnectionStatus } from "../ui";
 import { FRAME_COPY } from "../../config/navigationCopy";
 import type { ConnectionState } from "../../services/ConnectionStateService";
-import type { OrgLanguage, OrgNode } from "../../services/OrganisationService";
+import type { OrgLanguage, OrgNode } from "../../types/organisation";
 import type { SovereignUser } from "../../providers/useSovereignData";
 import { ROLE_LABELS } from "../../config/roleCopy";
 import "./frame.css";
@@ -65,7 +65,8 @@ export const Topbar = memo(function Topbar({
             {/* UI-9 / UI-11: institutional identity and organisational context. */}
             <div className="svr-topbar__identity">
                 <span className="svr-topbar__emblem" aria-hidden="true" />
-                <span className="svr-topbar__product">{FRAME_COPY.productName}</span>
+                {/* A11Y-6: the product name is the document's top-level heading. */}
+                <h1 className="svr-topbar__product">{FRAME_COPY.productName}</h1>
                 {code && (
                     <span className="svr-topbar__code" title={FRAME_COPY.organisationCode}>
                         <span className="svr-visually-hidden">{`${FRAME_COPY.organisationCode}: `}</span>

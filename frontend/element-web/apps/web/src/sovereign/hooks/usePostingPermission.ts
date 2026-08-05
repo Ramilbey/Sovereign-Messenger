@@ -14,10 +14,9 @@
  * Per Blueprint section 8, this consumes a service; it never reads the SDK.
  */
 
-import { useEffect, useMemo, useRef, useState } from "react";
+import { useEffect, useState } from "react";
 
 import { MatrixRoomService } from "../services/MatrixRoomService";
-import { MatrixClientService } from "../services/MatrixClientService";
 import { isDemoMode } from "../config/SovereignConfig";
 import { CHAT_COPY } from "../config/chatCopy";
 
@@ -66,50 +65,53 @@ export function usePostingPermission(
             return;
         }
 
-        const read = (): void => {
-            setRoomAnswer(MatrixRoomService.getInstance().canSendMessage(conversationId));
-        };
+        const service = MatrixRoomService.getInstance();
+        const read = (): void => setRoomAnswer(service.canSendMessage(conversationId));
 
         read();
 
-        const client = MatrixClientService.getInstance().getClient();
-        if (!client) return;
-
-        // A power level change arrives as a room state event; the membership
-        // change that follows a reassignment arrives separately (EDGE-14).
-        const events = ["RoomState.events", "RoomState.update", "Room.myMembership"] as const;
-
-        try {
-            events.forEach((event) => client.on(event as never, read as never));
-        } catch {
-            // Graceful fallback: the initial read still applies.
-        }
-
-        return () => {
-            try {
-                events.forEach((event) => client.removeListener(event as never, read as never));
-            } catch {
-                // Graceful fallback
-            }
-        };
+        /*
+         * The service owns which platform events mean "room state may have
+         * changed" — including the power level change that grants or withdraws
+         * posting rights, and the membership change that follows an
+         * organisational reassignment (EDGE-14). Blueprint §8: no hook reads
+         * the platform SDK.
+         */
+        return service.subscribe(read);
     }, [conversationId, demo]);
 
     const canPost = roomAnswer ?? fallbackCanPost;
 
     /*
-     * SUX-9: report the transition once, so the surface can say what changed
-     * rather than silently swapping the composer for a notice.
+     * SUX-9: report the transition, so the surface can say what changed rather
+     * than silently swapping the composer for a notice.
+     *
+     * Held in state and adjusted during render — the pattern React documents
+     * for deriving state from changed inputs. A ref written inside useMemo
+     * would be a side effect in a computation React may run more than once,
+     * and the second run would swallow the very transition being reported.
      */
-    const previous = useRef<{ conversationId: string; canPost: boolean } | null>(null);
-    const change = useMemo(() => {
-        const last = previous.current;
-        previous.current = { conversationId, canPost };
+    const [tracked, setTracked] = useState<{
+        conversationId: string;
+        canPost: boolean;
+        change: string | null;
+    }>({ conversationId, canPost, change: null });
 
-        if (!last || last.conversationId !== conversationId || last.canPost === canPost) {
-            return null;
-        }
-        return canPost ? CHAT_COPY.postingGranted : CHAT_COPY.postingRevoked;
-    }, [conversationId, canPost]);
+    if (tracked.conversationId !== conversationId || tracked.canPost !== canPost) {
+        // Only a change within the same conversation is a change of rights;
+        // moving to a different conversation is not.
+        const rightsChanged = tracked.conversationId === conversationId;
+
+        setTracked({
+            conversationId,
+            canPost,
+            change: rightsChanged
+                ? canPost
+                    ? CHAT_COPY.postingGranted
+                    : CHAT_COPY.postingRevoked
+                : null,
+        });
+    }
 
     return {
         canPost,
@@ -118,6 +120,6 @@ export function usePostingPermission(
             : readOnlyForEmployees
               ? CHAT_COPY.readOnlyChannel
               : CHAT_COPY.readOnlyConversation,
-        change,
+        change: tracked.change,
     };
 }

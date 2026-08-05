@@ -15,7 +15,7 @@ import React, { useCallback, useEffect, useMemo, useRef, useState, type JSX, typ
 import { HierarchyNode } from "./HierarchyNode";
 import { ModuleStateBoundary } from "../views/ModuleStateBoundary";
 import { NAVIGATION_COPY } from "../../config/navigationCopy";
-import { orgNodeName, type OrgLanguage, type OrgNode } from "../../services/OrganisationService";
+import { orgNodeName, type OrgLanguage, type OrgNode } from "../../types/organisation";
 import type { ResourceState } from "../../types/resource";
 
 interface Props {

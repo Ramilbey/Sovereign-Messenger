@@ -24,7 +24,6 @@ import evidenceData from "../demo/evidence.json";
 import reportsData from "../demo/reports.json";
 import courtMaterialsData from "../demo/court_materials.json";
 
-import { ClientEvent, RoomEvent } from "matrix-js-sdk/src/matrix";
 import {
     ready,
     loading,
@@ -41,7 +40,6 @@ import type {
 import { useMessages } from "../hooks/useMessages";
 import { isDemoMode } from "../config/SovereignConfig";
 import { MatrixRoomService, type SovereignRoom } from "../services/MatrixRoomService";
-import { MatrixClientService } from "../services/MatrixClientService";
 import { OrganisationService, orgNodeName } from "../services/OrganisationService";
 
 export type { SovereignMessage };
@@ -317,56 +315,22 @@ export function useConversations(): SovereignResource<SovereignConversation[]> {
     useEffect(() => {
         if (demo) return;
 
-        const updateRooms = () => {
-            setMatrixRooms(MatrixRoomService.getInstance().getAllRooms());
+        const service = MatrixRoomService.getInstance();
+
+        const read = (): void => {
+            setMatrixRooms(service.getAllRooms());
             setSettled(true);
         };
 
-        updateRooms();
-
-        const client = MatrixClientService.getInstance().getClient();
-        if (!client) {
-            setSettled(true);
-            return;
-        }
-
-        const handleUpdate = () => updateRooms();
+        read();
 
         /*
-         * NAV-2 metadata changes without the room list changing: a new message
-         * moves a conversation up the list, a read receipt from another device
-         * clears an unread count, a tag makes a conversation a favourite.
-         * Observing only room creation would leave the list stale.
-         *
-         * Unread counts themselves arrive on the sync response, so Sync covers
-         * them; the room-level unread event is not among the events the client
-         * re-emits.
+         * Blueprint §8: the provider consumes a service and never reads the
+         * platform SDK itself. The service owns which events mean "the
+         * conversation list may have changed" and coalesces a burst of them
+         * into one update (PERF-10).
          */
-        try {
-            client.on(ClientEvent.Sync, handleUpdate);
-            client.on(ClientEvent.Room, handleUpdate);
-            client.on(RoomEvent.Timeline, handleUpdate);
-            client.on(RoomEvent.Receipt, handleUpdate);
-            client.on(RoomEvent.Tags, handleUpdate);
-            client.on(RoomEvent.Name, handleUpdate);
-            client.on(RoomEvent.MyMembership, handleUpdate);
-        } catch {
-            // Graceful fallback
-        }
-
-        return () => {
-            try {
-                client.removeListener(ClientEvent.Sync, handleUpdate);
-                client.removeListener(ClientEvent.Room, handleUpdate);
-                client.removeListener(RoomEvent.Timeline, handleUpdate);
-                client.removeListener(RoomEvent.Receipt, handleUpdate);
-                client.removeListener(RoomEvent.Tags, handleUpdate);
-                client.removeListener(RoomEvent.Name, handleUpdate);
-                client.removeListener(RoomEvent.MyMembership, handleUpdate);
-            } catch {
-                // Graceful fallback
-            }
-        };
+        return service.subscribe(read);
     }, [demo]);
 
     // Demo Mode is unchanged in the data it presents (ADR-004).
@@ -437,11 +401,6 @@ export function useChannels(): SovereignResource<{
     }, [conversations]);
 
     return { data: grouped, state };
-}
-
-export function useGroups(): SovereignResource<SovereignChannel[]> {
-    const { data, state } = useChannels();
-    return { data: data.groups, state: state === "ready" && data.groups.length === 0 ? "empty" : state };
 }
 
 /*

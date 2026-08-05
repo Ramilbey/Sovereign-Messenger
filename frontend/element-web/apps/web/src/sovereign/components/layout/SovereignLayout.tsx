@@ -34,7 +34,7 @@ import { useDrafts } from "../../hooks/useDrafts";
 import { useOrganisation } from "../../hooks/useOrganisation";
 import { useBreakpoint } from "../../hooks/useBreakpoint";
 import { useFramePreferences } from "../../hooks/useFramePreferences";
-import { orgNodeName } from "../../services/OrganisationService";
+import { orgNodeName } from "../../types/organisation";
 import { scopeModulesToNode } from "../../config/workspaceModules";
 import { SessionLifecycleService } from "../../services/SessionLifecycleService";
 import { ConversationList } from "../navigation/ConversationList";
@@ -164,6 +164,7 @@ export function SovereignLayout(): JSX.Element {
                     : () => updatePreferences({ sidebarCollapsed: !preferences.sidebarCollapsed })
             }
             language={organisation.language}
+            onRetryOrganisation={organisation.retry}
         />
     );
 

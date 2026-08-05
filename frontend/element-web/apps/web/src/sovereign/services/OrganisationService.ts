@@ -16,53 +16,21 @@
  */
 
 import rawConfig from "../config/organisation.config.json";
+import type {
+    OrganisationConfig,
+    OrgNode,
+    OrgNodeType,
+} from "../types/organisation";
 
-/** ORG-2: the node types the model must support at minimum. */
-export type OrgNodeType = "Republic" | "Viloyat" | "Idora" | "Bolim" | "Workspace";
-
-/** ORG-1: display name in each supported language (NFR-3). */
-export interface OrgNodeName {
-    uz: string;
-    ru: string;
-}
-
-/** One node exactly as declared in configuration. */
-export interface OrgNodeConfig {
-    id: string;
-    parentId: string | null;
-    type: OrgNodeType;
-    name: OrgNodeName;
-    /** ORG-7: organisational code shown in the application frame. */
-    code?: string;
-    /** ORG-6 / IA-12: module ids this node enables, in display order. */
-    modules?: string[];
-}
-
-export interface OrganisationConfig {
-    version: number;
-    rootId: string;
-    /** ORG-4: position used when a user's own position cannot be resolved. */
-    defaultNodeId: string;
-    nodes: OrgNodeConfig[];
-}
-
-/** A configured node resolved into the tree. */
-export interface OrgNode extends OrgNodeConfig {
-    children: OrgNode[];
-    /** Distance from the configured root, used for indentation only. */
-    depth: number;
-}
-
-/** Supported interface languages (NFR-3). */
-export type OrgLanguage = keyof OrgNodeName;
-
-/**
- * Display name of a node in the requested language, falling back to Uzbek —
- * the primary product language — when a translation is absent.
- */
-export function orgNodeName(node: OrgNodeConfig, language: OrgLanguage = "uz"): string {
-    return node.name[language] || node.name.uz || node.id;
-}
+export type {
+    OrgNodeType,
+    OrgNodeName,
+    OrgNodeConfig,
+    OrganisationConfig,
+    OrgNode,
+    OrgLanguage,
+} from "../types/organisation";
+export { orgNodeName } from "../types/organisation";
 
 export class OrganisationService {
     private static instance: OrganisationService | null = null;
@@ -124,14 +92,30 @@ export class OrganisationService {
      */
     public getPath(nodeId: string): OrgNode[] {
         const path: OrgNode[] = [];
-        let current = this.byId.get(nodeId) ?? null;
 
-        while (current) {
-            path.unshift(current);
-            current = current.parentId ? (this.byId.get(current.parentId) ?? null) : null;
+        for (const node of this.walkAncestors(nodeId)) {
+            path.unshift(node);
         }
 
         return path;
+    }
+
+    /**
+     * Walks a node and its ancestors, root-ward.
+     *
+     * Guarded against a parent cycle: a malformed configuration must produce a
+     * reported defect, never a hang. Every ancestor walk goes through here so
+     * the guard cannot be forgotten at one call site.
+     */
+    private *walkAncestors(nodeId: string): Generator<OrgNode> {
+        const seen = new Set<string>();
+        let current = this.byId.get(nodeId) ?? null;
+
+        while (current && !seen.has(current.id)) {
+            seen.add(current.id);
+            yield current;
+            current = current.parentId ? (this.byId.get(current.parentId) ?? null) : null;
+        }
     }
 
     /**
@@ -207,11 +191,8 @@ export class OrganisationService {
      * applies.
      */
     public getEnabledModuleIds(nodeId: string): string[] | null {
-        let current = this.byId.get(nodeId) ?? null;
-
-        while (current) {
-            if (current.modules) return current.modules;
-            current = current.parentId ? (this.byId.get(current.parentId) ?? null) : null;
+        for (const node of this.walkAncestors(nodeId)) {
+            if (node.modules) return node.modules;
         }
 
         return null;
@@ -223,11 +204,8 @@ export class OrganisationService {
      * rather than restating it.
      */
     public getCode(nodeId: string): string | null {
-        let current = this.byId.get(nodeId) ?? null;
-
-        while (current) {
-            if (current.code) return current.code;
-            current = current.parentId ? (this.byId.get(current.parentId) ?? null) : null;
+        for (const node of this.walkAncestors(nodeId)) {
+            if (node.code) return node.code;
         }
 
         return null;

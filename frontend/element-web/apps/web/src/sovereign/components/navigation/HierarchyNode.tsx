@@ -14,7 +14,7 @@ import React, { memo, forwardRef, type JSX, type KeyboardEvent } from "react";
 
 import { Icon, type IconName } from "../ui";
 import { ORG_NODE_TYPE_LABEL, NAVIGATION_COPY } from "../../config/navigationCopy";
-import type { OrgNodeType } from "../../services/OrganisationService";
+import type { OrgNodeType } from "../../types/organisation";
 
 /** CMP-15: each level takes an icon, but never as its only distinguishing mark. */
 const NODE_TYPE_ICON: Record<OrgNodeType, IconName> = {
