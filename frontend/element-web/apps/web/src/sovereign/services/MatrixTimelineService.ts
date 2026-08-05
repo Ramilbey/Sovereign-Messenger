@@ -12,6 +12,8 @@
  * - Zero UI / Provider / Context / ChatArea modifications.
  */
 
+import { Direction, type EventTimeline } from "matrix-js-sdk/src/matrix";
+
 import { MatrixClientService } from "./MatrixClientService";
 
 /**
@@ -34,9 +36,15 @@ export interface SovereignMessage {
     delivery: TimelineDeliveryState;
 }
 
+/** How many earlier messages one backward page requests (FR-36, EDGE-2). */
+const PAGE_SIZE = 40;
+
 export class MatrixTimelineService {
     private static instance: MatrixTimelineService | null = null;
     private clientService: MatrixClientService;
+
+    /** Rooms with a backward pagination already in flight. */
+    private paginating = new Set<string>();
 
     private constructor() {
         this.clientService = MatrixClientService.getInstance();
@@ -98,31 +106,87 @@ export class MatrixTimelineService {
     }
 
     /**
-     * Alias for getTimeline(roomId) for consistent naming.
+     * FR-36 / EDGE-2: whether earlier messages remain to be loaded.
+     *
+     * A timeline with no backward pagination token is at the start of the
+     * conversation — there is nothing further back to fetch.
      */
-    public getMessages(roomId: string): SovereignMessage[] {
-        return this.getTimeline(roomId);
-    }
+    public hasEarlierMessages(roomId: string): boolean {
+        const timeline = this.getLiveTimeline(roomId);
+        if (!timeline) return false;
 
-    /**
-     * Triggers a fresh timeline retrieval for the specified room.
-     */
-    public refresh(roomId: string): SovereignMessage[] {
-        return this.getTimeline(roomId);
-    }
-
-    /**
-     * Check if a room exists in the authenticated MatrixClient.
-     */
-    public hasRoom(roomId: string): boolean {
-        if (!roomId) {
+        try {
+            return timeline.getPaginationToken(Direction.Backward) !== null;
+        } catch {
             return false;
         }
+    }
+
+    /**
+     * FR-36: loads one page of earlier messages.
+     *
+     * EDGE-2: the history is fetched in segments rather than in full, so a
+     * conversation of 100,000 messages costs the same to open as a short one.
+     * Resolves true when more remain after this page.
+     *
+     * Concurrent calls for the same room are collapsed: the timeline fires
+     * scroll events faster than a page can load, and issuing a second request
+     * for the same token would duplicate the events already arriving.
+     */
+    public async loadEarlierMessages(roomId: string): Promise<boolean> {
+        if (!roomId || this.paginating.has(roomId)) return false;
+
         const client = this.clientService.getClient();
-        if (!client) {
+        const timeline = this.getLiveTimeline(roomId);
+        if (!client || !timeline) return false;
+
+        this.paginating.add(roomId);
+        try {
+            return await client.paginateEventTimeline(timeline, {
+                backwards: true,
+                limit: PAGE_SIZE,
+            });
+        } catch (error: unknown) {
+            const detail = error instanceof Error ? error.message : String(error);
+            console.warn(`[MatrixTimelineService] Error paginating room ${roomId}:`, detail);
             return false;
+        } finally {
+            this.paginating.delete(roomId);
         }
-        return client.getRoom(roomId) !== null;
+    }
+
+    /**
+     * FR-37 / CMP-27: the event the user has read up to.
+     *
+     * The unread divider is drawn above the first message after this one. The
+     * marker is the platform's own fully-read position, so the boundary is the
+     * same one the user left behind on any of their devices (EDGE-10).
+     */
+    public getReadUpToEventId(roomId: string): string | null {
+        const client = this.clientService.getClient();
+        if (!client || !roomId) return null;
+
+        try {
+            const room: any = client.getRoom(roomId);
+            const userId = client.getUserId();
+            if (!room || !userId) return null;
+
+            return room.getEventReadUpTo?.(userId, false) ?? null;
+        } catch {
+            return null;
+        }
+    }
+
+    private getLiveTimeline(roomId: string): EventTimeline | null {
+        const client = this.clientService.getClient();
+        if (!client || !roomId) return null;
+
+        try {
+            const room = client.getRoom(roomId);
+            return room?.getLiveTimeline() ?? null;
+        } catch {
+            return null;
+        }
     }
 
     /**

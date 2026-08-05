@@ -21,6 +21,7 @@ import {
 
 import { MatrixClientService } from "./MatrixClientService";
 import type { ConversationPreview } from "../types/conversation";
+import type { MemberStatus, SovereignMember } from "../types/member";
 
 export interface SovereignRoom {
     roomId: string;
@@ -212,6 +213,62 @@ export class MatrixRoomService {
                 this.detachListeners();
             }
         };
+    }
+
+    /**
+     * FR-45 / COM-4: the participants of a conversation.
+     *
+     * Read from the room's own membership, which the platform already holds —
+     * no request is issued. Ordered joined before invited before departed, then
+     * by name, so the people currently in the conversation come first.
+     *
+     * EDGE-6: a person who has left is reported rather than dropped, so their
+     * historical messages stay attributed and the surface can show them in an
+     * inactive treatment.
+     */
+    public getMembers(roomId: string): SovereignMember[] {
+        const client = this.clientService.getClient();
+        if (!roomId || !client) return [];
+
+        try {
+            const room: any = client.getRoom(roomId);
+            if (!room || typeof room.getMembers !== "function") return [];
+
+            const state = room.currentState;
+
+            const members: SovereignMember[] = room.getMembers().map((member: any): SovereignMember => {
+                const raw = member?.membership;
+                const status: MemberStatus =
+                    raw === "join" ? "joined" : raw === "invite" ? "invited" : "left";
+
+                return {
+                    id: member?.userId ?? "",
+                    displayName: member?.name || member?.rawDisplayName || member?.userId || "",
+                    avatarUrl: typeof member?.getMxcAvatarUrl === "function"
+                        ? member.getMxcAvatarUrl()
+                        : undefined,
+                    status,
+                    canPost:
+                        status === "joined" &&
+                        typeof state?.maySendMessage === "function" &&
+                        Boolean(state.maySendMessage(member?.userId)),
+                };
+            });
+
+            const rank: Record<MemberStatus, number> = { joined: 0, invited: 1, left: 2 };
+
+            return members
+                .filter((member) => member.id !== "")
+                .sort(
+                    (a, b) =>
+                        rank[a.status] - rank[b.status] ||
+                        a.displayName.localeCompare(b.displayName, undefined, { sensitivity: "base" }),
+                );
+        } catch (error: unknown) {
+            const detail = error instanceof Error ? error.message : String(error);
+            console.warn(`[MatrixRoomService] Error reading members of ${roomId}:`, detail);
+            return [];
+        }
     }
 
     /**

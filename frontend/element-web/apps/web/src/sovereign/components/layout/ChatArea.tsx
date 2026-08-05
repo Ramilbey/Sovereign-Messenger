@@ -28,7 +28,17 @@ import { EmptyState } from "../ui";
 import { CHAT_COPY } from "../../config/chatCopy";
 
 export function ChatArea(): JSX.Element {
-    const { activeChannelId, activeConversation, conversationsState, messages, sendMessage } = useChat();
+    const {
+        activeChannelId,
+        activeConversation,
+        conversationsState,
+        messages,
+        sendMessage,
+        hasEarlierMessages,
+        isLoadingEarlierMessages,
+        loadEarlierMessages,
+        readUpToId,
+    } = useChat();
     const { currentUser, canPostInChannel } = usePermissions();
 
     // Role-derived answer, used where the room cannot supply one of its own.
@@ -76,7 +86,14 @@ export function ChatArea(): JSX.Element {
                 loading={conversationsState === "loading" || !activeConversation}
             />
 
-            <MessageTimeline messages={messages} currentUserId={currentUser.id} />
+            <MessageTimeline
+                messages={messages}
+                currentUserId={currentUser.id}
+                hasEarlier={hasEarlierMessages}
+                isLoadingEarlier={isLoadingEarlierMessages}
+                onLoadEarlier={loadEarlierMessages}
+                readUpToId={readUpToId}
+            />
 
             <TypingIndicator />
 

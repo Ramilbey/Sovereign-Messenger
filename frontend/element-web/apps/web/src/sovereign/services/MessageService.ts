@@ -50,6 +50,21 @@ export interface SovereignMessage {
 export type TimelineCallback = (messages: SovereignMessage[]) => void;
 
 export interface MessageService {
+    /**
+     * FR-36 / EDGE-2: loads one page of earlier messages. Resolves true when
+     * more remain. A transport with no history to page returns false.
+     */
+    loadEarlier(channelId: string): Promise<boolean>;
+
+    /** FR-36: whether earlier messages remain to be loaded. */
+    hasEarlier(channelId: string): boolean;
+
+    /**
+     * FR-37 / CMP-27: the message the user has read up to, or null when the
+     * position is unknown. The unread divider is drawn after it.
+     */
+    getReadUpToId(channelId: string): string | null;
+
     /** Fetch initial message list for a channel */
     getMessages(channelId: string): Promise<SovereignMessage[]>;
 

@@ -437,3 +437,149 @@
     outline: var(--svr-focus-ring-width) solid var(--svr-focus-ring-color);
     outline-offset: var(--svr-focus-ring-offset);
 }
+
+/* ── CMP-27 Unread Divider ───────────────────────────────────────────────── */
+/* FR-37: marks where the reader left off, and stays there. */
+
+.svr-unread-divider {
+    display: flex;
+    align-items: center;
+    gap: var(--svr-space-3);
+    margin-block: var(--svr-space-2);
+    color: var(--svr-unread-indicator);
+    font-size: var(--svr-type-caption-size);
+    font-weight: var(--svr-type-body-strong-weight);
+    line-height: var(--svr-type-caption-line);
+}
+
+/* A11Y-5: the boundary is a rule and a label, not a colour alone. */
+.svr-unread-divider::before,
+.svr-unread-divider::after {
+    content: "";
+    flex: 1;
+    height: var(--svr-border-width-thin);
+    background-color: var(--svr-unread-indicator);
+}
+
+.svr-unread-divider__label {
+    flex: none;
+}
+
+/* FR-36 / UX-6: progress while an earlier page is loading. */
+.svr-timeline__loading-earlier {
+    margin: 0;
+    padding-block: var(--svr-space-2);
+    color: var(--svr-content-secondary);
+    font-size: var(--svr-type-caption-size);
+    line-height: var(--svr-type-caption-line);
+    text-align: center;
+}
+
+/* ── CMP-12 Member List ──────────────────────────────────────────────────── */
+/* FR-45 / COM-4: the participants of the conversation, with their roles. */
+
+.svr-member-list {
+    display: flex;
+    flex-direction: column;
+    gap: var(--svr-space-2);
+    padding: var(--svr-space-3);
+    background-color: var(--svr-surface-overlay);
+    border: var(--svr-border-width-thin) solid var(--svr-border-default);
+    border-radius: var(--svr-radius-lg);
+}
+
+.svr-member-list__heading {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: var(--svr-space-2);
+    margin: 0;
+    font-size: var(--svr-type-caption-size);
+    font-weight: var(--svr-type-label-weight);
+    line-height: var(--svr-type-label-line);
+    letter-spacing: var(--svr-type-label-tracking);
+    text-transform: uppercase;
+    color: var(--svr-content-secondary);
+}
+
+.svr-member-list__count {
+    padding-inline: var(--svr-space-2);
+    background-color: var(--svr-surface-raised);
+    border: var(--svr-border-width-thin) solid var(--svr-border-default);
+    border-radius: var(--svr-radius-full);
+    color: var(--svr-content-secondary);
+    letter-spacing: normal;
+}
+
+.svr-member-list__items {
+    list-style: none;
+    margin: 0;
+    padding: 0;
+}
+
+.svr-member-item {
+    display: flex;
+    align-items: center;
+    gap: var(--svr-space-2);
+    box-sizing: border-box;
+    width: 100%;
+    /* UI-17: a full-height row rather than the text alone. */
+    min-height: var(--svr-control-height-md);
+    padding: var(--svr-space-1) var(--svr-space-2);
+    background-color: var(--svr-action-secondary-rest);
+    border: 0;
+    border-radius: var(--svr-radius-sm);
+    color: var(--svr-content-primary);
+    font-family: var(--svr-font-family-base);
+    text-align: start;
+}
+
+button.svr-member-item {
+    cursor: pointer;
+}
+
+button.svr-member-item:hover {
+    background-color: var(--svr-action-secondary-hover);
+}
+
+button.svr-member-item:focus-visible {
+    outline: var(--svr-focus-ring-width) solid var(--svr-focus-ring-color);
+    outline-offset: var(--svr-focus-ring-offset);
+}
+
+.svr-member-item.is-selected {
+    background-color: var(--svr-surface-selected);
+}
+
+/* EDGE-6: a departed participant reads as inactive, not as absent. */
+.svr-member-item.is-inactive {
+    opacity: 0.6;
+}
+
+.svr-member-item__text {
+    display: flex;
+    flex-direction: column;
+    min-width: 0;
+}
+
+.svr-member-item__name {
+    font-size: var(--svr-type-body-size);
+    line-height: var(--svr-type-label-line);
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+.svr-member-item__meta {
+    display: flex;
+    align-items: center;
+    gap: var(--svr-space-2);
+    color: var(--svr-content-secondary);
+    font-size: var(--svr-type-caption-size);
+    line-height: var(--svr-type-caption-line);
+}
+
+.svr-member-item__readonly {
+    display: inline-flex;
+    align-items: center;
+}

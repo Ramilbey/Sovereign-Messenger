@@ -42,6 +42,11 @@ export const CHAT_COPY = {
     stateRead: "O'qildi",
     stateFailed: "Yuborilmadi",
 
+    /** FR-37 / CMP-27: the read boundary the reader left behind. */
+    unreadDivider: "Yangi xabarlar",
+    /** FR-36 / UX-6: an earlier page is on its way. */
+    loadingEarlier: "Oldingi xabarlar yuklanmoqda…",
+
     /** Timeline affordances. */
     newMessages: "Yangi xabarlar",
     scrollToLatest: "Oxirgi xabarlarga o'tish",
@@ -51,4 +56,12 @@ export const CHAT_COPY = {
 export const TYPING_COPY = {
     single: (name: string): string => `${name} yozmoqda…`,
     multiple: (count: number): string => `${count} kishi yozmoqda…`,
+} as const;
+
+/** CMP-12 conversation participants (FR-45, COM-4). */
+export const MEMBER_COPY = {
+    listLabel: "Ishtirokchilar",
+    invited: "Taklif qilingan",
+    departed: "Suhbatni tark etgan",
+    readOnly: "Faqat o'qiy oladi",
 } as const;

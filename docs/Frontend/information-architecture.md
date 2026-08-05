@@ -111,9 +111,11 @@ Two regions are reserved rather than filled:
 | Component | Responsibility |
 |---|---|
 | **CMP-30** `ConversationHeader` | Name, type, participant count, topic (FR-44) |
-| `MessageTimeline` | Grouping, day separators, ordering |
+| `MessageTimeline` | Grouping, day separators, ordering, backward pagination and a bounded render window (FR-36, EDGE-2) |
 | **CMP-21** `MessageBubble` | One message and its delivery state |
 | **CMP-23** `UnavailableMessage` | A message that cannot be displayed (FR-35) |
+| **CMP-27** `UnreadDivider` | The read boundary captured on entry (FR-37) |
+| **CMP-12** `MemberListItem` | A participant, with membership and posting rights (FR-45) |
 | **CMP-26** `TypingIndicator` | Reserved space; data arrives in Milestone 4 |
 | **CMP-28** `MessageComposer` | Multi-line entry, drafts (FR-39, FR-40) |
 | **CMP-29** `PermissionNotice` | One neutral sentence where posting is not permitted |
@@ -177,9 +179,8 @@ Recorded here so the boundary is explicit rather than discovered.
 | Recent items list | NAV-6 | M5 |
 | Stable deep links to conversations and messages | NAV-8 | M5 |
 | Pinned messages affordance in the header | FR-48 | M4 |
-| Real presence in the staff panel | FR-17 | M4 |
+| Presence in the member list and staff panel | FR-13, FR-17 | M4 |
 | Typing data behind the reserved indicator | FR-6 … FR-8 | M4 |
 | Read receipts behind the delivered and read states | FR-18 … FR-21 | M4 |
 | Sender role for other participants | FR-34 | Blocked on role provisioning (R-6, FUT-15) |
-| Timeline pagination and virtualisation | FR-36, EDGE-2 | M5 |
 | State Emblem asset | UI-8 | D-2 (Design) |

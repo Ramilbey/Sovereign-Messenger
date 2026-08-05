@@ -62,6 +62,23 @@ export class DemoMessageService implements MessageService {
         return newMessage;
     }
 
+    /*
+     * The demonstration dataset is held in full in memory, so there is no
+     * earlier page to fetch and no read position recorded. Demo Mode behaviour
+     * is unchanged (ADR-004).
+     */
+    public async loadEarlier(): Promise<boolean> {
+        return false;
+    }
+
+    public hasEarlier(): boolean {
+        return false;
+    }
+
+    public getReadUpToId(): string | null {
+        return null;
+    }
+
     public subscribeToTimeline(channelId: string, callback: TimelineCallback): () => void {
         if (!this.subscribers.has(channelId)) {
             this.subscribers.set(channelId, new Set());

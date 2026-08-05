@@ -13,10 +13,12 @@
 import React, { type JSX } from "react";
 
 import { usePermissions } from "../../context/PermissionContext";
-import { useUsers, useOrganization } from "../../providers/useSovereignData";
+import { useChat } from "../../context/ChatContext";
+import { useMembers } from "../../hooks/useMembers";
+import { useOrganization } from "../../providers/useSovereignData";
 import { useFramePreferences } from "../../hooks/useFramePreferences";
-import { Avatar, EmptyState, IconButton } from "../ui";
-import { SURFACE_COPY } from "../../config/stateCopy";
+import { Avatar, IconButton } from "../ui";
+import { MemberList } from "../chat/MemberList";
 import { FRAME_COPY } from "../../config/navigationCopy";
 import { roleLabel } from "../../config/roleCopy";
 import "./panel.css";
@@ -29,11 +31,10 @@ interface RightPanelProps {
 
 export function RightPanel({ overlay = false, onClose }: RightPanelProps): JSX.Element {
     const { currentUser } = usePermissions();
-    const { data: users, state: usersState } = useUsers();
+    const { activeChannelId } = useChat();
+    const { data: members, state: membersState } = useMembers(activeChannelId);
     const { data: org } = useOrganization(currentUser.department);
     const { preferences, update } = useFramePreferences();
-
-    const staffReady = usersState === "ready";
 
     return (
         <aside
@@ -75,34 +76,14 @@ export function RightPanel({ overlay = false, onClose }: RightPanelProps): JSX.E
             </section>
 
             {/*
-             * FR-17: the departmental staff panel presents real colleagues with
-             * real presence. That data arrives with the presence capability in
-             * Milestone 4; until then the surface states its position honestly
-             * rather than inventing staff (FR-1, ES-2).
+             * FR-45 / COM-4: the participants of the open conversation, read
+             * from its real membership.
+             *
+             * FR-17's departmental staff overview, ordered by availability, is
+             * the presence capability delivered in Milestone 4. Ordering by an
+             * availability nobody reports would be ordering by nothing.
              */}
-            <section className="svr-panel-section">
-                <h2 className="svr-panel-section__heading">{FRAME_COPY.panelStaff}</h2>
-
-                {staffReady ? (
-                    <ul className="svr-panel-staff">
-                        {users.map((user) => (
-                            <li key={user.id} className="svr-panel-staff__item">
-                                <span className="svr-panel-staff__name">{user.displayName}</span>
-                                <span className="svr-panel-staff__status">{user.statusLabel}</span>
-                            </li>
-                        ))}
-                    </ul>
-                ) : (
-                    <EmptyState
-                        variant={usersState === "unavailable" ? "unavailable" : "empty"}
-                        title={
-                            usersState === "unavailable"
-                                ? (SURFACE_COPY.members.unavailable ?? SURFACE_COPY.members.empty)
-                                : SURFACE_COPY.members.empty
-                        }
-                    />
-                )}
-            </section>
+            <MemberList members={members} state={membersState} />
 
             {/* UI-19: message density, selectable by the user and persisted. */}
             <section className="svr-panel-section">

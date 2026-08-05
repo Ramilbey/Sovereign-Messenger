@@ -24,6 +24,12 @@ export interface ChatContextValue {
     conversationsState: ResourceState;
     messages: SovereignMessage[];
     sendMessage: (content: string) => void;
+    /** FR-36: earlier history, loaded in segments (EDGE-2). */
+    hasEarlierMessages: boolean;
+    isLoadingEarlierMessages: boolean;
+    loadEarlierMessages: () => void;
+    /** FR-37: the message the reader had read up to on entering. */
+    readUpToId: string | null;
 }
 
 const ChatContext = createContext<ChatContextValue | null>(null);
@@ -47,7 +53,13 @@ export function ChatProvider({
     }, [conversations, activeChannelId]);
 
     // Sending goes through the outbox; this hook supplies the timeline only.
-    const { messages } = useMessages(activeChannelId);
+    const {
+        messages,
+        hasEarlier: hasEarlierMessages,
+        isLoadingEarlier: isLoadingEarlierMessages,
+        loadEarlier: loadEarlierMessages,
+        readUpToId,
+    } = useMessages(activeChannelId);
     const { currentUser } = usePermissions();
 
     const activeConversation = useMemo(
@@ -102,6 +114,10 @@ export function ChatProvider({
             conversationsState,
             messages,
             sendMessage: handleSendMessage,
+            hasEarlierMessages,
+            isLoadingEarlierMessages,
+            loadEarlierMessages,
+            readUpToId,
         }),
         [
             activeChannelId,
@@ -110,6 +126,10 @@ export function ChatProvider({
             conversationsState,
             messages,
             handleSendMessage,
+            hasEarlierMessages,
+            isLoadingEarlierMessages,
+            loadEarlierMessages,
+            readUpToId,
         ],
     );
 

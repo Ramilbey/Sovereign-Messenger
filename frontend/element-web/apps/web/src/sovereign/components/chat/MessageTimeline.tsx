@@ -14,11 +14,21 @@
  * pulls a reader away from what they are reading (NT-10).
  */
 
-import React, { memo, useRef, useEffect, useState, useCallback, useMemo, type JSX } from "react";
+import React, {
+    memo,
+    useRef,
+    useEffect,
+    useLayoutEffect,
+    useState,
+    useCallback,
+    useMemo,
+    type JSX,
+} from "react";
 
 import { MessageBubble } from "./MessageBubble";
 import { DateSeparator } from "./DateSeparator";
 import { UnavailableMessage } from "./UnavailableMessage";
+import { UnreadDivider } from "./UnreadDivider";
 import { ModuleStateBoundary } from "../views/ModuleStateBoundary";
 import { Icon } from "../ui";
 import { CHAT_COPY } from "../../config/chatCopy";
@@ -32,25 +42,62 @@ import type { ResourceState } from "../../types/resource";
  */
 const GROUPING_WINDOW_MS = 5 * 60 * 1000;
 
+/**
+ * EDGE-2 / PERF-9: how many messages are kept in the DOM at once.
+ *
+ * A conversation of 100,000 messages must not put 100,000 nodes on the page,
+ * or memory grows without bound over an eight-hour shift. Older messages stay
+ * in the loaded model and re-enter the window as the reader scrolls up.
+ */
+const RENDER_WINDOW = 150;
+
+/** How close to the top counts as "asking for earlier messages" (FR-36). */
+const PAGINATION_THRESHOLD_PX = 200;
+
 interface MessageTimelineProps {
     messages: SovereignMessage[];
     currentUserId: string;
     /** ES-1: the timeline carries the same four states as any other surface. */
     state?: ResourceState;
+    /** FR-36: whether earlier messages remain to be loaded. */
+    hasEarlier?: boolean;
+    isLoadingEarlier?: boolean;
+    onLoadEarlier?: () => void;
+    /** FR-37: the message the reader had read up to on entering. */
+    readUpToId?: string | null;
 }
 
 type TimelineItem =
     | { kind: "date"; key: string; label: string }
+    | { kind: "unread"; key: string }
     | { kind: "message"; key: string; message: SovereignMessage; showSender: boolean };
 
 export const MessageTimeline = memo(function MessageTimeline({
     messages,
     currentUserId,
     state = "ready",
+    hasEarlier = false,
+    isLoadingEarlier = false,
+    onLoadEarlier,
+    readUpToId = null,
 }: MessageTimelineProps): JSX.Element {
     const scrollRef = useRef<HTMLDivElement | null>(null);
     const [showScrollBottomBtn, setShowScrollBottomBtn] = useState<boolean>(false);
     const prevMessagesLength = useRef<number>(messages.length);
+
+    /*
+     * EDGE-2: how far back the reader has scrolled, in messages. Grows as they
+     * move up; the newest RENDER_WINDOW messages before this point are the
+     * ones actually rendered.
+     */
+    const [windowSize, setWindowSize] = useState<number>(RENDER_WINDOW);
+
+    /*
+     * FR-36: the scroll anchor captured before a page of earlier messages is
+     * inserted, so the reader keeps their position instead of being thrown to
+     * the top when the content above them grows.
+     */
+    const anchor = useRef<{ height: number; top: number } | null>(null);
 
     const scrollToBottom = useCallback((behavior: ScrollBehavior = "smooth") => {
         if (scrollRef.current) {
@@ -59,10 +106,48 @@ export const MessageTimeline = memo(function MessageTimeline({
     }, []);
 
     const handleScroll = useCallback(() => {
-        if (!scrollRef.current) return;
-        const { scrollTop, scrollHeight, clientHeight } = scrollRef.current;
+        const container = scrollRef.current;
+        if (!container) return;
+
+        const { scrollTop, scrollHeight, clientHeight } = container;
         setShowScrollBottomBtn(scrollHeight - scrollTop - clientHeight > 150);
-    }, []);
+
+        if (scrollTop > PAGINATION_THRESHOLD_PX) return;
+
+        /*
+         * Nearing the top: first widen the render window over messages already
+         * loaded, and only ask the transport for more once everything held is
+         * on screen (FR-36, EDGE-2).
+         */
+        if (windowSize < messages.length) {
+            anchor.current = { height: scrollHeight, top: scrollTop };
+            setWindowSize((size) => Math.min(size + RENDER_WINDOW, messages.length));
+            return;
+        }
+
+        if (hasEarlier && !isLoadingEarlier && onLoadEarlier) {
+            anchor.current = { height: scrollHeight, top: scrollTop };
+            onLoadEarlier();
+        }
+    }, [windowSize, messages.length, hasEarlier, isLoadingEarlier, onLoadEarlier]);
+
+    /*
+     * FR-36: restore the reader's position after content is inserted above
+     * them. Runs before paint, so the timeline never visibly jumps.
+     */
+    useLayoutEffect(() => {
+        const container = scrollRef.current;
+        if (!container || !anchor.current) return;
+
+        const { height, top } = anchor.current;
+        anchor.current = null;
+        container.scrollTop = top + (container.scrollHeight - height);
+    }, [messages, windowSize]);
+
+    // A new conversation starts at the newest messages again.
+    useEffect(() => {
+        setWindowSize(RENDER_WINDOW);
+    }, [readUpToId]);
 
     useEffect(() => {
         if (!scrollRef.current) return;
@@ -70,6 +155,9 @@ export const MessageTimeline = memo(function MessageTimeline({
         const container = scrollRef.current;
         const isNewMessage = messages.length > prevMessagesLength.current;
         prevMessagesLength.current = messages.length;
+
+        // An older page arriving is not a new message and must not scroll.
+        if (anchor.current) return;
 
         if (isNewMessage) {
             const lastMsg = messages[messages.length - 1];
@@ -96,7 +184,23 @@ export const MessageTimeline = memo(function MessageTimeline({
         let lastDate = "";
         let previous: SovereignMessage | null = null;
 
-        messages.forEach((message, index) => {
+        /*
+         * EDGE-2 / PERF-9: only the newest `windowSize` messages are rendered.
+         * The rest stay in the model and re-enter as the reader scrolls up, so
+         * a 100,000-message history costs a bounded number of DOM nodes.
+         */
+        const visible = messages.slice(Math.max(0, messages.length - windowSize));
+
+        /*
+         * FR-37: the divider goes above the first message after the one the
+         * reader had read up to. Resolved against the whole loaded history,
+         * not the window, so scrolling does not move it.
+         */
+        const readIndex = readUpToId ? messages.findIndex((m) => m.id === readUpToId) : -1;
+        const firstUnreadId =
+            readIndex >= 0 && readIndex < messages.length - 1 ? messages[readIndex + 1].id : null;
+
+        visible.forEach((message, index) => {
             if (message.date !== lastDate) {
                 lastDate = message.date;
                 result.push({ kind: "date", key: `date-${message.date}-${index}`, label: message.date });
@@ -108,6 +212,15 @@ export const MessageTimeline = memo(function MessageTimeline({
              * unavailable message on either side starts a new group — a
              * continuation must genuinely continue something readable.
              */
+            /*
+             * FR-37: drawn once, above the first unread message. A message the
+             * reader sent themselves does not open an unread boundary.
+             */
+            if (message.id === firstUnreadId && message.senderId !== currentUserId) {
+                result.push({ kind: "unread", key: `unread-${message.id}` });
+                previous = null;
+            }
+
             const previousMessage: SovereignMessage | null = previous;
             const sameSender = previousMessage?.senderId === message.senderId;
             const withinWindow =
@@ -129,7 +242,7 @@ export const MessageTimeline = memo(function MessageTimeline({
         });
 
         return result;
-    }, [messages]);
+    }, [messages, windowSize, readUpToId, currentUserId]);
 
     return (
         <div className="svr-timeline-container">
@@ -142,9 +255,20 @@ export const MessageTimeline = memo(function MessageTimeline({
                     aria-live="polite"
                     aria-relevant="additions"
                 >
+                    {/* FR-36: progress while an earlier page is on its way (UX-6). */}
+                    {isLoadingEarlier && (
+                        <p className="svr-timeline__loading-earlier" role="status" aria-live="polite">
+                            {CHAT_COPY.loadingEarlier}
+                        </p>
+                    )}
+
                     {items.map((item) => {
                         if (item.kind === "date") {
                             return <DateSeparator key={item.key} dateLabel={item.label} />;
+                        }
+
+                        if (item.kind === "unread") {
+                            return <UnreadDivider key={item.key} />;
                         }
 
                         const { message } = item;

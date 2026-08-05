@@ -86,6 +86,23 @@ export class MatrixMessageService implements MessageService {
         }
     }
 
+    /** FR-36 / EDGE-2: one page of earlier messages. */
+    public async loadEarlier(channelId: string): Promise<boolean> {
+        const more = await this.timelineService.loadEarlierMessages(channelId);
+        // The newly fetched events are already in the live timeline; telling
+        // subscribers is what puts them on screen.
+        this.notifyTimelineUpdate(channelId);
+        return more;
+    }
+
+    public hasEarlier(channelId: string): boolean {
+        return this.timelineService.hasEarlierMessages(channelId);
+    }
+
+    public getReadUpToId(channelId: string): string | null {
+        return this.timelineService.getReadUpToEventId(channelId);
+    }
+
     /**
      * Subscribes to real-time Matrix timeline events for a specified room.
      */
