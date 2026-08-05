@@ -1,21 +1,27 @@
 /*
  * Sovereign Messenger — Sprint 1, Step 2 · Sprint 3, Milestone 3
- * SovereignLayout.css — Application frame grid.
+ * SovereignLayout.css — Application frame grid
  *
  * SCOPE: placement and structure. Each region's own appearance is defined
  * alongside its components, so no surface is styled in two places.
  *
  * AC-16 / TOK-1: every value here is a token reference. The only literals are
- * structural primitives with no design meaning (0, 1fr, 100vw, 100vh).
+ * structural primitives with no design meaning (0, 1fr, 100%, 100vw, 100vh)
+ * and the breakpoint boundaries, which media queries cannot express as custom
+ * properties — they mirror BREAKPOINT_* in hooks/useBreakpoint.ts.
  *
- * Frame (UI-13 … UI-16 make this responsive in the milestone's final commit):
+ * UI-13 wide (>= 1280px):
+ *   ┌──────────────────────────────────────────────────────────────┐
+ *   │                          Header                              │
+ *   ├─────────┬──────────────┬──────────────┬────────────┬─────────┤
+ *   │ Sidebar │ Conversation │ Conversation │ Workspace  │  Panel  │
+ *   │         │     list     │              │            │         │
+ *   └─────────┴──────────────┴──────────────┴────────────┴─────────┘
  *
- *   ┌─────────┬──────────────────────────────────────────────┬─────────┐
- *   │         │                  Header                      │         │
- *   │ Sidebar ├──────────────┬──────────────┬────────────────┤  Right  │
- *   │         │ Conversation │   Chat Area  │   Workspace    │  Panel  │
- *   │         │     List     │              │                │         │
- *   └─────────┴──────────────┴──────────────┴────────────────┴─────────┘
+ * UI-15 standard (768–1279px): the workspace and panel overlay the frame
+ * rather than compressing the conversation column (UX-2).
+ *
+ * UI-16 compact (< 768px): one surface at a time, with explicit navigation.
  */
 
 @import "../../styles/tokens.css";
@@ -24,50 +30,61 @@
 
 .svr-layout {
     display: grid;
-
-    /*
-     * 4 columns: Sidebar | Conversation list | Main content | Right panel.
-     * The main content subdivides internally (see .svr-main-content).
-     */
-    grid-template-columns:
-        var(--svr-frame-sidebar-width)
-        var(--svr-frame-conversation-width)
-        1fr
-        var(--svr-frame-panel-width);
-
-    /* 2 rows: header, then the working area filling the viewport. */
-    grid-template-rows: var(--svr-frame-header-height) 1fr;
-
-    /*
-     * NAV-2: conversation navigation is a column of the frame rather than a
-     * control inside the chat surface, so it is reachable from anywhere in
-     * the working area.
-     */
-    grid-template-areas:
-        "sidebar header header header"
-        "sidebar convlist main   rpanel";
-
     width: 100vw;
     height: 100vh;
     overflow: hidden;
     box-sizing: border-box;
     background-color: var(--svr-surface-base);
+
+    grid-template-columns:
+        var(--svr-frame-sidebar-width)
+        var(--svr-frame-conversation-width)
+        1fr;
+    grid-template-rows: var(--svr-frame-header-height) 1fr;
+    grid-template-areas:
+        "header  header   header"
+        "sidebar convlist main";
+}
+
+/* NAV-1: the collapsed sidebar narrows to an icon rail. */
+.svr-layout.has-collapsed-sidebar {
+    grid-template-columns:
+        var(--svr-frame-sidebar-collapsed-width)
+        var(--svr-frame-conversation-width)
+        1fr;
+}
+
+/* UI-14: at wide, one supporting panel may sit beside the primary column. */
+.svr-layout--wide.has-panel {
+    grid-template-columns:
+        var(--svr-frame-sidebar-width)
+        var(--svr-frame-conversation-width)
+        1fr
+        var(--svr-frame-panel-width);
+    grid-template-areas:
+        "header  header   header rpanel"
+        "sidebar convlist main   rpanel";
+}
+
+.svr-layout--wide.has-panel.has-collapsed-sidebar {
+    grid-template-columns:
+        var(--svr-frame-sidebar-collapsed-width)
+        var(--svr-frame-conversation-width)
+        1fr
+        var(--svr-frame-panel-width);
 }
 
 /* ── Named regions ────────────────────────────────────────────────────────── */
 
-/*
- * CMP-14 Organisation sidebar. Placement only; its appearance lives in
- * navigation.css alongside the components it frames.
- */
-.svr-sidebar {
-    grid-area: sidebar;
-    overflow: hidden;
-}
-
 /* CMP-18 Application header. Appearance lives in frame.css. */
 .svr-topbar {
     grid-area: header;
+}
+
+/* CMP-14 Organisation sidebar. Appearance lives in navigation.css. */
+.svr-sidebar {
+    grid-area: sidebar;
+    overflow: hidden;
 }
 
 /* CMP-20 Conversation list. Appearance lives in navigation.css. */
@@ -82,6 +99,7 @@
  */
 .svr-main {
     grid-area: main;
+    position: relative;
     display: flex;
     flex-direction: column;
     overflow: hidden;
@@ -89,34 +107,186 @@
     min-width: 0;
 }
 
+/* UI-14 / UI-15: the controls that show and hide the supporting surfaces. */
+.svr-main-toolbar {
+    display: flex;
+    justify-content: flex-end;
+    gap: var(--svr-space-1);
+    flex: none;
+    padding: var(--svr-space-1) var(--svr-space-2);
+    background-color: var(--svr-surface-raised);
+    border-block-end: var(--svr-border-width-thin) solid var(--svr-border-subtle);
+}
+
 .svr-main-content {
+    position: relative;
     flex: 1;
-    display: grid;
-    /* UX-2: the conversation is the dominant surface; the workspace supports it. */
-    grid-template-columns: 3fr 2fr;
-    grid-template-areas: "chat workspace";
+    display: flex;
     overflow: hidden;
     min-height: 0;
 }
 
-.svr-chat-area {
-    grid-area: chat;
-    border-inline-end: var(--svr-border-width-thin) solid var(--svr-border-default);
-    overflow: hidden;
-    box-sizing: border-box;
+.svr-chat-root {
+    /* UX-2: the conversation is the dominant surface. */
+    flex: 1;
     min-width: 0;
 }
 
 .svr-workspace-area {
-    grid-area: workspace;
-    overflow-y: auto;
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
     box-sizing: border-box;
+    background-color: var(--svr-surface-base);
+    /* UI-14: a supporting column, never wider than the conversation beside it. */
+    flex: 0 0 clamp(var(--svr-frame-panel-width), 38%, calc(var(--svr-frame-panel-width) * 2));
+    border-inline-start: var(--svr-border-width-thin) solid var(--svr-border-default);
     min-width: 0;
+}
+
+.svr-workspace-area__controls {
+    display: flex;
+    justify-content: flex-end;
+    flex: none;
+    padding: var(--svr-space-1) var(--svr-space-2);
+    border-block-end: var(--svr-border-width-thin) solid var(--svr-border-subtle);
 }
 
 .svr-right-panel {
     grid-area: rpanel;
-    border-inline-start: var(--svr-border-width-thin) solid var(--svr-border-default);
     overflow-y: auto;
     box-sizing: border-box;
+    background-color: var(--svr-surface-raised);
+    border-inline-start: var(--svr-border-width-thin) solid var(--svr-border-default);
+}
+
+/* ── UI-15 Standard: supporting surfaces overlay, never compress ─────────── */
+
+@media (max-width: 1279px) {
+    /*
+     * The overlay sits over the working area rather than taking width from it,
+     * so the conversation column keeps its measure (UX-2). It is bounded by the
+     * viewport, so it can never be wider than the screen (A11Y-9).
+     */
+    .svr-workspace-area.is-overlay,
+    .svr-right-panel.is-overlay {
+        position: absolute;
+        inset-block: 0;
+        inset-inline-end: 0;
+        z-index: 2;
+        width: min(var(--svr-frame-panel-width), 100%);
+        box-shadow: var(--svr-shadow-overlay);
+    }
+
+    .svr-workspace-area.is-overlay {
+        flex: none;
+    }
+
+    /*
+     * The panel overlays the whole frame body rather than the main column
+     * alone, because at standard width the frame has no spare column for it.
+     */
+    .svr-right-panel.is-overlay {
+        position: fixed;
+        inset-block-start: var(--svr-frame-header-height);
+        inset-block-end: 0;
+    }
+}
+
+/* ── UI-16 Compact: one surface at a time ────────────────────────────────── */
+
+.svr-layout--compact {
+    grid-template-columns: 1fr;
+    grid-template-rows: var(--svr-frame-header-height) 1fr auto;
+    grid-template-areas:
+        "header"
+        "surface"
+        "compactnav";
+}
+
+.svr-compact-surface {
+    grid-area: surface;
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
+    min-height: 0;
+    min-width: 0;
+}
+
+/*
+ * Inside the compact frame every surface fills the single available area,
+ * overriding the column placement it takes at wider sizes.
+ */
+.svr-layout--compact .svr-sidebar,
+.svr-layout--compact .svr-conversation-list,
+.svr-layout--compact .svr-workspace-area,
+.svr-layout--compact .svr-chat-root {
+    grid-area: auto;
+    flex: 1;
+    min-height: 0;
+    width: 100%;
+    border-inline: 0;
+}
+
+/* UI-16 compact surface switcher. */
+.svr-compact-nav {
+    grid-area: compactnav;
+    display: flex;
+    background-color: var(--svr-surface-raised);
+    border-block-start: var(--svr-border-width-thin) solid var(--svr-border-default);
+}
+
+.svr-compact-nav__item {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: var(--svr-space-1);
+    flex: 1;
+    /* UI-17: comfortably above the 44px minimum touch target. */
+    min-height: var(--svr-control-height-lg);
+    padding: var(--svr-space-2) var(--svr-space-1);
+    background-color: var(--svr-action-secondary-rest);
+    border: 0;
+    border-block-start: var(--svr-border-width-thick) solid transparent;
+    color: var(--svr-content-secondary);
+    font-family: var(--svr-font-family-base);
+    font-size: var(--svr-type-caption-size);
+    line-height: var(--svr-type-caption-line);
+    cursor: pointer;
+}
+
+.svr-compact-nav__item:focus-visible {
+    outline: var(--svr-focus-ring-width) solid var(--svr-focus-ring-color);
+    outline-offset: calc(0px - var(--svr-focus-ring-width));
+}
+
+/* A11Y-5: the current surface is marked by a border as well as by colour. */
+.svr-compact-nav__item.is-active {
+    border-block-start-color: var(--svr-brand-emphasis);
+    color: var(--svr-content-primary);
+}
+
+.svr-compact-nav__label {
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+    max-width: 100%;
+}
+
+/* ── UI-19 Message density ───────────────────────────────────────────────── */
+/* Compact density tightens the timeline's rhythm without reducing type size,
+   so readability at the minimum body size is preserved (Appendix A.2). */
+
+.svr-layout[data-svr-density="compact"] .svr-timeline-scroll {
+    gap: var(--svr-space-0);
+    padding: var(--svr-space-2) var(--svr-space-3);
+}
+
+.svr-layout[data-svr-density="compact"] .svr-msg-bubble {
+    padding: var(--svr-space-1) var(--svr-space-2);
+}
+
+.svr-layout[data-svr-density="compact"] .svr-date-separator {
+    margin-block: var(--svr-space-2);
 }

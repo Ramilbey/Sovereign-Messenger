@@ -83,4 +83,28 @@ export const FRAME_COPY = {
     /** UI-9: the official name the platform carries. */
     productName: "Sovereign Messenger",
     organisationCode: "Tashkilot kodi",
+
+    /** UI-14 / UI-15: supporting panel controls. */
+    togglePanel: "Yon panelni ko'rsatish yoki yashirish",
+    toggleWorkspace: "Ish bo'limini ko'rsatish yoki yashirish",
+    closePanel: "Yopish",
+
+    /** UI-16: compact surface switcher. */
+    compactNavLabel: "Bo'limlar",
+    compactOrganisation: "Tuzilma",
+    compactConversations: "Suhbatlar",
+    compactConversation: "Suhbat",
+    compactWorkspace: "Ish",
+
+    /** UI-19: message density. */
+    densityLabel: "Xabarlar zichligi",
+    densityComfortable: "Keng",
+    densityCompact: "Ixcham",
+
+    /** Supporting panel headings (PR-7, ORG-7, FR-17). */
+    panelLabel: "Yordamchi panel",
+    panelCurrentUser: "Joriy foydalanuvchi",
+    panelOrganisation: "Tashkilot",
+    panelStaff: "Xodimlar",
+    panelDisplay: "Ko'rinish",
 } as const;

@@ -3,20 +3,22 @@
  * ModuleViews.css — Styling for workspace module views (Members, Documents, Tasks, Calendar, Dashboard).
  *
  * Blueprint §6 Dark Theme Palette:
- *   Canvas:      #0e1621
- *   Card / Panel: #17212b
- *   Border:       #2b3a4a
- *   Primary Text: #ffffff
- *   Subtext:      #7d8e9e
- *   Accent:       #5288c1
+ *   Canvas:      var(--svr-surface-base)
+ *   Card / Panel: var(--svr-surface-raised)
+ *   Border:       var(--svr-border-default)
+ *   Primary Text: var(--svr-content-primary)
+ *   Subtext:      var(--svr-content-secondary)
+ *   Accent:       var(--svr-brand-primary)
  */
 
+@import "../../styles/tokens.css";
+
 .svr-module-view-root {
-    padding: 24px;
+    padding: var(--svr-space-5);
     height: 100%;
     overflow-y: auto;
-    background-color: #0e1621;
-    color: #ffffff;
+    background-color: var(--svr-surface-base);
+    color: var(--svr-content-primary);
     font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
     box-sizing: border-box;
 }
@@ -24,44 +26,44 @@
 .svr-module-header {
     display: flex;
     align-items: center;
-    gap: 12px;
-    margin-bottom: 24px;
+    gap: var(--svr-space-3);
+    margin-bottom: var(--svr-space-5);
     padding-bottom: 14px;
-    border-bottom: 1px solid #2b3a4a;
+    border-bottom: 1px solid var(--svr-border-default);
 }
 
 .svr-module-header-icon {
-    font-size: 24px;
+    font-size: var(--svr-type-display-size);
 }
 
 .svr-module-header-title {
-    font-size: 20px;
-    font-weight: 700;
-    color: #ffffff;
+    font-size: var(--svr-type-heading-1-size);
+    font-weight: var(--svr-type-label-weight);
+    color: var(--svr-content-primary);
 }
 
 .svr-module-header-count {
-    font-size: 13px;
-    color: #7d8e9e;
+    font-size: var(--svr-type-body-size);
+    color: var(--svr-content-secondary);
     margin-left: auto;
-    background: #17212b;
+    background: var(--svr-surface-raised);
     padding: 4px 10px;
-    border-radius: 12px;
-    border: 1px solid #2b3a4a;
+    border-radius: var(--svr-radius-lg);
+    border: 1px solid var(--svr-border-default);
 }
 
 /* Members Grid / List */
 .svr-members-grid {
     display: grid;
     grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
-    gap: 16px;
+    gap: var(--svr-space-4);
 }
 
 .svr-member-card {
-    background: #17212b;
-    border: 1px solid #2b3a4a;
-    border-radius: 10px;
-    padding: 16px;
+    background: var(--svr-surface-raised);
+    border: 1px solid var(--svr-border-default);
+    border-radius: var(--svr-radius-lg);
+    padding: var(--svr-space-4);
     display: flex;
     align-items: center;
     gap: 14px;
@@ -70,33 +72,33 @@
 .svr-member-avatar {
     width: 44px;
     height: 44px;
-    border-radius: 50%;
-    background: #2b5278;
-    color: #ffffff;
+    border-radius: var(--svr-radius-full);
+    background: var(--svr-surface-selected);
+    color: var(--svr-content-primary);
     display: flex;
     align-items: center;
     justify-content: center;
-    font-weight: 700;
-    font-size: 15px;
+    font-weight: var(--svr-type-label-weight);
+    font-size: var(--svr-type-heading-3-size);
     flex-shrink: 0;
 }
 
 .svr-member-name {
-    font-size: 15px;
-    font-weight: 600;
-    color: #ffffff;
+    font-size: var(--svr-type-heading-3-size);
+    font-weight: var(--svr-type-body-strong-weight);
+    color: var(--svr-content-primary);
     margin-bottom: 2px;
 }
 
 .svr-member-role {
-    font-size: 12px;
-    color: #5288c1;
+    font-size: var(--svr-type-caption-size);
+    color: var(--svr-brand-primary);
     font-weight: 500;
 }
 
 .svr-member-dept {
-    font-size: 12px;
-    color: #7d8e9e;
+    font-size: var(--svr-type-caption-size);
+    color: var(--svr-content-secondary);
     margin-top: 2px;
 }
 
@@ -104,14 +106,14 @@
     display: inline-block;
     width: 8px;
     height: 8px;
-    border-radius: 50%;
+    border-radius: var(--svr-radius-full);
     margin-right: 6px;
 }
 
-.svr-member-status-pill.online { background-color: #4caf50; }
-.svr-member-status-pill.busy { background-color: #f44336; }
-.svr-member-status-pill.meeting { background-color: #ff9800; }
-.svr-member-status-pill.offline { background-color: #9e9e9e; }
+.svr-member-status-pill.online { background-color: var(--svr-status-success); }
+.svr-member-status-pill.busy { background-color: var(--svr-status-danger); }
+.svr-member-status-pill.meeting { background-color: var(--svr-status-warning); }
+.svr-member-status-pill.offline { background-color: var(--svr-status-neutral); }
 
 /* Documents Table / Cards */
 .svr-documents-list {
@@ -121,9 +123,9 @@
 }
 
 .svr-document-card {
-    background: #17212b;
-    border: 1px solid #2b3a4a;
-    border-radius: 8px;
+    background: var(--svr-surface-raised);
+    border: 1px solid var(--svr-border-default);
+    border-radius: var(--svr-radius-md);
     padding: 14px 18px;
     display: flex;
     align-items: center;
@@ -133,28 +135,28 @@
 .svr-document-info {
     display: flex;
     align-items: center;
-    gap: 12px;
+    gap: var(--svr-space-3);
 }
 
 .svr-document-icon {
-    font-size: 20px;
+    font-size: var(--svr-type-heading-1-size);
 }
 
 .svr-document-title {
-    font-size: 14px;
-    font-weight: 600;
-    color: #ffffff;
+    font-size: var(--svr-type-body-size);
+    font-weight: var(--svr-type-body-strong-weight);
+    color: var(--svr-content-primary);
 }
 
 .svr-document-meta {
-    font-size: 12px;
-    color: #7d8e9e;
+    font-size: var(--svr-type-caption-size);
+    color: var(--svr-content-secondary);
     margin-top: 2px;
 }
 
 .svr-document-size {
-    font-size: 13px;
-    color: #5288c1;
+    font-size: var(--svr-type-body-size);
+    color: var(--svr-brand-primary);
     font-weight: 500;
 }
 
@@ -162,254 +164,254 @@
 .svr-tasks-list {
     display: flex;
     flex-direction: column;
-    gap: 12px;
+    gap: var(--svr-space-3);
 }
 
 .svr-task-card {
-    background: #17212b;
-    border: 1px solid #2b3a4a;
-    border-radius: 10px;
-    padding: 16px;
+    background: var(--svr-surface-raised);
+    border: 1px solid var(--svr-border-default);
+    border-radius: var(--svr-radius-lg);
+    padding: var(--svr-space-4);
     display: flex;
     align-items: center;
     justify-content: space-between;
 }
 
 .svr-task-title {
-    font-size: 15px;
-    font-weight: 600;
-    color: #ffffff;
-    margin-bottom: 4px;
+    font-size: var(--svr-type-heading-3-size);
+    font-weight: var(--svr-type-body-strong-weight);
+    color: var(--svr-content-primary);
+    margin-bottom: var(--svr-space-1);
 }
 
 .svr-task-assignee {
-    font-size: 12px;
-    color: #7d8e9e;
+    font-size: var(--svr-type-caption-size);
+    color: var(--svr-content-secondary);
 }
 
 .svr-task-status-badge {
     padding: 4px 10px;
-    border-radius: 12px;
-    font-size: 12px;
-    font-weight: 600;
+    border-radius: var(--svr-radius-lg);
+    font-size: var(--svr-type-caption-size);
+    font-weight: var(--svr-type-body-strong-weight);
 }
 
 .svr-task-status-badge.completed {
-    background: rgba(76, 175, 80, 0.15);
-    color: #4caf50;
-    border: 1px solid #4caf50;
+    background: var(--svr-status-success-subtle);
+    color: var(--svr-status-success);
+    border: 1px solid var(--svr-status-success);
 }
 
 .svr-task-status-badge.in_progress {
-    background: rgba(82, 136, 193, 0.15);
-    color: #5288c1;
-    border: 1px solid #5288c1;
+    background: var(--svr-status-info-subtle);
+    color: var(--svr-brand-primary);
+    border: 1px solid var(--svr-brand-primary);
 }
 
 .svr-task-status-badge.pending {
-    background: rgba(255, 152, 0, 0.15);
-    color: #ff9800;
-    border: 1px solid #ff9800;
+    background: var(--svr-status-warning-subtle);
+    color: var(--svr-status-warning);
+    border: 1px solid var(--svr-status-warning);
 }
 
 /* Calendar Events */
 .svr-calendar-list {
     display: flex;
     flex-direction: column;
-    gap: 12px;
+    gap: var(--svr-space-3);
 }
 
 .svr-calendar-card {
-    background: #17212b;
-    border: 1px solid #2b3a4a;
-    border-radius: 10px;
-    padding: 16px;
+    background: var(--svr-surface-raised);
+    border: 1px solid var(--svr-border-default);
+    border-radius: var(--svr-radius-lg);
+    padding: var(--svr-space-4);
     display: flex;
     align-items: center;
-    gap: 16px;
+    gap: var(--svr-space-4);
 }
 
 .svr-calendar-time {
-    background: #2b5278;
-    color: #ffffff;
-    font-weight: 700;
-    font-size: 13px;
+    background: var(--svr-surface-selected);
+    color: var(--svr-content-primary);
+    font-weight: var(--svr-type-label-weight);
+    font-size: var(--svr-type-body-size);
     padding: 8px 12px;
-    border-radius: 8px;
+    border-radius: var(--svr-radius-md);
     flex-shrink: 0;
 }
 
 .svr-calendar-event-title {
-    font-size: 15px;
-    font-weight: 600;
-    color: #ffffff;
+    font-size: var(--svr-type-heading-3-size);
+    font-weight: var(--svr-type-body-strong-weight);
+    color: var(--svr-content-primary);
     margin-bottom: 2px;
 }
 
 .svr-calendar-location {
-    font-size: 12px;
-    color: #7d8e9e;
+    font-size: var(--svr-type-caption-size);
+    color: var(--svr-content-secondary);
 }
 
 /* Dashboard Stats Grid */
 .svr-dashboard-grid {
     display: grid;
     grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
-    gap: 16px;
+    gap: var(--svr-space-4);
 }
 
 .svr-dashboard-stat-card {
-    background: #17212b;
-    border: 1px solid #2b3a4a;
-    border-radius: 12px;
+    background: var(--svr-surface-raised);
+    border: 1px solid var(--svr-border-default);
+    border-radius: var(--svr-radius-lg);
     padding: 20px;
     display: flex;
     flex-direction: column;
-    gap: 8px;
+    gap: var(--svr-space-2);
 }
 
 .svr-stat-label {
-    font-size: 13px;
-    color: #7d8e9e;
+    font-size: var(--svr-type-body-size);
+    color: var(--svr-content-secondary);
     font-weight: 500;
 }
 
 .svr-stat-value {
     font-size: 28px;
-    font-weight: 700;
-    color: #ffffff;
+    font-weight: var(--svr-type-label-weight);
+    color: var(--svr-content-primary);
 }
 
 .svr-stat-accent {
-    color: #5288c1;
+    color: var(--svr-brand-primary);
 }
 
 .svr-stat-alert {
-    color: #f44336;
+    color: var(--svr-status-danger);
 }
 
 /* Investigation Module Status Badges */
 .svr-inv-badge {
     padding: 3px 10px;
-    border-radius: 12px;
-    font-size: 11px;
-    font-weight: 600;
+    border-radius: var(--svr-radius-lg);
+    font-size: var(--svr-type-caption-size);
+    font-weight: var(--svr-type-body-strong-weight);
     white-space: nowrap;
 }
 
 .svr-inv-badge.active {
-    background: rgba(82, 136, 193, 0.15);
-    color: #5288c1;
-    border: 1px solid #5288c1;
+    background: var(--svr-status-info-subtle);
+    color: var(--svr-brand-primary);
+    border: 1px solid var(--svr-brand-primary);
 }
 
 .svr-inv-badge.suspended {
-    background: rgba(255, 152, 0, 0.15);
-    color: #ff9800;
-    border: 1px solid #ff9800;
+    background: var(--svr-status-warning-subtle);
+    color: var(--svr-status-warning);
+    border: 1px solid var(--svr-status-warning);
 }
 
 .svr-inv-badge.closed {
-    background: rgba(158, 158, 158, 0.15);
-    color: #9e9e9e;
-    border: 1px solid #9e9e9e;
+    background: var(--svr-status-neutral-subtle);
+    color: var(--svr-status-neutral);
+    border: 1px solid var(--svr-status-neutral);
 }
 
 .svr-inv-badge.detained {
-    background: rgba(244, 67, 54, 0.15);
-    color: #f44336;
-    border: 1px solid #f44336;
+    background: var(--svr-status-danger-subtle);
+    color: var(--svr-status-danger);
+    border: 1px solid var(--svr-status-danger);
 }
 
 .svr-inv-badge.wanted {
-    background: rgba(255, 152, 0, 0.15);
-    color: #ff9800;
-    border: 1px solid #ff9800;
+    background: var(--svr-status-warning-subtle);
+    color: var(--svr-status-warning);
+    border: 1px solid var(--svr-status-warning);
 }
 
 .svr-inv-badge.released {
-    background: rgba(76, 175, 80, 0.15);
-    color: #4caf50;
-    border: 1px solid #4caf50;
+    background: var(--svr-status-success-subtle);
+    color: var(--svr-status-success);
+    border: 1px solid var(--svr-status-success);
 }
 
 .svr-inv-badge.stored {
-    background: rgba(82, 136, 193, 0.15);
-    color: #5288c1;
-    border: 1px solid #5288c1;
+    background: var(--svr-status-info-subtle);
+    color: var(--svr-brand-primary);
+    border: 1px solid var(--svr-brand-primary);
 }
 
 .svr-inv-badge.analysis {
-    background: rgba(255, 152, 0, 0.15);
-    color: #ff9800;
-    border: 1px solid #ff9800;
+    background: var(--svr-status-warning-subtle);
+    color: var(--svr-status-warning);
+    border: 1px solid var(--svr-status-warning);
 }
 
 .svr-inv-badge.expert {
-    background: rgba(156, 39, 176, 0.15);
-    color: #ce93d8;
-    border: 1px solid #ce93d8;
+    background: var(--svr-status-info-subtle);
+    color: var(--svr-status-info);
+    border: 1px solid var(--svr-status-info);
 }
 
 .svr-inv-badge.signed {
-    background: rgba(76, 175, 80, 0.15);
-    color: #4caf50;
-    border: 1px solid #4caf50;
+    background: var(--svr-status-success-subtle);
+    color: var(--svr-status-success);
+    border: 1px solid var(--svr-status-success);
 }
 
 .svr-inv-badge.draft {
-    background: rgba(255, 152, 0, 0.15);
-    color: #ff9800;
-    border: 1px solid #ff9800;
+    background: var(--svr-status-warning-subtle);
+    color: var(--svr-status-warning);
+    border: 1px solid var(--svr-status-warning);
 }
 
 .svr-inv-badge.submitted {
-    background: rgba(82, 136, 193, 0.15);
-    color: #5288c1;
-    border: 1px solid #5288c1;
+    background: var(--svr-status-info-subtle);
+    color: var(--svr-brand-primary);
+    border: 1px solid var(--svr-brand-primary);
 }
 
 .svr-inv-badge.approved {
-    background: rgba(76, 175, 80, 0.15);
-    color: #4caf50;
-    border: 1px solid #4caf50;
+    background: var(--svr-status-success-subtle);
+    color: var(--svr-status-success);
+    border: 1px solid var(--svr-status-success);
 }
 
 .svr-inv-badge.pending {
-    background: rgba(255, 152, 0, 0.15);
-    color: #ff9800;
-    border: 1px solid #ff9800;
+    background: var(--svr-status-warning-subtle);
+    color: var(--svr-status-warning);
+    border: 1px solid var(--svr-status-warning);
 }
 
 .svr-inv-badge.high {
-    background: rgba(244, 67, 54, 0.10);
-    color: #ef9a9a;
-    border: 1px solid #ef5350;
+    background: var(--svr-status-danger-subtle);
+    color: var(--svr-status-danger);
+    border: 1px solid var(--svr-status-danger);
 }
 
 .svr-inv-badge.medium {
-    background: rgba(255, 152, 0, 0.10);
-    color: #ffcc80;
-    border: 1px solid #ff9800;
+    background: var(--svr-status-warning-subtle);
+    color: var(--svr-status-warning);
+    border: 1px solid var(--svr-status-warning);
 }
 
 .svr-inv-badge.low {
-    background: rgba(158, 158, 158, 0.10);
-    color: #9e9e9e;
-    border: 1px solid #757575;
+    background: var(--svr-status-neutral-subtle);
+    color: var(--svr-status-neutral);
+    border: 1px solid var(--svr-status-neutral);
 }
 
 /* Investigation card list (reuses svr-documents-list layout) */
 .svr-inv-list {
     display: flex;
     flex-direction: column;
-    gap: 12px;
+    gap: var(--svr-space-3);
 }
 
 .svr-inv-card {
-    background: #17212b;
-    border: 1px solid #2b3a4a;
-    border-radius: 10px;
+    background: var(--svr-surface-raised);
+    border: 1px solid var(--svr-border-default);
+    border-radius: var(--svr-radius-lg);
     padding: 16px 18px;
 }
 
@@ -417,24 +419,24 @@
     display: flex;
     align-items: flex-start;
     justify-content: space-between;
-    gap: 12px;
+    gap: var(--svr-space-3);
 }
 
 .svr-inv-card-title {
-    font-size: 14px;
-    font-weight: 600;
-    color: #ffffff;
-    margin-bottom: 4px;
+    font-size: var(--svr-type-body-size);
+    font-weight: var(--svr-type-body-strong-weight);
+    color: var(--svr-content-primary);
+    margin-bottom: var(--svr-space-1);
 }
 
 .svr-inv-card-meta {
-    font-size: 12px;
-    color: #7d8e9e;
+    font-size: var(--svr-type-caption-size);
+    color: var(--svr-content-secondary);
     line-height: 1.6;
 }
 
 .svr-inv-card-accent {
-    color: #5288c1;
+    color: var(--svr-brand-primary);
     font-weight: 500;
 }
 

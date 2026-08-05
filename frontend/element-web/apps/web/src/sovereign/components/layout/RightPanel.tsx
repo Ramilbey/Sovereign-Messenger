@@ -1,80 +1,94 @@
 /*
- * Sovereign Messenger — Step 8
- * RightPanel.tsx — Contextual right panel displaying user profile & team status.
+ * Sovereign Messenger — Step 8 · Sprint 3, Milestone 3
+ * RightPanel.tsx — CMP-53 Supporting Panel
  *
  * Blueprint §6: "Right Panel: a'zolar ro'yxati / fayl/hujjatlar (kontekstga qarab)"
+ *
+ * UX-2: a supporting surface. It is secondary to the conversation column and
+ * never competes with it for width — at standard it overlays rather than
+ * compresses (UI-15), and at compact it is not present at all (UI-16).
+ * UI-19: hosts the message density control.
  */
 
 import React, { type JSX } from "react";
+
 import { usePermissions } from "../../context/PermissionContext";
 import { useUsers, useOrganization } from "../../providers/useSovereignData";
-import { EmptyState } from "../ui";
+import { useFramePreferences } from "../../hooks/useFramePreferences";
+import { Avatar, EmptyState, IconButton } from "../ui";
 import { SURFACE_COPY } from "../../config/stateCopy";
+import { FRAME_COPY } from "../../config/navigationCopy";
+import { roleLabel } from "../../config/roleCopy";
+import "./panel.css";
 
-export function RightPanel(): JSX.Element {
+interface RightPanelProps {
+    /** UI-15: rendered as an overlay rather than a column at standard width. */
+    overlay?: boolean;
+    onClose?: () => void;
+}
+
+export function RightPanel({ overlay = false, onClose }: RightPanelProps): JSX.Element {
     const { currentUser } = usePermissions();
     const { data: users, state: usersState } = useUsers();
-    const { data: org } = useOrganization();
+    const { data: org } = useOrganization(currentUser.department);
+    const { preferences, update } = useFramePreferences();
 
     const staffReady = usersState === "ready";
-    const onlineCount = users.filter((u) => u.status === "online").length;
 
     return (
-        <div id="sovereign-right-panel" className="svr-right-panel" style={{ padding: "16px", color: "#ffffff" }}>
-            {/* Active User Card */}
-            <div style={{ background: "#17212b", border: "1px solid #2b3a4a", borderRadius: "10px", padding: "14px", marginBottom: "16px" }}>
-                <div style={{ fontSize: "11px", color: "#7d8e9e", textTransform: "uppercase", letterSpacing: "0.5px", marginBottom: "8px" }}>
-                    Joriy Foydalanuvchi
+        <aside
+            id="sovereign-right-panel"
+            className={`svr-right-panel${overlay ? " is-overlay" : ""}`}
+            aria-label={FRAME_COPY.panelLabel}
+        >
+            {onClose && (
+                <div className="svr-panel-section__controls">
+                    <IconButton
+                        icon="close"
+                        label={FRAME_COPY.closePanel}
+                        variant="ghost"
+                        size="sm"
+                        onClick={onClose}
+                    />
                 </div>
-                <div style={{ display: "flex", alignItems: "center", gap: "10px" }}>
-                    <div style={{ width: "36px", height: "36px", borderRadius: "50%", background: "#2b5278", display: "flex", alignItems: "center", justifyContent: "center", fontWeight: "700", fontSize: "13px" }}>
-                        {currentUser.avatarInitials}
+            )}
+
+            {/* PR-7: the signed-in user's identity and official role. */}
+            <section className="svr-panel-section">
+                <h2 className="svr-panel-section__heading">{FRAME_COPY.panelCurrentUser}</h2>
+                <div className="svr-panel-identity">
+                    <Avatar name={currentUser.displayName} id={currentUser.id} size="lg" />
+                    <div className="svr-panel-identity__text">
+                        <p className="svr-panel-identity__name">{currentUser.displayName}</p>
+                        <p className="svr-panel-identity__role">{roleLabel(currentUser.role)}</p>
                     </div>
-                    <div>
-                        <div style={{ fontSize: "14px", fontWeight: "600" }}>{currentUser.displayName}</div>
-                        <div style={{ fontSize: "12px", color: "#5288c1" }}>{currentUser.role}</div>
-                    </div>
                 </div>
-            </div>
+            </section>
 
-            {/* Organization Info */}
-            <div style={{ background: "#17212b", border: "1px solid #2b3a4a", borderRadius: "10px", padding: "14px", marginBottom: "16px" }}>
-                <div style={{ fontSize: "11px", color: "#7d8e9e", textTransform: "uppercase", letterSpacing: "0.5px", marginBottom: "8px" }}>
-                    Tashkilot
-                </div>
-                <div style={{ fontSize: "13px", fontWeight: "600", color: "#ffffff" }}>{org.workspaceName}</div>
-                <div style={{ fontSize: "12px", color: "#7d8e9e", marginTop: "4px" }}>
-                    {org.region} • {org.department}
-                </div>
-            </div>
+            {/* ORG-7: the organisational identity of the current position. */}
+            <section className="svr-panel-section">
+                <h2 className="svr-panel-section__heading">{FRAME_COPY.panelOrganisation}</h2>
+                <p className="svr-panel-value">{org.workspaceName}</p>
+                <p className="svr-panel-meta">
+                    {[org.region, org.department].filter(Boolean).join(" · ")}
+                </p>
+            </section>
 
-            {/* Quick Online Team Status */}
-            <div style={{ background: "#17212b", border: "1px solid #2b3a4a", borderRadius: "10px", padding: "14px" }}>
-                <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "10px" }}>
-                    <span style={{ fontSize: "11px", color: "#7d8e9e", textTransform: "uppercase", letterSpacing: "0.5px" }}>
-                        Xodimlar Statusi
-                    </span>
-                    {staffReady && (
-                        <span style={{ fontSize: "11px", color: "#4caf50", fontWeight: "600" }}>
-                            {onlineCount} online
-                        </span>
-                    )}
-                </div>
+            {/*
+             * FR-17: the departmental staff panel presents real colleagues with
+             * real presence. That data arrives with the presence capability in
+             * Milestone 4; until then the surface states its position honestly
+             * rather than inventing staff (FR-1, ES-2).
+             */}
+            <section className="svr-panel-section">
+                <h2 className="svr-panel-section__heading">{FRAME_COPY.panelStaff}</h2>
 
-                {/*
-                 * FR-1: in Production Mode this panel previously listed fabricated
-                 * colleagues with fabricated presence. Real membership arrives with
-                 * the member surfaces, so until then it states the position honestly
-                 * rather than inventing staff.
-                 */}
                 {staffReady ? (
-                    <ul style={{ listStyle: "none", padding: 0, margin: 0 }}>
-                        {users.slice(0, 5).map((user) => (
-                            <li key={user.id} style={{ display: "flex", alignItems: "center", justifyContent: "space-between", padding: "6px 0", fontSize: "12px" }}>
-                                <span style={{ color: "#ffffff" }}>{user.displayName}</span>
-                                <span style={{ color: user.status === "online" ? "#4caf50" : "#7d8e9e", fontSize: "11px" }}>
-                                    {user.statusLabel}
-                                </span>
+                    <ul className="svr-panel-staff">
+                        {users.map((user) => (
+                            <li key={user.id} className="svr-panel-staff__item">
+                                <span className="svr-panel-staff__name">{user.displayName}</span>
+                                <span className="svr-panel-staff__status">{user.statusLabel}</span>
                             </li>
                         ))}
                     </ul>
@@ -83,12 +97,39 @@ export function RightPanel(): JSX.Element {
                         variant={usersState === "unavailable" ? "unavailable" : "empty"}
                         title={
                             usersState === "unavailable"
-                                ? SURFACE_COPY.members.unavailable ?? SURFACE_COPY.members.empty
+                                ? (SURFACE_COPY.members.unavailable ?? SURFACE_COPY.members.empty)
                                 : SURFACE_COPY.members.empty
                         }
                     />
                 )}
-            </div>
-        </div>
+            </section>
+
+            {/* UI-19: message density, selectable by the user and persisted. */}
+            <section className="svr-panel-section">
+                <h2 className="svr-panel-section__heading">{FRAME_COPY.panelDisplay}</h2>
+
+                <fieldset className="svr-panel-choice">
+                    <legend className="svr-panel-choice__legend">{FRAME_COPY.densityLabel}</legend>
+
+                    {(
+                        [
+                            ["comfortable", FRAME_COPY.densityComfortable],
+                            ["compact", FRAME_COPY.densityCompact],
+                        ] as const
+                    ).map(([value, label]) => (
+                        <label key={value} className="svr-panel-choice__option">
+                            <input
+                                type="radio"
+                                name="svr-density"
+                                value={value}
+                                checked={preferences.density === value}
+                                onChange={() => update({ density: value })}
+                            />
+                            <span>{label}</span>
+                        </label>
+                    ))}
+                </fieldset>
+            </section>
+        </aside>
     );
 }
