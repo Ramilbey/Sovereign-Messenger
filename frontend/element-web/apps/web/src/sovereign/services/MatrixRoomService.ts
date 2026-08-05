@@ -82,6 +82,21 @@ export class MatrixRoomService {
     private detach: (() => void) | null = null;
     private coalesceTimer: ReturnType<typeof setTimeout> | null = null;
 
+    /*
+     * PERF-10 / EDGE-1: several surfaces read the room list — the conversation
+     * list, the grouped views, the conversation surface — and each read maps
+     * every room and scans its recent events for a preview. Without this they
+     * each repeat the same work in the same tick: measured at 5,000 rooms, five
+     * readers cost 375ms against 51ms for one.
+     *
+     * The snapshot is cleared on the next macrotask, so readers reacting to one
+     * change share a single computation and nothing can observe a room list
+     * older than a tick. Returning the same array reference also lets React
+     * bail out of the redundant renders entirely.
+     */
+    private snapshot: SovereignRoom[] | null = null;
+    private snapshotTimer: ReturnType<typeof setTimeout> | null = null;
+
     private constructor() {
         this.clientService = MatrixClientService.getInstance();
     }
@@ -100,6 +115,8 @@ export class MatrixRoomService {
      * Retrieves all discovered Matrix rooms sorted (Joined first, Invited second, Alphabetical).
      */
     public getAllRooms(): SovereignRoom[] {
+        if (this.snapshot) return this.snapshot;
+
         const client = this.clientService.getClient();
         if (!client) {
             return [];
@@ -108,12 +125,24 @@ export class MatrixRoomService {
         try {
             const rawRooms = client.getRooms() || [];
             const sovereignRooms = rawRooms.map((room) => this.transformRoom(room));
-            return this.sortRooms(sovereignRooms);
+            this.snapshot = this.sortRooms(sovereignRooms);
+            this.scheduleSnapshotExpiry();
+            return this.snapshot;
         } catch (error: unknown) {
             const detail = error instanceof Error ? error.message : String(error);
             console.warn("[MatrixRoomService] Error retrieving rooms from client:", detail);
             return [];
         }
+    }
+
+    /** Discards the shared snapshot at the end of the current tick. */
+    private scheduleSnapshotExpiry(): void {
+        if (this.snapshotTimer !== null) return;
+
+        this.snapshotTimer = setTimeout(() => {
+            this.snapshotTimer = null;
+            this.snapshot = null;
+        }, 0);
     }
 
     /**
@@ -156,6 +185,7 @@ export class MatrixRoomService {
      * Triggers a fresh discovery of all synchronized rooms.
      */
     public refresh(): SovereignRoom[] {
+        this.snapshot = null;
         return this.getAllRooms();
     }
 
@@ -225,7 +255,11 @@ export class MatrixRoomService {
         const client = this.clientService.getClient();
         if (!client) return;
 
-        const notify = (): void => this.scheduleNotify();
+        const notify = (): void => {
+            // The snapshot is stale the moment the platform reports a change.
+            this.snapshot = null;
+            this.scheduleNotify();
+        };
 
         const events = [
             ClientEvent.Sync,
@@ -262,6 +296,11 @@ export class MatrixRoomService {
             clearTimeout(this.coalesceTimer);
             this.coalesceTimer = null;
         }
+        if (this.snapshotTimer !== null) {
+            clearTimeout(this.snapshotTimer);
+            this.snapshotTimer = null;
+        }
+        this.snapshot = null;
         this.detach?.();
         this.detach = null;
     }

@@ -51,8 +51,14 @@ export interface SurfaceCopy {
     error: string;
 }
 
-/** Standard "not in this release" message (PRD section 8.11). */
-const NOT_IN_RELEASE = "Ushbu bo'lim keyingi bosqichda taqdim etiladi";
+/**
+ * Standard "not in this release" message (PRD section 8.11, FR-2).
+ *
+ * Exported so a surface with no copy block of its own states it directly,
+ * rather than borrowing another surface's entry and implying a relationship
+ * between them that does not exist.
+ */
+export const NOT_IN_RELEASE = "Ushbu bo'lim keyingi bosqichda taqdim etiladi";
 
 /** Standard loading message. */
 const LOADING = "Yuklanmoqda…";

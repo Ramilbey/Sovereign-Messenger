@@ -94,17 +94,37 @@ export function usePostingPermission(
     const [tracked, setTracked] = useState<{
         conversationId: string;
         canPost: boolean;
+        /** Whether the recorded answer came from the room rather than the role. */
+        known: boolean;
         change: string | null;
-    }>({ conversationId, canPost, change: null });
+    }>({ conversationId, canPost, known: roomAnswer !== null, change: null });
 
-    if (tracked.conversationId !== conversationId || tracked.canPost !== canPost) {
-        // Only a change within the same conversation is a change of rights;
-        // moving to a different conversation is not.
-        const rightsChanged = tracked.conversationId === conversationId;
+    const known = roomAnswer !== null;
+
+    if (
+        tracked.conversationId !== conversationId ||
+        tracked.canPost !== canPost ||
+        tracked.known !== known
+    ) {
+        /*
+         * A change is announced only between two answers the room actually
+         * gave, within one conversation.
+         *
+         * Before the room has loaded, the role-derived fallback applies. When
+         * the room's own answer then arrives it frequently differs — an
+         * employee's least-privilege fallback resolving to real posting rights
+         * is the common case on first load. Announcing that as a change would
+         * tell a user their permissions had just been altered when nothing had
+         * happened but data arriving, which in a government system is a
+         * misstatement about authority, not a cosmetic glitch.
+         */
+        const sameConversation = tracked.conversationId === conversationId;
+        const rightsChanged = sameConversation && tracked.known && known && tracked.canPost !== canPost;
 
         setTracked({
             conversationId,
             canPost,
+            known,
             change: rightsChanged
                 ? canPost
                     ? CHAT_COPY.postingGranted

@@ -9,13 +9,19 @@
 import React, { createContext, useContext, useState, useMemo, useCallback, type ReactNode, type JSX } from "react";
 import { usePermissions } from "./PermissionContext";
 import { useOutbox } from "../hooks/useOutbox";
-import { useChannels, useMessages, type SovereignChannel, type SovereignMessage } from "../providers/useSovereignData";
+import type { ResourceState } from "../types/resource";
+import { useConversations, useMessages, type SovereignMessage } from "../providers/useSovereignData";
+import type { SovereignConversation } from "../types/conversation";
 
 
 export interface ChatContextValue {
     activeChannelId: string;
     setActiveChannelId: (channelId: string) => void;
-    activeChannel: SovereignChannel | null;
+    /** The conversation now open, with the metadata its header needs (FR-44). */
+    activeConversation: SovereignConversation | null;
+    /** Every conversation the user belongs to, of all three types (IA-6). */
+    conversations: SovereignConversation[];
+    conversationsState: ResourceState;
     messages: SovereignMessage[];
     sendMessage: (content: string) => void;
 }
@@ -32,22 +38,21 @@ export function ChatProvider({
     children,
 }: ChatProviderProps): JSX.Element {
     const [activeChannelId, setActiveChannelId] = useState<string>(defaultChannelId);
-    const { data: { channels, groups } } = useChannels();
-    const allChannels = useMemo(() => [...channels, ...groups], [channels, groups]);
+    const { data: conversations, state: conversationsState } = useConversations();
 
     React.useEffect(() => {
-        if (allChannels.length > 0 && !allChannels.some((c) => c.id === activeChannelId)) {
-            setActiveChannelId(allChannels[0].id);
+        if (conversations.length > 0 && !conversations.some((c) => c.id === activeChannelId)) {
+            setActiveChannelId(conversations[0].id);
         }
-    }, [allChannels, activeChannelId]);
+    }, [conversations, activeChannelId]);
 
     // Sending goes through the outbox; this hook supplies the timeline only.
     const { messages } = useMessages(activeChannelId);
     const { currentUser } = usePermissions();
 
-    const activeChannel = useMemo(
-        () => allChannels.find((c) => c.id === activeChannelId) || null,
-        [allChannels, activeChannelId],
+    const activeConversation = useMemo(
+        () => conversations.find((c) => c.id === activeChannelId) ?? null,
+        [conversations, activeChannelId],
     );
 
     /*
@@ -92,16 +97,19 @@ export function ChatProvider({
         () => ({
             activeChannelId,
             setActiveChannelId,
-            activeChannel,
+            activeConversation,
+            conversations,
+            conversationsState,
             messages,
             sendMessage: handleSendMessage,
         }),
         [
             activeChannelId,
-            activeChannel,
+            activeConversation,
+            conversations,
+            conversationsState,
             messages,
             handleSendMessage,
-            setActiveChannelId,
         ],
     );
 

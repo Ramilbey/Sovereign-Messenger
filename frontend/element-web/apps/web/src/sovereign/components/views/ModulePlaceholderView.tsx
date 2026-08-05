@@ -15,7 +15,7 @@ import React, { memo, type JSX } from "react";
 
 import { EmptyState } from "../ui";
 import { TERGOV_WORKSPACE_MODULES } from "../../config/workspaceModules";
-import { SURFACE_COPY } from "../../config/stateCopy";
+import { NOT_IN_RELEASE } from "../../config/stateCopy";
 
 interface Props {
     activeModuleId: string;
@@ -38,7 +38,7 @@ export const ModulePlaceholderView = memo(function ModulePlaceholderView({
                     variant="unavailable"
                     icon="lock"
                     title={label}
-                    description={SURFACE_COPY.tasks.unavailable}
+                    description={NOT_IN_RELEASE}
                 />
             </div>
         </div>

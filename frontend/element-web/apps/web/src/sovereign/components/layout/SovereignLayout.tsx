@@ -28,7 +28,6 @@ import { RightPanel } from "./RightPanel";
 import { CompactNavigation, type CompactSurface } from "./CompactNavigation";
 import { usePermissions } from "../../context/PermissionContext";
 import { useChat } from "../../context/ChatContext";
-import { useChannels, useConversations } from "../../providers/useSovereignData";
 import { useConnectionState } from "../../hooks/useConnectionState";
 import { useDrafts } from "../../hooks/useDrafts";
 import { useOrganisation } from "../../hooks/useOrganisation";
@@ -40,6 +39,7 @@ import { SessionLifecycleService } from "../../services/SessionLifecycleService"
 import { ConversationList } from "../navigation/ConversationList";
 import { ConnectionBanner, IconButton } from "../ui";
 import { FRAME_COPY } from "../../config/navigationCopy";
+import type { ConversationType } from "../../types/conversation";
 
 export function SovereignLayout(): JSX.Element {
     /*
@@ -52,9 +52,7 @@ export function SovereignLayout(): JSX.Element {
     const [compactSurface, setCompactSurface] = useState<CompactSurface>("conversations");
 
     const { getAllowedModules, currentUser } = usePermissions();
-    const { activeChannelId, setActiveChannelId } = useChat();
-    const { data: { channels, groups } } = useChannels();
-    const { data: conversations, state: conversationsState } = useConversations();
+    const { activeChannelId, setActiveChannelId, conversations, conversationsState } = useChat();
     const connectionState = useConnectionState();
     const draftConversationIds = useDrafts();
     const breakpoint = useBreakpoint();
@@ -100,23 +98,52 @@ export function SovereignLayout(): JSX.Element {
         setActiveModuleId(modules[0].id);
     }, [modules, activeModuleId]);
 
+    /*
+     * UI-14: at wide the frame shows the sidebar, the conversation, and *one*
+     * supporting panel. Opening one therefore closes the other — with both
+     * open on the minimum specified workstation the conversation is squeezed
+     * to 266px, narrower than the list beside it (UX-2).
+     */
+    const showSupporting = useCallback(
+        (surface: "workspace" | "panel" | null) => {
+            updatePreferences({
+                workspaceOpen: surface === "workspace",
+                panelOpen: surface === "panel",
+            });
+        },
+        [updatePreferences],
+    );
+
     const handleSelectModule = useCallback(
         (modId: string) => {
             setActiveModuleId(modId);
 
-            // Keep the conversation surface consistent with the category the
-            // user just opened, where that category has conversations.
-            if (modId === "groups" && groups.length > 0) {
-                setActiveChannelId(groups[0].id);
-            } else if (modId === "channels" && channels.length > 0) {
-                setActiveChannelId(channels[0].id);
+            /*
+             * Keep the conversation surface consistent with the category the
+             * user just opened. Matched on the conversation's actual type: the
+             * previous grouping treated every non-channel as a group, so
+             * opening "Ishchi guruhlar" could select a direct conversation.
+             */
+            const wanted: Record<string, ConversationType | undefined> = {
+                channels: "channel",
+                groups: "group",
+                direct_chats: "direct",
+            };
+            const type = wanted[modId];
+            if (type) {
+                const first = conversations.find((conversation) => conversation.type === type);
+                if (first) setActiveChannelId(first.id);
             }
 
-            // UI-16: choosing a module is a request to see it, and at compact
-            // only one surface is visible at a time.
-            if (breakpoint === "compact") setCompactSurface("workspace");
+            // Choosing a module is a request to see it: at compact it becomes
+            // the visible surface (UI-16), elsewhere it opens the work column.
+            if (breakpoint === "compact") {
+                setCompactSurface("workspace");
+            } else {
+                showSupporting("workspace");
+            }
         },
-        [channels, groups, setActiveChannelId, breakpoint],
+        [conversations, setActiveChannelId, breakpoint, showSupporting],
     );
 
     const handleSelectConversation = useCallback(
@@ -136,7 +163,16 @@ export function SovereignLayout(): JSX.Element {
     );
 
     const isCompact = breakpoint === "compact";
+    const isStandard = breakpoint === "standard";
     const isWide = breakpoint === "wide";
+
+    /*
+     * UX-2 / AC-17: at 768px a full-width sidebar plus the conversation list
+     * leaves the conversation column no room at all — the frame overflowed the
+     * viewport. The sidebar becomes an icon rail for the whole standard range,
+     * so the conversation stays the dominant surface (UI-15).
+     */
+    const sidebarCollapsed = !isCompact && (isStandard || preferences.sidebarCollapsed);
 
     /*
      * UI-14: at wide, the supporting surfaces sit alongside the conversation.
@@ -157,9 +193,9 @@ export function SovereignLayout(): JSX.Element {
             activeModuleId={activeModuleId}
             onSelectModule={handleSelectModule}
             modules={modules}
-            collapsed={!isCompact && preferences.sidebarCollapsed}
+            collapsed={sidebarCollapsed}
             onToggleCollapsed={
-                isCompact
+                isCompact || isStandard
                     ? undefined
                     : () => updatePreferences({ sidebarCollapsed: !preferences.sidebarCollapsed })
             }
@@ -185,8 +221,7 @@ export function SovereignLayout(): JSX.Element {
                 "svr-layout",
                 `svr-layout--${breakpoint}`,
                 panelOpen ? "has-panel" : "",
-                workspaceOpen ? "has-workspace" : "",
-                !isCompact && preferences.sidebarCollapsed ? "has-collapsed-sidebar" : "",
+                sidebarCollapsed ? "has-collapsed-sidebar" : "",
             ]
                 .filter(Boolean)
                 .join(" ")}
@@ -238,9 +273,7 @@ export function SovereignLayout(): JSX.Element {
                                 variant="ghost"
                                 size="sm"
                                 aria-pressed={workspaceOpen}
-                                onClick={() =>
-                                    updatePreferences({ workspaceOpen: !preferences.workspaceOpen })
-                                }
+                                onClick={() => showSupporting(workspaceOpen ? null : "workspace")}
                             />
                             <IconButton
                                 icon="people"
@@ -248,7 +281,7 @@ export function SovereignLayout(): JSX.Element {
                                 variant="ghost"
                                 size="sm"
                                 aria-pressed={panelOpen}
-                                onClick={() => updatePreferences({ panelOpen: !preferences.panelOpen })}
+                                onClick={() => showSupporting(panelOpen ? null : "panel")}
                             />
                         </div>
 
@@ -260,9 +293,7 @@ export function SovereignLayout(): JSX.Element {
                                     activeModuleId={activeModuleId}
                                     overlay={workspaceOverlays}
                                     onClose={
-                                        workspaceOverlays
-                                            ? () => updatePreferences({ workspaceOpen: false })
-                                            : undefined
+                                        workspaceOverlays ? () => showSupporting(null) : undefined
                                     }
                                 />
                             )}
@@ -273,7 +304,7 @@ export function SovereignLayout(): JSX.Element {
                         <RightPanel
                             overlay={panelOverlays}
                             onClose={
-                                panelOverlays ? () => updatePreferences({ panelOpen: false }) : undefined
+                                panelOverlays ? () => showSupporting(null) : undefined
                             }
                         />
                     )}

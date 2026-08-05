@@ -18,7 +18,6 @@ import React, { useCallback, type JSX } from "react";
 import "../chat/ChatArea.css";
 import { useChat } from "../../context/ChatContext";
 import { usePermissions } from "../../context/PermissionContext";
-import { useConversations } from "../../providers/useSovereignData";
 import { usePostingPermission } from "../../hooks/usePostingPermission";
 import { ConversationHeader } from "../chat/ConversationHeader";
 import { MessageTimeline } from "../chat/MessageTimeline";
@@ -29,15 +28,12 @@ import { EmptyState } from "../ui";
 import { CHAT_COPY } from "../../config/chatCopy";
 
 export function ChatArea(): JSX.Element {
-    const { activeChannelId, activeChannel, messages, sendMessage } = useChat();
+    const { activeChannelId, activeConversation, conversationsState, messages, sendMessage } = useChat();
     const { currentUser, canPostInChannel } = usePermissions();
-    const { data: conversations, state: conversationsState } = useConversations();
-
-    const conversation = conversations.find((item) => item.id === activeChannelId) ?? null;
 
     // Role-derived answer, used where the room cannot supply one of its own.
-    const readOnlyForEmployees =
-        conversation?.readOnlyForEmployees ?? activeChannel?.readOnlyForEmployees ?? true;
+    // Least privilege while the conversation is still resolving (AS-1).
+    const readOnlyForEmployees = activeConversation?.readOnlyForEmployees ?? true;
     const { canPost, reason, change } = usePostingPermission(activeChannelId, {
         fallbackCanPost: canPostInChannel(readOnlyForEmployees),
         readOnlyForEmployees,
@@ -55,7 +51,7 @@ export function ChatArea(): JSX.Element {
      * ST-23: with no conversation selected the surface says so and points at
      * the next action, rather than rendering an empty conversation.
      */
-    if (!activeChannelId || (!conversation && !activeChannel)) {
+    if (!activeChannelId || (!activeConversation && conversationsState !== "loading")) {
         return (
             <div id="sovereign-chat-area" className="svr-chat-root">
                 <div className="svr-module-state">
@@ -73,11 +69,11 @@ export function ChatArea(): JSX.Element {
     return (
         <div id="sovereign-chat-area" className="svr-chat-root">
             <ConversationHeader
-                name={conversation?.name ?? activeChannel?.name ?? ""}
-                type={conversation?.type ?? activeChannel?.type ?? "group"}
-                memberCount={conversation?.memberCount ?? null}
-                topic={conversation?.topic ?? activeChannel?.description}
-                loading={conversationsState === "loading"}
+                name={activeConversation?.name ?? ""}
+                type={activeConversation?.type ?? "group"}
+                memberCount={activeConversation?.memberCount ?? null}
+                topic={activeConversation?.topic}
+                loading={conversationsState === "loading" || !activeConversation}
             />
 
             <MessageTimeline messages={messages} currentUserId={currentUser.id} />

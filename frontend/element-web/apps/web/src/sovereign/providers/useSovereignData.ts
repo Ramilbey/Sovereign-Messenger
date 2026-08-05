@@ -6,7 +6,6 @@
  * - When SOVEREIGN_MODE=true (isDemoMode()): returns Demo JSON providers.
  * - When SOVEREIGN_MODE=false (!isDemoMode()): retrieves room list reactively from MatrixRoomService.
  * - Subscribes to Matrix SDK client sync/room events so room discoveries trigger React re-renders.
- * - Returned objects match SovereignChannel interface.
  * - Zero UI component changes.
  */
 
@@ -66,7 +65,14 @@ export interface SovereignUser {
     avatarInitials: string;
 }
 
-export interface SovereignChannel {
+/**
+ * The shape of the demonstration channel dataset.
+ *
+ * Internal to this module: every surface consumes SovereignConversation, which
+ * carries the metadata the interface actually needs. This exists only to type
+ * the demo JSON on its way into that model.
+ */
+interface SovereignChannel {
     id: string;
     name: string;
     type: ConversationType;
@@ -219,6 +225,9 @@ function mapMatrixRoomToConversation(room: SovereignRoom): SovereignConversation
     };
 }
 
+/** Stable empty result, so a loading surface does not change identity. */
+const EMPTY_CONVERSATIONS: SovereignConversation[] = [];
+
 /** Demonstration conversations carry no live metadata; the model states so. */
 function mapDemoChannelToConversation(
     channel: SovereignChannel,
@@ -360,47 +369,26 @@ export function useConversations(): SovereignResource<SovereignConversation[]> {
         });
     }, [demo]);
 
+    /*
+     * PERF-8 / PERF-10: mapped once per room-list change rather than on every
+     * render. A fresh array on each render changed the identity of every
+     * downstream memo — the grouped views, the conversation list, and the chat
+     * context value — so nothing memoised could ever hold.
+     */
+    const conversations = useMemo(
+        () => matrixRooms.map(mapMatrixRoomToConversation),
+        [matrixRooms],
+    );
+
     if (demo) {
         return ready(demoConversations);
     }
 
     if (!settled) {
-        return loading([]);
+        return loading(EMPTY_CONVERSATIONS);
     }
 
-    return ready(matrixRooms.map(mapMatrixRoomToConversation));
-}
-
-/**
- * Conversations grouped by type, for surfaces that present one type at a time.
- *
- * Derived from `useConversations` rather than read separately, so a
- * conversation cannot appear in one surface and be missing from another.
- */
-export function useChannels(): SovereignResource<{
-    channels: SovereignChannel[];
-    groups: SovereignChannel[];
-}> {
-    const { data: conversations, state } = useConversations();
-
-    const grouped = useMemo(() => {
-        const toChannel = (conversation: SovereignConversation): SovereignChannel => ({
-            id: conversation.id,
-            name: conversation.name,
-            type: conversation.type,
-            description: conversation.topic ?? "",
-            readOnlyForEmployees: conversation.readOnlyForEmployees,
-        });
-
-        return {
-            channels: conversations.filter((c) => c.type === "channel").map(toChannel),
-            // A direct conversation is still a conversation the user works in,
-            // so it stays reachable from the grouped view alongside groups.
-            groups: conversations.filter((c) => c.type !== "channel").map(toChannel),
-        };
-    }, [conversations]);
-
-    return { data: grouped, state };
+    return ready(conversations);
 }
 
 /*

@@ -14,7 +14,6 @@
 import React, { memo, useMemo, type JSX } from "react";
 
 import { ConversationList } from "../navigation/ConversationList";
-import { useConversations } from "../../providers/useSovereignData";
 import { useChat } from "../../context/ChatContext";
 import { useDrafts } from "../../hooks/useDrafts";
 import { CONVERSATION_TYPE_LABEL, type ConversationType } from "../../types/conversation";
@@ -32,8 +31,7 @@ export const ConversationDirectoryView = memo(function ConversationDirectoryView
     type,
     surface,
 }: Props): JSX.Element {
-    const { data: conversations, state } = useConversations();
-    const { activeChannelId, setActiveChannelId } = useChat();
+    const { activeChannelId, setActiveChannelId, conversations, conversationsState: state } = useChat();
     const draftConversationIds = useDrafts();
 
     const scoped = useMemo(

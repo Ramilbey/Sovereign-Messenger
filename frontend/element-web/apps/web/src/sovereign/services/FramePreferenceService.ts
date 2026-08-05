@@ -26,10 +26,20 @@ export interface FramePreferences {
     density: MessageDensity;
 }
 
+/*
+ * UX-2 / NFR-2: the conversation must be the dominant surface on the minimum
+ * government workstation (1366x768). With the sidebar, conversation list, work
+ * module, and supporting panel all open at once, the conversation is left the
+ * narrowest column on screen — 266px against 300px for the list beside it.
+ *
+ * UI-14 permits the supporting surfaces alongside the conversation at wide; it
+ * does not require them open. The work module opens when a module is chosen,
+ * which is the moment it is wanted.
+ */
 const DEFAULTS: FramePreferences = {
     sidebarCollapsed: false,
     panelOpen: true,
-    workspaceOpen: true,
+    workspaceOpen: false,
     density: "comfortable",
 };
 

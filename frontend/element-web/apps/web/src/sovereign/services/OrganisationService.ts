@@ -77,11 +77,6 @@ export class OrganisationService {
         return this.problems.length === 0 && this.root !== null;
     }
 
-    /** ORG-3: the full configured hierarchy, at whatever depth it declares. */
-    public getRoot(): OrgNode | null {
-        return this.root;
-    }
-
     public getNode(nodeId: string): OrgNode | null {
         return this.byId.get(nodeId) ?? null;
     }
