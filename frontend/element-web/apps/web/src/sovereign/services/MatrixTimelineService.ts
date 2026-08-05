@@ -84,9 +84,31 @@ export class MatrixTimelineService {
             const rawEvents = liveTimeline && typeof liveTimeline.getEvents === "function"
                 ? liveTimeline.getEvents()
                 : Array.isArray(room.timeline) ? room.timeline : [];
-            const pendingEvents = typeof room.getPendingEvents === "function" ? room.getPendingEvents() : [];
 
-            // Combine live timeline events with local pending sending events
+            /*
+             * Pending events are supplementary: they are the user's own unsent
+             * messages, shown while they are on their way (SUX-6).
+             *
+             * The platform only keeps them in a separate list when the client
+             * was created with detached pending-event ordering; with
+             * chronological ordering they are already in the live timeline and
+             * asking for them separately THROWS. That throw used to reach the
+             * outer catch, which returned an empty array — so a single
+             * configuration choice by the host silently emptied every
+             * conversation, and the surface then reported "no messages yet"
+             * about official correspondence that plainly existed.
+             *
+             * Their absence costs nothing; losing the timeline costs
+             * everything, so they are read separately and never allowed to
+             * take the real messages down with them.
+             */
+            let pendingEvents: unknown[] = [];
+            try {
+                pendingEvents = typeof room.getPendingEvents === "function" ? room.getPendingEvents() : [];
+            } catch {
+                pendingEvents = [];
+            }
+
             const allEvents = [...rawEvents, ...pendingEvents];
 
             const messages: SovereignMessage[] = [];

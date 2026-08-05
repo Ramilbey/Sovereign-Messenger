@@ -30,6 +30,10 @@ const MAX_ROWS = 6;
 
 interface MessageComposerProps {
     onSendMessage: (text: string) => void;
+    /** FR-10: called as the user composes. */
+    onTyping?: () => void;
+    /** ST-3: called on send, and when the composer is cleared. */
+    onStoppedTyping?: () => void;
     placeholder?: string;
     /**
      * Conversation this composer belongs to. Drafts are held per conversation
@@ -40,6 +44,8 @@ interface MessageComposerProps {
 
 export const MessageComposer = memo(function MessageComposer({
     onSendMessage,
+    onTyping,
+    onStoppedTyping,
     placeholder = CHAT_COPY.composerPlaceholder,
     conversationId,
 }: MessageComposerProps): JSX.Element {
@@ -82,8 +88,19 @@ export const MessageComposer = memo(function MessageComposer({
             if (conversationId) {
                 drafts.set(conversationId, next);
             }
+
+            /*
+             * FR-10 / ST-3: composing reports typing; emptying the composer
+             * reports that it has stopped, rather than leaving participants
+             * watching an indicator for a message that is no longer coming.
+             */
+            if (next.trim()) {
+                onTyping?.();
+            } else {
+                onStoppedTyping?.();
+            }
         },
-        [conversationId, drafts],
+        [conversationId, drafts, onTyping, onStoppedTyping],
     );
 
     const handleSend = useCallback(() => {
@@ -92,10 +109,12 @@ export const MessageComposer = memo(function MessageComposer({
 
         onSendMessage(trimmed);
         setText("");
+        // ST-3: sending returns the indicator to idle immediately.
+        onStoppedTyping?.();
         if (conversationId) {
             drafts.clear(conversationId);
         }
-    }, [text, onSendMessage, conversationId, drafts]);
+    }, [text, onSendMessage, conversationId, drafts, onStoppedTyping]);
 
     const handleKeyDown = useCallback(
         (e: KeyboardEvent<HTMLTextAreaElement>) => {

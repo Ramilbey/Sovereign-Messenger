@@ -19,6 +19,7 @@ import "../chat/ChatArea.css";
 import { useChat } from "../../context/ChatContext";
 import { usePermissions } from "../../context/PermissionContext";
 import { usePostingPermission } from "../../hooks/usePostingPermission";
+import { useTyping } from "../../hooks/useTyping";
 import { ConversationHeader } from "../chat/ConversationHeader";
 import { MessageTimeline } from "../chat/MessageTimeline";
 import { TypingIndicator } from "../chat/TypingIndicator";
@@ -48,6 +49,9 @@ export function ChatArea(): JSX.Element {
         fallbackCanPost: canPostInChannel(readOnlyForEmployees),
         readOnlyForEmployees,
     });
+
+    // FR-11 / ST-5: typing is never reported where the user may not post.
+    const { typingUsers, reportTyping, reportStopped } = useTyping(activeChannelId, canPost);
 
     const handleSendMessage = useCallback(
         (text: string) => {
@@ -95,7 +99,7 @@ export function ChatArea(): JSX.Element {
                 readUpToId={readUpToId}
             />
 
-            <TypingIndicator />
+            <TypingIndicator typingUsers={typingUsers} />
 
             {/* SUX-9: the change is stated where it takes effect, in one sentence. */}
             {change && (
@@ -105,7 +109,12 @@ export function ChatArea(): JSX.Element {
             )}
 
             {canPost ? (
-                <MessageComposer onSendMessage={handleSendMessage} conversationId={activeChannelId} />
+                <MessageComposer
+                    onSendMessage={handleSendMessage}
+                    conversationId={activeChannelId}
+                    onTyping={reportTyping}
+                    onStoppedTyping={reportStopped}
+                />
             ) : (
                 <PermissionNotice message={reason ?? CHAT_COPY.readOnlyConversation} />
             )}
