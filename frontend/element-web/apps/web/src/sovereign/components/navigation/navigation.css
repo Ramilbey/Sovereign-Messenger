@@ -478,3 +478,148 @@
     border-inline-end: 0;
     background-color: transparent;
 }
+
+/* ── CMP-38 … CMP-41 Search (SR-1 … SR-11) ───────────────────────────────── */
+
+.svr-search {
+    position: fixed;
+    inset-block-start: var(--svr-frame-header-height);
+    inset-inline: 0;
+    inset-block-end: 0;
+    z-index: 9;
+    display: flex;
+    flex-direction: column;
+    margin-inline: auto;
+    max-width: calc(var(--svr-frame-panel-width) * 3);
+    background-color: var(--svr-surface-raised);
+    border: var(--svr-border-width-thin) solid var(--svr-border-default);
+    border-radius: var(--svr-radius-lg);
+    box-shadow: var(--svr-shadow-overlay);
+    font-family: var(--svr-font-family-base);
+    color: var(--svr-content-primary);
+    overflow: hidden;
+}
+
+.svr-search__bar {
+    display: flex;
+    align-items: center;
+    gap: var(--svr-space-2);
+    flex: none;
+    padding: var(--svr-space-3);
+    border-block-end: var(--svr-border-width-thin) solid var(--svr-border-default);
+}
+
+.svr-search__icon {
+    flex: none;
+    color: var(--svr-content-secondary);
+}
+
+.svr-search__field {
+    flex: 1;
+    min-width: 0;
+    box-sizing: border-box;
+    min-height: var(--svr-control-height-md);
+    padding-inline: var(--svr-space-3);
+    background-color: var(--svr-surface-base);
+    border: var(--svr-border-width-thin) solid var(--svr-border-default);
+    border-radius: var(--svr-radius-md);
+    color: var(--svr-content-primary);
+    font-family: var(--svr-font-family-base);
+    font-size: var(--svr-type-body-size);
+}
+
+.svr-search__field:focus-visible {
+    outline: var(--svr-focus-ring-width) solid var(--svr-focus-ring-color);
+    outline-offset: var(--svr-focus-ring-offset);
+}
+
+.svr-search__filters {
+    display: flex;
+    flex-wrap: wrap;
+    gap: var(--svr-space-1);
+    flex: none;
+    padding: var(--svr-space-2) var(--svr-space-3);
+    border-block-end: var(--svr-border-width-thin) solid var(--svr-border-subtle);
+}
+
+.svr-search__results {
+    flex: 1;
+    min-height: 0;
+    overflow-y: auto;
+    padding-block-end: var(--svr-space-3);
+}
+
+.svr-search__group + .svr-search__group {
+    border-block-start: var(--svr-border-width-thin) solid var(--svr-border-subtle);
+}
+
+.svr-search__heading {
+    margin: 0;
+    padding: var(--svr-space-3) var(--svr-space-3) var(--svr-space-1);
+    font-size: var(--svr-type-caption-size);
+    font-weight: var(--svr-type-label-weight);
+    line-height: var(--svr-type-label-line);
+    letter-spacing: var(--svr-type-label-tracking);
+    text-transform: uppercase;
+    color: var(--svr-content-secondary);
+}
+
+.svr-search__list {
+    list-style: none;
+    margin: 0;
+    padding: 0;
+}
+
+.svr-search__result {
+    display: flex;
+    flex-direction: column;
+    gap: var(--svr-space-0);
+    box-sizing: border-box;
+    width: 100%;
+    /* UI-17: a full-height row, above the minimum touch target. */
+    min-height: var(--svr-control-height-lg);
+    padding: var(--svr-space-2) var(--svr-space-3);
+    background-color: var(--svr-action-secondary-rest);
+    border: 0;
+    color: var(--svr-content-primary);
+    font-family: var(--svr-font-family-base);
+    text-align: start;
+    cursor: pointer;
+}
+
+.svr-search__result:hover {
+    background-color: var(--svr-surface-hover);
+}
+
+.svr-search__result:focus-visible {
+    outline: var(--svr-focus-ring-width) solid var(--svr-focus-ring-color);
+    outline-offset: calc(0px - var(--svr-focus-ring-width));
+}
+
+.svr-search__result-title {
+    font-size: var(--svr-type-body-size);
+    line-height: var(--svr-type-label-line);
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+.svr-search__result-context {
+    color: var(--svr-content-secondary);
+    font-size: var(--svr-type-caption-size);
+    line-height: var(--svr-type-caption-line);
+    /* EDGE-16: a long matched line truncates rather than breaking the row. */
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+/* R-4 / SR-10: the result set is knowably incomplete. */
+.svr-search__limited {
+    margin: 0;
+    padding: var(--svr-space-3);
+    color: var(--svr-content-tertiary);
+    font-size: var(--svr-type-caption-size);
+    line-height: var(--svr-type-caption-line);
+    text-align: center;
+}

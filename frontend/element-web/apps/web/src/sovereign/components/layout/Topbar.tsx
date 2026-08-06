@@ -18,15 +18,15 @@
  * an improvised substitute would misrepresent state identity. Sourcing and
  * approving the asset is branding deliverable D-2.
  *
- * NAV-4 (global search): the header reserves the search region. The control
- * arrives with the search capability in Milestone 5; presenting a search field
- * that cannot search would be a surface that does not tell the truth.
+ * NAV-4 / SR-2: the global search entry point sits here, and the same search
+ * is reachable by keyboard from anywhere in the application.
  */
 
 import React, { memo, type JSX } from "react";
 
 import { Breadcrumb } from "../navigation/Breadcrumb";
-import { Avatar, ConnectionStatus } from "../ui";
+import { Avatar, ConnectionStatus, IconButton } from "../ui";
+import { SEARCH_COPY } from "../../config/searchCopy";
 import { FRAME_COPY } from "../../config/navigationCopy";
 import type { ConnectionState } from "../../services/ConnectionStateService";
 import type { OrgLanguage, OrgNode } from "../../types/organisation";
@@ -35,6 +35,8 @@ import { ROLE_LABELS } from "../../config/roleCopy";
 import "./frame.css";
 
 interface TopbarProps {
+    /** NAV-4: opens global search. */
+    onOpenSearch: () => void;
     /** NAV-5: root → current node, inclusive. */
     path: OrgNode[];
     onSelectNode: (nodeId: string) => void;
@@ -58,6 +60,7 @@ export const Topbar = memo(function Topbar({
     connectionState,
     currentUser,
     departmentLabel,
+    onOpenSearch,
     language = "uz",
 }: TopbarProps): JSX.Element {
     return (
@@ -80,6 +83,15 @@ export const Topbar = memo(function Topbar({
             </div>
 
             <div className="svr-topbar__system">
+                {/* NAV-4 / SR-2: present in the header, and reachable by
+                    keyboard from anywhere (the shortcut is bound at the frame). */}
+                <IconButton
+                    icon="search"
+                    label={`${SEARCH_COPY.open} (${SEARCH_COPY.shortcutHint})`}
+                    variant="ghost"
+                    onClick={onOpenSearch}
+                />
+
                 <ConnectionStatus state={connectionState} />
 
                 {/* PR-7: identity, role, and department, always visible. */}
