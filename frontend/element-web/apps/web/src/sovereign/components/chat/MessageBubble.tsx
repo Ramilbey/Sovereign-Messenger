@@ -18,6 +18,7 @@
 import React, { memo, type JSX } from "react";
 
 import { Avatar, Icon, type IconName } from "../ui";
+import { MessageAttachment } from "./MessageAttachment";
 import { ACKNOWLEDGEMENT_COPY, CHAT_COPY } from "../../config/chatCopy";
 import type { MessageDeliveryState, SovereignMessage } from "../../services/MessageService";
 
@@ -89,8 +90,21 @@ export const MessageBubble = memo(function MessageBubble({
                     </div>
                 )}
 
-                {/* EDGE-16: a very long message wraps rather than breaking the layout. */}
-                <div className="svr-msg-content">{message.content}</div>
+                {/*
+                 * FR-26: the file this message carries. The body of a file
+                 * message is its filename, which the card already states, so
+                 * repeating it as text would say the same thing twice.
+                 */}
+                {message.attachment ? (
+                    <MessageAttachment
+                        attachment={message.attachment}
+                        senderName={message.senderName}
+                        timestamp={message.timestamp}
+                    />
+                ) : (
+                    /* EDGE-16: a very long message wraps rather than breaking the layout. */
+                    <div className="svr-msg-content">{message.content}</div>
+                )}
 
                 <div className="svr-msg-footer">
                     <span className="svr-msg-timestamp">{message.timestamp}</span>

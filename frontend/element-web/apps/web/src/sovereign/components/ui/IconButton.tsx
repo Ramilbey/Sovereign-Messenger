@@ -9,7 +9,7 @@
  * applied both as the accessible name and as the hover tooltip.
  */
 
-import React, { memo, type ButtonHTMLAttributes, type JSX } from "react";
+import React, { forwardRef, memo, type ButtonHTMLAttributes, type JSX } from "react";
 
 import { Icon, type IconName } from "./Icon";
 import { Spinner } from "./Spinner";
@@ -27,37 +27,43 @@ interface IconButtonProps extends Omit<ButtonHTMLAttributes<HTMLButtonElement>, 
     loading?: boolean;
 }
 
-export const IconButton = memo(function IconButton({
-    icon,
-    label,
-    variant = "ghost",
-    size = "md",
-    loading = false,
-    disabled,
-    className,
-    ...rest
-}: IconButtonProps): JSX.Element {
-    const isInoperable = disabled || loading;
+export const IconButton = memo(
+    forwardRef<HTMLButtonElement, IconButtonProps>(function IconButton(
+        {
+            icon,
+            label,
+            variant = "ghost",
+            size = "md",
+            loading = false,
+            disabled,
+            className,
+            ...rest
+        },
+        ref,
+    ): JSX.Element {
+        const isInoperable = disabled || loading;
 
-    return (
-        <button
-            type="button"
-            {...rest}
-            disabled={isInoperable}
-            aria-label={label}
-            aria-busy={loading || undefined}
-            title={label}
-            className={[
-                "svr-icon-button",
-                `svr-icon-button--${variant}`,
-                `svr-icon-button--${size}`,
-                loading ? "is-loading" : "",
-                className,
-            ]
-                .filter(Boolean)
-                .join(" ")}
-        >
-            {loading ? <Spinner size="sm" /> : <Icon name={icon} size={size === "sm" ? "sm" : "md"} />}
-        </button>
-    );
-});
+        return (
+            <button
+                type="button"
+                ref={ref}
+                {...rest}
+                disabled={isInoperable}
+                aria-label={label}
+                aria-busy={loading || undefined}
+                title={label}
+                className={[
+                    "svr-icon-button",
+                    `svr-icon-button--${variant}`,
+                    `svr-icon-button--${size}`,
+                    loading ? "is-loading" : "",
+                    className,
+                ]
+                    .filter(Boolean)
+                    .join(" ")}
+            >
+                {loading ? <Spinner size="sm" /> : <Icon name={icon} size={size === "sm" ? "sm" : "md"} />}
+            </button>
+        );
+    }),
+);

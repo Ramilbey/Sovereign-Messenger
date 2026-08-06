@@ -686,3 +686,252 @@ button.svr-member-item:focus-visible {
     font-size: var(--svr-type-caption-size);
     line-height: var(--svr-type-caption-line);
 }
+
+/* ── CMP-37 Drop Zone (FR-23) ────────────────────────────────────────────── */
+
+.svr-drop-zone {
+    position: relative;
+    display: flex;
+    flex-direction: column;
+    min-height: 0;
+    flex: 1;
+}
+
+.svr-drop-zone__overlay {
+    position: absolute;
+    inset: 0;
+    z-index: 3;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: var(--svr-space-2);
+    background-color: var(--svr-brand-subtle);
+    border: var(--svr-border-width-thick) dashed var(--svr-brand-primary);
+    border-radius: var(--svr-radius-md);
+    color: var(--svr-brand-emphasis);
+    font-size: var(--svr-type-body-size);
+    font-weight: var(--svr-type-body-strong-weight);
+    pointer-events: none;
+}
+
+/* ── CMP-32 / CMP-33 Pre-send attachments (FR-24, FR-25) ─────────────────── */
+
+.svr-attachments {
+    display: flex;
+    flex-direction: column;
+    gap: var(--svr-space-1);
+    list-style: none;
+    margin: 0 0 var(--svr-space-2);
+    padding: 0;
+    /* EDGE-18: many attachments scroll rather than pushing out the composer. */
+    max-height: calc(var(--svr-control-height-lg) * 4);
+    overflow-y: auto;
+}
+
+.svr-attachment {
+    display: flex;
+    align-items: center;
+    gap: var(--svr-space-2);
+    padding: var(--svr-space-1) var(--svr-space-2);
+    background-color: var(--svr-surface-base);
+    border: var(--svr-border-width-thin) solid var(--svr-border-default);
+    border-radius: var(--svr-radius-sm);
+}
+
+/* A11Y-5: a refused or failed attachment carries a border, not colour alone. */
+.svr-attachment.is-failed {
+    border-color: var(--svr-status-danger);
+    background-color: var(--svr-status-danger-subtle);
+}
+
+.svr-attachment__thumb {
+    flex: none;
+    width: var(--svr-avatar-size-lg);
+    height: var(--svr-avatar-size-lg);
+    object-fit: cover;
+    border-radius: var(--svr-radius-sm);
+}
+
+.svr-attachment__thumb--file {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background-color: var(--svr-surface-overlay);
+    color: var(--svr-content-secondary);
+}
+
+.svr-attachment__text {
+    display: flex;
+    flex-direction: column;
+    gap: var(--svr-space-0);
+    flex: 1;
+    min-width: 0;
+}
+
+.svr-attachment__name {
+    font-size: var(--svr-type-caption-size);
+    font-weight: var(--svr-type-body-strong-weight);
+    line-height: var(--svr-type-caption-line);
+    /* EDGE-16: a very long filename truncates rather than breaking the row. */
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+.svr-attachment__meta {
+    color: var(--svr-content-secondary);
+    font-size: var(--svr-type-caption-size);
+    line-height: var(--svr-type-caption-line);
+}
+
+.svr-attachment__progress {
+    width: 100%;
+    height: var(--svr-space-1);
+    accent-color: var(--svr-brand-primary);
+}
+
+.svr-attachment__actions {
+    display: flex;
+    align-items: center;
+    gap: var(--svr-space-1);
+    flex: none;
+}
+
+/* ── CMP-34 File Card (FR-26, FR-27) ─────────────────────────────────────── */
+
+.svr-file-card {
+    display: flex;
+    align-items: center;
+    gap: var(--svr-space-3);
+    box-sizing: border-box;
+    padding: var(--svr-space-2);
+    background-color: var(--svr-surface-base);
+    border: var(--svr-border-width-thin) solid var(--svr-border-default);
+    border-radius: var(--svr-radius-sm);
+}
+
+/* EDGE-8: an unavailable file reads as unavailable, not as broken. */
+.svr-file-card.is-unavailable {
+    border-style: dashed;
+    border-color: var(--svr-border-strong);
+    background-color: var(--svr-surface-sunken);
+    color: var(--svr-content-secondary);
+}
+
+.svr-file-card__icon {
+    flex: none;
+    color: var(--svr-content-secondary);
+}
+
+.svr-file-card__text {
+    display: flex;
+    flex-direction: column;
+    flex: 1;
+    min-width: 0;
+}
+
+.svr-file-card__name {
+    font-size: var(--svr-type-body-size);
+    font-weight: var(--svr-type-body-strong-weight);
+    line-height: var(--svr-type-label-line);
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+.svr-file-card__meta {
+    color: var(--svr-content-secondary);
+    font-size: var(--svr-type-caption-size);
+    line-height: var(--svr-type-caption-line);
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+.svr-file-card__download {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    flex: none;
+    /* UI-17: a full touch target, not the icon alone. */
+    width: var(--svr-control-height-lg);
+    height: var(--svr-control-height-lg);
+    border-radius: var(--svr-radius-md);
+    color: var(--svr-content-secondary);
+}
+
+.svr-file-card__download:hover {
+    background-color: var(--svr-action-secondary-hover);
+    color: var(--svr-content-primary);
+}
+
+.svr-file-card__download:focus-visible {
+    outline: var(--svr-focus-ring-width) solid var(--svr-focus-ring-color);
+    outline-offset: var(--svr-focus-ring-offset);
+}
+
+/* ── CMP-35 Image Preview (FR-26, EDGE-4) ────────────────────────────────── */
+
+.svr-image-preview {
+    display: block;
+    padding: 0;
+    background: none;
+    border: 0;
+    border-radius: var(--svr-radius-sm);
+    cursor: pointer;
+    line-height: 0;
+}
+
+.svr-image-preview:focus-visible {
+    outline: var(--svr-focus-ring-width) solid var(--svr-focus-ring-color);
+    outline-offset: var(--svr-focus-ring-offset);
+}
+
+.svr-image-preview__image {
+    /* EDGE-4: bounded display size; full resolution only on explicit open. */
+    max-width: 100%;
+    max-height: calc(var(--svr-frame-panel-width) * 1.2);
+    border-radius: var(--svr-radius-sm);
+    object-fit: contain;
+}
+
+/* ── CMP-36 Image Viewer (FR-27) ─────────────────────────────────────────── */
+
+.svr-image-viewer {
+    position: fixed;
+    inset: 0;
+    z-index: 10;
+    display: flex;
+    flex-direction: column;
+    background-color: var(--svr-scrim);
+}
+
+.svr-image-viewer__bar {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: var(--svr-space-3);
+    flex: none;
+    padding: var(--svr-space-2) var(--svr-space-4);
+    background-color: var(--svr-surface-raised);
+    color: var(--svr-content-primary);
+}
+
+.svr-image-viewer__name {
+    min-width: 0;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+    font-size: var(--svr-type-body-size);
+    font-weight: var(--svr-type-body-strong-weight);
+}
+
+.svr-image-viewer__image {
+    flex: 1;
+    min-height: 0;
+    /* A11Y-9: bounded by the viewport, so no page-level scrolling at 200%. */
+    max-width: 100%;
+    object-fit: contain;
+    padding: var(--svr-space-4);
+    box-sizing: border-box;
+}

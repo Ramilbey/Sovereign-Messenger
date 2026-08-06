@@ -20,6 +20,10 @@ import { useChat } from "../../context/ChatContext";
 import { usePermissions } from "../../context/PermissionContext";
 import { usePostingPermission } from "../../hooks/usePostingPermission";
 import { useTyping } from "../../hooks/useTyping";
+import { useUpload } from "../../hooks/useUpload";
+import { MatrixFileService } from "../../services/MatrixFileService";
+import { FILE_COPY } from "../../config/fileCopy";
+import { isPreviewableImage } from "../../types/attachment";
 import { useAcknowledgement, useReadReporting } from "../../hooks/useReceipts";
 import { AcknowledgementSummary } from "../chat/AcknowledgementSummary";
 import { MatrixReceiptService } from "../../services/MatrixReceiptService";
@@ -27,6 +31,8 @@ import { ConversationHeader } from "../chat/ConversationHeader";
 import { MessageTimeline } from "../chat/MessageTimeline";
 import { TypingIndicator } from "../chat/TypingIndicator";
 import { MessageComposer } from "../chat/MessageComposer";
+import { AttachmentPreview } from "../chat/AttachmentPreview";
+import { DropZone } from "../chat/DropZone";
 import { PermissionNotice } from "../chat/PermissionNotice";
 import { EmptyState } from "../ui";
 import { ACKNOWLEDGEMENT_COPY, CHAT_COPY } from "../../config/chatCopy";
@@ -67,12 +73,41 @@ export function ChatArea(): JSX.Element {
         currentUser.id,
     );
 
+    // FR-23 … FR-30: the attachments waiting to be sent in this conversation.
+    const upload = useUpload();
+
+    /*
+     * FR-23: a message may carry text, files, or both. The files are
+     * transferred first so that a failure is reported before anything is
+     * sent, rather than leaving a caption in the conversation whose
+     * attachment never arrived.
+     */
     const handleSendMessage = useCallback(
-        (text: string) => {
-            if (!text.trim()) return;
-            sendMessage(text);
+        async (text: string) => {
+            const trimmed = text.trim();
+
+            if (upload.attachments.length > 0) {
+                const completed = await upload.uploadAll();
+
+                for (const attachment of completed) {
+                    if (!attachment.contentUri) continue;
+                    await MatrixFileService.getInstance().sendAttachment(activeChannelId, {
+                        contentUri: attachment.contentUri,
+                        name: attachment.name,
+                        size: attachment.size,
+                        mimeType: attachment.mimeType,
+                        isImage: isPreviewableImage(attachment.mimeType),
+                    });
+                }
+
+                // ST-15: a completed attachment has become a message; only
+                // those still needing the user's attention remain on screen.
+                if (completed.length === upload.attachments.length) upload.clear();
+            }
+
+            if (trimmed) sendMessage(trimmed);
         },
-        [sendMessage],
+        [sendMessage, upload, activeChannelId],
     );
 
     /*
@@ -95,6 +130,7 @@ export function ChatArea(): JSX.Element {
     }
 
     return (
+        <DropZone onFiles={upload.add} disabled={!canPost}>
         <div id="sovereign-chat-area" className="svr-chat-root">
             <ConversationHeader
                 name={activeConversation?.name ?? ""}
@@ -148,10 +184,28 @@ export function ChatArea(): JSX.Element {
                     conversationId={activeChannelId}
                     onTyping={reportTyping}
                     onStoppedTyping={reportStopped}
+                    onFiles={upload.add}
+                    hasAttachments={upload.attachments.length > 0}
+                    attachmentSlot={
+                        upload.attachments.length > 0 ? (
+                            <ul className="svr-attachments" aria-label={FILE_COPY.attachedLabel}>
+                                {upload.attachments.map((attachment) => (
+                                    <AttachmentPreview
+                                        key={attachment.id}
+                                        attachment={attachment}
+                                        onRemove={upload.remove}
+                                        onCancel={upload.cancel}
+                                        onRetry={upload.retry}
+                                    />
+                                ))}
+                            </ul>
+                        ) : null
+                    }
                 />
             ) : (
                 <PermissionNotice message={reason ?? CHAT_COPY.readOnlyConversation} />
             )}
         </div>
+        </DropZone>
     );
 }

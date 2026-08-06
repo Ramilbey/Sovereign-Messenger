@@ -18,11 +18,13 @@ import React, {
     useLayoutEffect,
     useRef,
     type KeyboardEvent,
+    type ReactNode,
     type JSX,
 } from "react";
 
 import { IconButton } from "../ui";
 import { CHAT_COPY } from "../../config/chatCopy";
+import { FILE_COPY } from "../../config/fileCopy";
 import { DraftService } from "../../services/DraftService";
 
 /** Rows the composer grows to before it scrolls internally (FR-39). */
@@ -30,6 +32,12 @@ const MAX_ROWS = 6;
 
 interface MessageComposerProps {
     onSendMessage: (text: string) => void;
+    /** FR-23: files chosen from the picker or pasted from the clipboard. */
+    onFiles?: (files: File[]) => void;
+    /** FR-24: the attachments waiting to be sent, rendered above the field. */
+    attachmentSlot?: ReactNode;
+    /** True while an attachment is queued, so an empty message may still send. */
+    hasAttachments?: boolean;
     /** FR-10: called as the user composes. */
     onTyping?: () => void;
     /** ST-3: called on send, and when the composer is cleared. */
@@ -44,6 +52,9 @@ interface MessageComposerProps {
 
 export const MessageComposer = memo(function MessageComposer({
     onSendMessage,
+    onFiles,
+    attachmentSlot,
+    hasAttachments = false,
     onTyping,
     onStoppedTyping,
     placeholder = CHAT_COPY.composerPlaceholder,
@@ -52,6 +63,7 @@ export const MessageComposer = memo(function MessageComposer({
     const drafts = DraftService.getInstance();
     const [text, setText] = useState<string>(() => drafts.get(conversationId ?? ""));
     const inputRef = useRef<HTMLTextAreaElement | null>(null);
+    const fileInput = useRef<HTMLInputElement | null>(null);
 
     /*
      * FR-40 / NAV-10: restore this conversation's draft when the composer is
@@ -103,9 +115,29 @@ export const MessageComposer = memo(function MessageComposer({
         [conversationId, drafts, onTyping, onStoppedTyping],
     );
 
+    /*
+     * FR-23: the clipboard is the third entry point. A user copying a
+     * screenshot expects to paste it, and requiring them to save it to disk
+     * first would be busywork.
+     */
+    const handlePaste = useCallback(
+        (event: React.ClipboardEvent<HTMLTextAreaElement>) => {
+            if (!onFiles) return;
+
+            const files = Array.from(event.clipboardData?.files ?? []);
+            if (files.length === 0) return;
+
+            // The pasted file is the message; pasting its name as text is not.
+            event.preventDefault();
+            onFiles(files);
+        },
+        [onFiles],
+    );
+
     const handleSend = useCallback(() => {
         const trimmed = text.trim();
-        if (!trimmed) return;
+        // An attachment with no caption is a message in its own right.
+        if (!trimmed && !hasAttachments) return;
 
         onSendMessage(trimmed);
         setText("");
@@ -114,7 +146,7 @@ export const MessageComposer = memo(function MessageComposer({
         if (conversationId) {
             drafts.clear(conversationId);
         }
-    }, [text, onSendMessage, conversationId, drafts, onStoppedTyping]);
+    }, [text, hasAttachments, onSendMessage, conversationId, drafts, onStoppedTyping]);
 
     const handleKeyDown = useCallback(
         (e: KeyboardEvent<HTMLTextAreaElement>) => {
@@ -129,7 +161,34 @@ export const MessageComposer = memo(function MessageComposer({
 
     return (
         <div className="svr-composer">
+            {/* FR-24: attachments are reviewed above the field they belong to. */}
+            {attachmentSlot}
+
             <div className="svr-composer__bar">
+                {/* FR-23: the keyboard-reachable route to attaching a file. */}
+                {onFiles && (
+                    <>
+                        <input
+                            id="sovereign-file-input"
+                            ref={fileInput}
+                            type="file"
+                            multiple
+                            className="svr-visually-hidden"
+                            onChange={(event) => {
+                                const files = Array.from(event.target.files ?? []);
+                                if (files.length > 0) onFiles(files);
+                                // Allows the same file to be chosen twice.
+                                event.target.value = "";
+                            }}
+                        />
+                        <IconButton
+                            icon="attachment"
+                            label={FILE_COPY.attach}
+                            variant="ghost"
+                            onClick={() => fileInput.current?.click()}
+                        />
+                    </>
+                )}
                 <textarea
                     id="sovereign-msg-input"
                     ref={inputRef}
@@ -138,6 +197,7 @@ export const MessageComposer = memo(function MessageComposer({
                     rows={1}
                     onChange={(e) => updateText(e.target.value)}
                     onKeyDown={handleKeyDown}
+                    onPaste={handlePaste}
                     placeholder={placeholder}
                     aria-label={CHAT_COPY.composerLabel}
                     aria-describedby="sovereign-msg-hint"
@@ -150,7 +210,7 @@ export const MessageComposer = memo(function MessageComposer({
                     label={CHAT_COPY.send}
                     variant="solid"
                     onClick={handleSend}
-                    disabled={!text.trim()}
+                    disabled={!text.trim() && !hasAttachments}
                 />
             </div>
 
