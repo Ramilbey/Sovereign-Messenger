@@ -13,7 +13,7 @@
  * misrepresent an unavailable capability as an available one.
  */
 
-import React, { memo, type JSX } from "react";
+import React, { memo, type JSX, type ReactNode } from "react";
 
 import { Avatar, Icon, Skeleton, type IconName } from "../ui";
 import { CHAT_COPY } from "../../config/chatCopy";
@@ -32,6 +32,12 @@ interface ConversationHeaderProps {
     memberCount: number | null;
     topic?: string;
     loading?: boolean;
+    /**
+     * Controls that act on this conversation — NT-5's notification level today.
+     * Supplied by the caller so the header stays presentation only and does not
+     * acquire a data dependency of its own.
+     */
+    actions?: ReactNode;
 }
 
 export const ConversationHeader = memo(function ConversationHeader({
@@ -40,6 +46,7 @@ export const ConversationHeader = memo(function ConversationHeader({
     memberCount,
     topic,
     loading = false,
+    actions,
 }: ConversationHeaderProps): JSX.Element {
     if (loading) {
         // ES-6 / UX-13: the header reserves its height so the timeline below
@@ -85,6 +92,9 @@ export const ConversationHeader = memo(function ConversationHeader({
                     )}
                 </p>
             </div>
+
+            {/* NT-5: acting on this conversation, at the conversation. */}
+            {actions && <div className="svr-conversation-header__actions">{actions}</div>}
         </header>
     );
 });

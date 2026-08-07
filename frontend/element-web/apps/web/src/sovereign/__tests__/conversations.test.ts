@@ -7,15 +7,19 @@
 import { describe, it, expect, beforeEach, vi } from "vitest";
 
 import { MatrixRoomService } from "../services/MatrixRoomService";
+import { MatrixNotificationService } from "../services/MatrixNotificationService";
 import { createFakeClient, type FakeRoomSpec } from "./support/fakeClient";
 
 function useRooms(specs: FakeRoomSpec[]) {
     const client = createFakeClient(specs);
     const service = MatrixRoomService.getInstance();
-    // The service reads the platform through MatrixClientService; the fake
-    // stands in for the synchronised client it would return.
-    (service as unknown as { clientService: unknown }).clientService = { getClient: () => client };
+    // Both services read the platform through MatrixClientService; the fake
+    // stands in for the synchronised client it would return. The room list
+    // reports the notification level (NT-5), so both see the same world.
+    const stub = { getClient: () => client };
+    (service as unknown as { clientService: unknown }).clientService = stub;
     (service as unknown as { snapshot: unknown }).snapshot = null;
+    (MatrixNotificationService.getInstance() as unknown as { clientService: unknown }).clientService = stub;
     return { client, service };
 }
 
@@ -80,13 +84,20 @@ describe("NT-1 / NT-2 / NT-6 — unread state is read, never computed", () => {
         expect(room.mentionCount).toBe(2);
     });
 
-    it("reports a muted room and a favourite room from their platform state", () => {
+    it("reports each notification level and a favourite room from their platform state", () => {
         const { service } = useRooms([
-            { id: "!m:gov", name: "Muted", muted: true },
+            { id: "!n:gov", name: "Silenced", level: "none" },
+            { id: "!m:gov", name: "Mentions only", level: "mentions" },
+            { id: "!a:gov", name: "All", level: "all" },
             { id: "!f:gov", name: "Fav", favourite: true },
         ]);
         const byId = Object.fromEntries(service.getAllRooms().map((r) => [r.roomId, r]));
-        expect(byId["!m:gov"].isMuted).toBe(true);
+
+        // NT-5: the two ways a conversation can be silenced do not mean the
+        // same thing, and are not read as though they did.
+        expect(byId["!n:gov"].notificationLevel).toBe("none");
+        expect(byId["!m:gov"].notificationLevel).toBe("mentions");
+        expect(byId["!a:gov"].notificationLevel).toBe("all");
         expect(byId["!f:gov"].isFavourite).toBe(true);
     });
 });

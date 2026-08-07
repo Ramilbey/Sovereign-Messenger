@@ -12,9 +12,10 @@
 
 import React, { memo, forwardRef, type JSX, type KeyboardEvent } from "react";
 
-import { Icon, type IconName } from "../ui";
-import { ORG_NODE_TYPE_LABEL, NAVIGATION_COPY } from "../../config/navigationCopy";
+import { Badge, Icon, type IconName } from "../ui";
+import { ORG_NODE_TYPE_LABEL, NAVIGATION_COPY, CONVERSATION_COPY } from "../../config/navigationCopy";
 import type { OrgNodeType } from "../../types/organisation";
+import type { UnreadSummary } from "../../types/notification";
 
 /** CMP-15: each level takes an icon, but never as its only distinguishing mark. */
 const NODE_TYPE_ICON: Record<OrgNodeType, IconName> = {
@@ -39,6 +40,8 @@ export interface HierarchyNodeProps {
     isTabbable: boolean;
     /** Icon-only presentation while the sidebar is collapsed (NAV-1). */
     collapsed: boolean;
+    /** NT-1: what is waiting inside this level of the organisation. */
+    unread?: UnreadSummary;
     onSelect: (nodeId: string) => void;
     onToggle: (nodeId: string) => void;
     onKeyDown: (event: KeyboardEvent<HTMLDivElement>, nodeId: string) => void;
@@ -57,6 +60,7 @@ export const HierarchyNode = memo(
             isActive,
             isTabbable,
             collapsed,
+            unread,
             onSelect,
             onToggle,
             onKeyDown,
@@ -107,6 +111,26 @@ export const HierarchyNode = memo(
                 <Icon name={NODE_TYPE_ICON[type]} size="sm" className="svr-hierarchy-node__icon" />
 
                 <span className="svr-hierarchy-node__label">{name}</span>
+
+                {/*
+                 * NT-1 / NT-2: what is waiting below this level, with mentions
+                 * kept separate from ordinary unread here exactly as they are
+                 * in the conversation list.
+                 */}
+                {unread && unread.mentions > 0 && (
+                    <Badge
+                        count={unread.mentions}
+                        tone="mention"
+                        label={CONVERSATION_COPY.mentionLabel(unread.mentions)}
+                    />
+                )}
+                {unread && unread.unread > 0 && (
+                    <Badge
+                        count={unread.unread}
+                        tone="unread"
+                        label={CONVERSATION_COPY.unreadLabel(unread.unread)}
+                    />
+                )}
 
                 {/* A11Y-5: the level is spoken, not inferred from the indent. */}
                 <span className="svr-visually-hidden">

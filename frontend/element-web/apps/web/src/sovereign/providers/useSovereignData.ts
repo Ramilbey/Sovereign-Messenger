@@ -221,7 +221,8 @@ function mapMatrixRoomToConversation(room: SovereignRoom): SovereignConversation
         unreadCount: room.unreadCount,
         mentionCount: room.mentionCount,
         isFavourite: room.isFavourite,
-        isMuted: room.isMuted,
+        notificationLevel: room.notificationLevel,
+        hasUrgent: room.hasUrgent,
     };
 }
 
@@ -246,7 +247,8 @@ function mapDemoChannelToConversation(
         unreadCount: 0,
         mentionCount: 0,
         isFavourite: false,
-        isMuted: false,
+        notificationLevel: "all",
+        hasUrgent: false,
     };
 }
 

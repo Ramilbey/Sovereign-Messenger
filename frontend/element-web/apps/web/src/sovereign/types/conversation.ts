@@ -8,6 +8,8 @@
  * third type impossible to present correctly.
  */
 
+import type { NotificationLevel } from "./notification";
+
 /** §12.2 Plane 2 — who the user is speaking with. */
 export type ConversationType = "channel" | "group" | "direct";
 
@@ -42,17 +44,19 @@ export interface SovereignConversation {
      * NT-1: unread messages as the server counts them.
      *
      * This is the authoritative per-conversation count carried on
-     * synchronisation, not a locally derived tally. The unread model that
-     * aggregates to module and organisation level, reconciles across tabs and
-     * devices, and distinguishes every level (NT-1, NT-2, ST-21) is delivered
-     * with the notification system; this is the per-conversation truth the
-     * platform already provides.
+     * synchronisation, not a locally derived tally — a local tally could not
+     * agree with another tab or another device (NT-8, EDGE-9, EDGE-10). The
+     * aggregation to module and organisation level is arithmetic over this
+     * number (see `summariseUnread`), so every level is drawn from the same
+     * truth the platform reports.
      */
     unreadCount: number;
     /** NT-2: mentions, kept distinct from ordinary unread at every level. */
     mentionCount: number;
     /** FR-47 / IA-8: favourites sort above all other groupings. */
     isFavourite: boolean;
-    /** FR-46 / NT-6: muted conversations stay listed but are counted out. */
-    isMuted: boolean;
+    /** NT-5 / FR-52 / NT-6: how much this conversation may interrupt. */
+    notificationLevel: NotificationLevel;
+    /** NT-9 / FR-53: an unread urgent official message is waiting here. */
+    hasUrgent: boolean;
 }

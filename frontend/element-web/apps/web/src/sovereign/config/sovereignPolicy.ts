@@ -35,6 +35,9 @@ interface PolicyDocument {
     media?: {
         use_authenticated_endpoint?: boolean;
     };
+    notifications?: {
+        urgency_key?: string;
+    };
 }
 
 export interface FilePolicy {
@@ -76,6 +79,20 @@ export interface MediaPolicy {
      * configuration change here, not a code change.
      */
     useAuthenticatedEndpoint: boolean;
+}
+
+export interface NotificationPolicy {
+    /**
+     * NT-9 / FR-53: how an official message declares itself urgent.
+     *
+     * The interface elevates an urgent message and lets it through a silenced
+     * conversation; what marks a message urgent is a workflow decision the
+     * pilot department owns, so the field carrying that mark is declared by the
+     * deployment rather than fixed in code. Sprint 3 delivers the reading side
+     * only — no composer control designates urgency (see the Sprint 3 outcome
+     * report, Product-owned work).
+     */
+    urgencyKey: string;
 }
 
 export interface SearchPolicy {
@@ -122,6 +139,7 @@ const PROVISIONAL: Required<PolicyDocument> = {
     receipts: { acknowledgement: "read-position" },
     search: { include_unsearchable_notice: true },
     media: { use_authenticated_endpoint: false },
+    notifications: { urgency_key: "uz.gov.urgent" },
 };
 
 let document: PolicyDocument | null = null;
@@ -158,6 +176,13 @@ export function getMediaPolicy(): MediaPolicy {
         useAuthenticatedEndpoint:
             document?.media?.use_authenticated_endpoint ??
             PROVISIONAL.media.use_authenticated_endpoint!,
+    };
+}
+
+export function getNotificationPolicy(): NotificationPolicy {
+    const key = document?.notifications?.urgency_key;
+    return {
+        urgencyKey: typeof key === "string" && key !== "" ? key : PROVISIONAL.notifications.urgency_key!,
     };
 }
 

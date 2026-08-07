@@ -28,6 +28,7 @@ import { useAcknowledgement, useReadReporting } from "../../hooks/useReceipts";
 import { AcknowledgementSummary } from "../chat/AcknowledgementSummary";
 import { MatrixReceiptService } from "../../services/MatrixReceiptService";
 import { ConversationHeader } from "../chat/ConversationHeader";
+import { NotificationLevelControl } from "../chat/NotificationLevelControl";
 import { MessageTimeline } from "../chat/MessageTimeline";
 import { TypingIndicator } from "../chat/TypingIndicator";
 import { MessageComposer } from "../chat/MessageComposer";
@@ -138,6 +139,15 @@ export function ChatArea(): JSX.Element {
                 memberCount={activeConversation?.memberCount ?? null}
                 topic={activeConversation?.topic}
                 loading={conversationsState === "loading" || !activeConversation}
+                actions={
+                    /* NT-5 / FR-52: the level for this conversation, set here. */
+                    activeConversation ? (
+                        <NotificationLevelControl
+                            conversationId={activeConversation.id}
+                            conversationName={activeConversation.name}
+                        />
+                    ) : null
+                }
             />
 
             <MessageTimeline

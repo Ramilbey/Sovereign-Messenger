@@ -16,6 +16,7 @@ import { HierarchyNode } from "./HierarchyNode";
 import { ModuleStateBoundary } from "../views/ModuleStateBoundary";
 import { NAVIGATION_COPY } from "../../config/navigationCopy";
 import { orgNodeName, type OrgLanguage, type OrgNode } from "../../types/organisation";
+import { hasUnread, type UnreadSummary } from "../../types/notification";
 import type { ResourceState } from "../../types/resource";
 
 interface Props {
@@ -29,6 +30,17 @@ interface Props {
     collapsed?: boolean;
     language?: OrgLanguage;
     onRetry?: () => void;
+    /**
+     * NT-1: everything waiting for this user, to be shown at the level they
+     * occupy and aggregated up through every level above it.
+     */
+    unread?: UnreadSummary;
+    /**
+     * The node the user's conversations belong to — their own position, not
+     * wherever they have navigated to (IA-3). A total shown against the node
+     * the user happens to be looking at would move as they browse.
+     */
+    unreadNodeId?: string;
 }
 
 /** One row as the user sees it, in visual order — the basis for arrow-key movement. */
@@ -64,6 +76,8 @@ export function GovernmentNavigation({
     collapsed = false,
     language = "uz",
     onRetry,
+    unread,
+    unreadNodeId,
 }: Props): JSX.Element {
     const [expanded, setExpanded] = useState<Set<string>>(() => new Set(ancestorIds(tree, activeNodeId)));
     const [focusedId, setFocusedId] = useState<string>(activeNodeId);
@@ -99,6 +113,17 @@ export function GovernmentNavigation({
         if (tree) walk(tree, 1, null);
         return result;
     }, [tree, expanded]);
+
+    /*
+     * NT-1: the total belongs to the node the user occupies and to every node
+     * above it, because a count at a level is what is waiting anywhere beneath
+     * it. Aggregation is up the same ancestry the tree already renders, so the
+     * figures cannot disagree with the tree.
+     */
+    const unreadNodeIds = useMemo(() => {
+        if (!unread || !hasUnread(unread) || !unreadNodeId) return new Set<string>();
+        return new Set<string>([...ancestorIds(tree, unreadNodeId), unreadNodeId]);
+    }, [tree, unread, unreadNodeId]);
 
     // A row can disappear when a branch is collapsed; keep the tab stop on a
     // row that still exists so the tree never loses its single entry point.
@@ -227,6 +252,7 @@ export function GovernmentNavigation({
                             isActive={row.node.id === activeNodeId}
                             isTabbable={row.node.id === tabbableId}
                             collapsed={collapsed}
+                            unread={unreadNodeIds.has(row.node.id) ? unread : undefined}
                             onSelect={onSelectNode}
                             onToggle={toggle}
                             onKeyDown={handleKeyDown}

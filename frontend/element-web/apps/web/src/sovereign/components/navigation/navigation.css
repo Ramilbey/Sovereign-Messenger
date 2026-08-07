@@ -129,6 +129,9 @@
 }
 
 .svr-hierarchy-node__label {
+    /* NT-1: the label yields the row's spare width to the unread badge. */
+    flex: 1 1 auto;
+    min-width: 0;
     overflow: hidden;
     text-overflow: ellipsis;
     white-space: nowrap;
@@ -216,6 +219,9 @@
 }
 
 .svr-module-nav__label {
+    /* NT-1: the label yields the row's spare width to the unread badge. */
+    flex: 1 1 auto;
+    min-width: 0;
     overflow: hidden;
     text-overflow: ellipsis;
     white-space: nowrap;
@@ -443,6 +449,26 @@
 .svr-conversation-item__flag {
     flex: none;
     color: var(--svr-content-secondary);
+}
+
+/*
+ * NT-9 / FR-53: an urgent official message is elevated in the list, and says
+ * so in words as well as in colour (A11Y-5).
+ */
+.svr-conversation-item__urgent {
+    flex: none;
+    padding: 0 var(--svr-space-2);
+    border-radius: var(--svr-radius-sm);
+    background: var(--svr-status-urgent-subtle);
+    color: var(--svr-status-urgent);
+    font-size: var(--svr-type-caption-size);
+    line-height: var(--svr-type-caption-line);
+    font-weight: var(--svr-type-body-strong-weight);
+    white-space: nowrap;
+}
+
+.svr-conversation-item.is-urgent {
+    box-shadow: inset var(--svr-space-1) 0 0 0 var(--svr-status-urgent);
 }
 
 .svr-conversation-item__time {

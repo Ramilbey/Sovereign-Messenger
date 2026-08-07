@@ -34,13 +34,13 @@ import { useOrganisation } from "../../hooks/useOrganisation";
 import { useBreakpoint } from "../../hooks/useBreakpoint";
 import { useFramePreferences } from "../../hooks/useFramePreferences";
 import { orgNodeName } from "../../types/organisation";
-import { scopeModulesToNode } from "../../config/workspaceModules";
+import { summariseUnread, type UnreadSummary } from "../../types/notification";
+import { MODULE_CONVERSATION_TYPE, scopeModulesToNode } from "../../config/workspaceModules";
 import { SessionLifecycleService } from "../../services/SessionLifecycleService";
 import { ConversationList } from "../navigation/ConversationList";
 import { SearchPanel } from "../navigation/SearchPanel";
 import { ConnectionBanner, IconButton } from "../ui";
 import { FRAME_COPY } from "../../config/navigationCopy";
-import type { ConversationType } from "../../types/conversation";
 
 export function SovereignLayout(): JSX.Element {
     /*
@@ -118,6 +118,36 @@ export function SovereignLayout(): JSX.Element {
     );
 
     /*
+     * NT-1: the unread model. Every level is the same arithmetic over the same
+     * conversations — the module totals, the organisational totals, and the
+     * conversation list are three views of one set, so they cannot disagree.
+     */
+    const unreadTotal = useMemo(() => summariseUnread(conversations), [conversations]);
+
+    const unreadByModule = useMemo(() => {
+        const totals = new Map<string, UnreadSummary>();
+
+        for (const module of modules) {
+            const type = MODULE_CONVERSATION_TYPE[module.id];
+
+            // FR-47 / IA-8: favourites are a set of their own, not a type.
+            const scope =
+                module.id === "favorites"
+                    ? conversations.filter((conversation) => conversation.isFavourite)
+                    : type
+                      ? conversations.filter((conversation) => conversation.type === type)
+                      : null;
+
+            // A module that holds no conversations gets no total, rather than a
+            // zero that would read as "nothing waiting" for a module that could
+            // never have anything waiting.
+            if (scope) totals.set(module.id, summariseUnread(scope));
+        }
+
+        return totals;
+    }, [conversations, modules]);
+
+    /*
      * PR-7 / NFR-8: the department shown in the frame is the name the
      * organisation model gives it, not the internal reference the identity
      * data carries.
@@ -163,12 +193,7 @@ export function SovereignLayout(): JSX.Element {
              * previous grouping treated every non-channel as a group, so
              * opening "Ishchi guruhlar" could select a direct conversation.
              */
-            const wanted: Record<string, ConversationType | undefined> = {
-                channels: "channel",
-                groups: "group",
-                direct_chats: "direct",
-            };
-            const type = wanted[modId];
+            const type = MODULE_CONVERSATION_TYPE[modId];
             if (type) {
                 const first = conversations.find((conversation) => conversation.type === type);
                 if (first) setActiveChannelId(first.id);
@@ -240,6 +265,9 @@ export function SovereignLayout(): JSX.Element {
             }
             language={organisation.language}
             onRetryOrganisation={organisation.retry}
+            unread={unreadTotal}
+            unreadNodeId={organisation.positionId}
+            unreadByModule={unreadByModule}
         />
     );
 

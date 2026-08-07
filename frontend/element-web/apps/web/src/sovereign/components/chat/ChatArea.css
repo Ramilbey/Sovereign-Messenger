@@ -45,6 +45,50 @@
     flex: 1;
 }
 
+/* NT-5: conversation-level controls, at the end of the header. */
+.svr-conversation-header__actions {
+    display: flex;
+    align-items: center;
+    gap: var(--svr-space-2);
+    flex: none;
+}
+
+.svr-notification-level {
+    display: flex;
+    align-items: center;
+    gap: var(--svr-space-1);
+    color: var(--svr-content-secondary);
+}
+
+.svr-notification-level__icon {
+    flex: none;
+}
+
+.svr-notification-level__select {
+    box-sizing: border-box;
+    min-height: var(--svr-control-height-sm);
+    padding-inline: var(--svr-space-2);
+    background-color: var(--svr-action-secondary-rest);
+    border: var(--svr-border-width-thin) solid var(--svr-border-default);
+    border-radius: var(--svr-radius-sm);
+    color: var(--svr-content-primary);
+    font-family: var(--svr-font-family-base);
+    font-size: var(--svr-type-caption-size);
+    line-height: var(--svr-type-caption-line);
+    cursor: pointer;
+}
+
+/* A11Y-2 / TOK-14: the one focus treatment, never removed. */
+.svr-notification-level__select:focus-visible {
+    outline: var(--svr-focus-ring-width) solid var(--svr-focus-ring-color);
+    outline-offset: var(--svr-focus-ring-offset);
+}
+
+.svr-notification-level__select:disabled {
+    cursor: default;
+    color: var(--svr-content-disabled);
+}
+
 .svr-conversation-header__name {
     margin: 0;
     font-size: var(--svr-type-heading-3-size);

@@ -10,12 +10,13 @@
 
 import React, { memo, type JSX } from "react";
 
-import { Icon } from "../ui";
-import { NAVIGATION_COPY } from "../../config/navigationCopy";
+import { Badge, Icon } from "../ui";
+import { CONVERSATION_COPY, NAVIGATION_COPY } from "../../config/navigationCopy";
 import {
     type WorkspaceModuleItem,
     TERGOV_WORKSPACE_MODULES,
 } from "../../config/workspaceModules";
+import type { UnreadSummary } from "../../types/notification";
 
 interface Props {
     activeModuleId: string;
@@ -23,6 +24,8 @@ interface Props {
     modules?: WorkspaceModuleItem[];
     /** NAV-1: icon-only rail when the sidebar is collapsed. */
     collapsed?: boolean;
+    /** NT-1: what is waiting in each module that holds conversations. */
+    unreadByModule?: ReadonlyMap<string, UnreadSummary>;
 }
 
 /** Sections in display order. A section with no modules is not rendered. */
@@ -42,6 +45,7 @@ export const WorkspaceNavigation = memo(function WorkspaceNavigation({
     onSelectModule,
     modules = TERGOV_WORKSPACE_MODULES,
     collapsed = false,
+    unreadByModule,
 }: Props): JSX.Element {
     return (
         <nav
@@ -60,6 +64,7 @@ export const WorkspaceNavigation = memo(function WorkspaceNavigation({
                         <ul className="svr-module-nav__list">
                             {items.map((item) => {
                                 const isActive = item.id === activeModuleId;
+                                const unread = unreadByModule?.get(item.id);
 
                                 return (
                                     <li key={item.id}>
@@ -82,6 +87,27 @@ export const WorkspaceNavigation = memo(function WorkspaceNavigation({
                                             >
                                                 {item.label}
                                             </span>
+
+                                            {/*
+                                             * NT-1 / NT-2: the module total,
+                                             * with mentions distinguished from
+                                             * ordinary unread as at every
+                                             * other level.
+                                             */}
+                                            {unread && unread.mentions > 0 && (
+                                                <Badge
+                                                    count={unread.mentions}
+                                                    tone="mention"
+                                                    label={CONVERSATION_COPY.mentionLabel(unread.mentions)}
+                                                />
+                                            )}
+                                            {unread && unread.unread > 0 && (
+                                                <Badge
+                                                    count={unread.unread}
+                                                    tone="unread"
+                                                    label={CONVERSATION_COPY.unreadLabel(unread.unread)}
+                                                />
+                                            )}
                                         </button>
                                     </li>
                                 );

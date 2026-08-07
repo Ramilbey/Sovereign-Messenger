@@ -20,8 +20,10 @@ import {
 } from "matrix-js-sdk/src/matrix";
 
 import { MatrixClientService } from "./MatrixClientService";
+import { MatrixNotificationService } from "./MatrixNotificationService";
 import type { ConversationPreview } from "../types/conversation";
 import type { MemberStatus, SovereignMember } from "../types/member";
+import type { NotificationLevel } from "../types/notification";
 
 export interface SovereignRoom {
     roomId: string;
@@ -50,8 +52,10 @@ export interface SovereignRoom {
     mentionCount: number;
     /** FR-47: room tagged as a favourite. */
     isFavourite: boolean;
-    /** FR-46: room-level notification rule suppresses notification. */
-    isMuted: boolean;
+    /** NT-5 / FR-52: the notification level the user has set for this room. */
+    notificationLevel: NotificationLevel;
+    /** NT-9 / FR-53: an unread urgent official message is waiting here. */
+    hasUrgent: boolean;
 }
 
 /** The Matrix tag denoting a favourite conversation (FR-47). */
@@ -325,6 +329,9 @@ export class MatrixRoomService {
             RoomEvent.Receipt,
             RoomEvent.Tags,
             RoomEvent.Name,
+            // NT-5: a notification level is a push rule, which arrives as
+            // account data — the list shows the level, so it must follow it.
+            ClientEvent.AccountData,
             RoomEvent.MyMembership,
             // SUX-9: a change of posting rights arrives as a room state event.
             RoomStateEvent.Events,
@@ -411,6 +418,7 @@ export class MatrixRoomService {
 
         const memberCount = typeof room.getJoinedMemberCount === "function" ? room.getJoinedMemberCount() : 0;
         const isDirect = memberCount <= 2 && !canonicalAlias;
+        const recent = this.readRecent(room);
 
         return {
             roomId: room.roomId,
@@ -422,11 +430,12 @@ export class MatrixRoomService {
             membership,
             memberCount,
             lastActivityAt: this.readLastActivity(room),
-            preview: this.readPreview(room),
+            preview: recent.preview,
             unreadCount: this.readNotificationCount(room, NotificationCountType.Total),
             mentionCount: this.readNotificationCount(room, NotificationCountType.Highlight),
             isFavourite: this.readIsFavourite(room),
-            isMuted: this.readIsMuted(room),
+            notificationLevel: MatrixNotificationService.getInstance().getLevel(room.roomId),
+            hasUrgent: recent.hasUrgent,
         };
     }
 
@@ -461,34 +470,58 @@ export class MatrixRoomService {
 
     /**
      * NAV-2: the last message, for the list preview.
+     * NT-9 / FR-53: whether an unread urgent official message is waiting.
      *
-     * Returns null when the most recent events carry nothing displayable —
-     * a preview is never invented from a state change or an undecryptable
-     * event (FR-35, COM-6).
+     * Both answers come from one walk of the recent events. They were two
+     * walks of the same forty events until the urgency requirement arrived,
+     * which would have doubled what every room costs to read (PERF-10).
+     *
+     * The preview is null when the most recent events carry nothing
+     * displayable — it is never invented from a state change or an
+     * undecryptable event (FR-35, COM-6).
      */
-    private readPreview(room: any): ConversationPreview | null {
+    private readRecent(room: any): { preview: ConversationPreview | null; hasUrgent: boolean } {
+        const notifications = MatrixNotificationService.getInstance();
+
         try {
             const timeline = typeof room.getLiveTimeline === "function" ? room.getLiveTimeline() : null;
             const events: any[] = timeline?.getEvents?.() ?? (Array.isArray(room.timeline) ? room.timeline : []);
 
+            const me = this.clientService.getClient()?.getUserId() ?? "";
+            const readUpTo: string | null =
+                me && typeof room.getEventReadUpTo === "function" ? room.getEventReadUpTo(me, true) : null;
+
+            let preview: ConversationPreview | null = null;
+            let hasUrgent = false;
+            // Everything from the end back to the read position is unread; an
+            // urgent message the user has already seen is not still waiting.
+            let stillUnread = true;
+
             const start = Math.max(0, events.length - PREVIEW_SCAN_LIMIT);
             for (let i = events.length - 1; i >= start; i--) {
                 const event = events[i];
+
+                if (readUpTo && event?.getId?.() === readUpTo) stillUnread = false;
                 if (typeof event?.getType !== "function" || event.getType() !== "m.room.message") continue;
 
-                const body = event.getContent?.()?.body;
-                if (typeof body !== "string" || body.length === 0) continue;
+                const content = event.getContent?.();
+                if (stillUnread && event.getSender?.() !== me && notifications.isUrgentContent(content)) {
+                    hasUrgent = true;
+                }
+
+                const body = content?.body;
+                if (preview !== null || typeof body !== "string" || body.length === 0) continue;
 
                 const senderId: string = event.getSender?.() ?? "";
                 const senderName: string =
                     room.getMember?.(senderId)?.name || event.sender?.name || senderId;
 
-                return { senderName, body };
+                preview = { senderName, body };
             }
 
-            return null;
+            return { preview, hasUrgent };
         } catch {
-            return null;
+            return { preview: null, hasUrgent: false };
         }
     }
 
@@ -496,28 +529,6 @@ export class MatrixRoomService {
     private readIsFavourite(room: any): boolean {
         try {
             return Boolean(room.tags?.[FAVOURITE_TAG]);
-        } catch {
-            return false;
-        }
-    }
-
-    /**
-     * FR-46 / NT-6: a room-level rule that suppresses notification is what the
-     * platform means by "muted". Read only — Sprint 3 presents this state; the
-     * per-conversation setting arrives with the notification system.
-     */
-    private readIsMuted(room: any): boolean {
-        const client = this.clientService.getClient();
-        if (!client) return false;
-
-        try {
-            const rule = client.getRoomPushRule("global", room.roomId);
-            if (!rule?.enabled) return false;
-
-            const actions: unknown[] = Array.isArray(rule.actions) ? rule.actions : [];
-            // Both the historic "dont_notify" action and the modern empty
-            // action list mean the same thing to the user.
-            return actions.length === 0 || actions.includes("dont_notify");
         } catch {
             return false;
         }

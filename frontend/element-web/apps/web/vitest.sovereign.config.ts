@@ -29,6 +29,13 @@ export default defineConfig({
         environment: "jsdom",
         globals: true,
         include: ["src/sovereign/__tests__/**/*.test.{ts,tsx}"],
+        /*
+         * The live two-user suite has a homeserver as a precondition and is run
+         * deliberately, through vitest.live.config.ts. Included here it failed
+         * this suite on every machine without one, which made the offline
+         * regression signal unreadable.
+         */
+        exclude: ["src/sovereign/__tests__/live/**"],
         setupFiles: ["./src/sovereign/__tests__/support/setup.ts"],
         css: false,
         reporters: [["default", { summary: true }]],

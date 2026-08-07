@@ -5,7 +5,9 @@
  * UI-18: panel state adjusted by the user persists across sessions.
  * UI-19: message density is user-selectable between comfortable and compact.
  *
- * Scope: layout preference only. This service stores no credentials, no
+ * NT-7: whether mentions and direct messages sound an alert, off by default.
+ *
+ * Scope: workstation preference only. This service stores no credentials, no
  * message content, and no Matrix state, and performs no network calls — so
  * unlike drafts, it is not cleared on sign-out: how a workstation is laid out
  * is a property of the workstation, not of the person signed in.
@@ -24,6 +26,14 @@ export interface FramePreferences {
     /** UI-14 / UI-15: the work module surface is shown beside the conversation. */
     workspaceOpen: boolean;
     density: MessageDensity;
+    /**
+     * NT-7: an audible alert for mentions and direct messages.
+     *
+     * Off until the user turns it on. A duty officer wants it; an open-plan
+     * office of investigators does not, and a government workstation must not
+     * start making noise on its own.
+     */
+    notificationSound: boolean;
 }
 
 /*
@@ -41,6 +51,7 @@ const DEFAULTS: FramePreferences = {
     panelOpen: true,
     workspaceOpen: false,
     density: "comfortable",
+    notificationSound: false,
 };
 
 export type FramePreferenceListener = (preferences: FramePreferences) => void;
@@ -110,6 +121,10 @@ export class FramePreferenceService {
                     stored.density === "compact" || stored.density === "comfortable"
                         ? stored.density
                         : DEFAULTS.density,
+                notificationSound:
+                    typeof stored.notificationSound === "boolean"
+                        ? stored.notificationSound
+                        : DEFAULTS.notificationSound,
             };
         } catch {
             this.preferences = { ...DEFAULTS };

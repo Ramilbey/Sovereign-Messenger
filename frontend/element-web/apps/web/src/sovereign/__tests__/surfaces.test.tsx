@@ -45,7 +45,8 @@ const conv = (over: Partial<SovereignConversation> & { id: string }): SovereignC
     unreadCount: 0,
     mentionCount: 0,
     isFavourite: false,
-    isMuted: false,
+    notificationLevel: "all",
+    hasUrgent: false,
     ...over,
 });
 
@@ -242,7 +243,7 @@ describe("NAV-2 / IA-6 / IA-8 — the conversation list", () => {
     it("counts a muted conversation out but keeps it listed (NT-6)", () => {
         render(
             <ConversationList
-                conversations={[conv({ id: "!m:gov", name: "Muted", unreadCount: 9, isMuted: true })]}
+                conversations={[conv({ id: "!m:gov", name: "Muted", unreadCount: 9, notificationLevel: "none" })]}
                 state="ready"
                 activeConversationId=""
                 onSelect={() => undefined}

@@ -15,6 +15,7 @@
  */
 
 import type { IconName } from "../components/ui/Icon";
+import type { ConversationType } from "../types/conversation";
 
 export interface WorkspaceModuleItem {
     id: string;
@@ -54,6 +55,20 @@ export const TERGOV_WORKSPACE_MODULES: WorkspaceModuleItem[] = [
     // 5. General Settings
     { id: "settings", label: "Sozlamalar", icon: "settings", category: "settings" },
 ];
+
+/**
+ * IA-6 / NT-1: which conversation type each communication module presents.
+ *
+ * One declaration, consumed both by the frame — which opens the matching
+ * conversation when a module is chosen — and by the unread model, which counts
+ * that module's conversations. Stated twice, a module could show the total of
+ * one set while opening another.
+ */
+export const MODULE_CONVERSATION_TYPE: Readonly<Record<string, ConversationType>> = {
+    channels: "channel",
+    groups: "group",
+    direct_chats: "direct",
+};
 
 /**
  * ORG-6 / IA-9 / IA-11: narrows a module catalogue to the modules the current

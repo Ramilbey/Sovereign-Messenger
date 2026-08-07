@@ -71,7 +71,6 @@ export const CONVERSATION_COPY = {
     /** CMP-19 state descriptions, so no state is carried by colour alone. */
     unreadLabel: (count: number): string => `${count} ta o'qilmagan xabar`,
     mentionLabel: (count: number): string => `${count} ta murojaat`,
-    mutedLabel: "Ovozsiz",
     favouriteLabel: "Sevimli",
     draftLabel: "Qoralama",
     noPreview: "Xabarlar yo'q",

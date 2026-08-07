@@ -14,6 +14,10 @@ export interface FakeMessage {
     status?: string;
     encrypted?: boolean;
     decryptionFailure?: boolean;
+    /** NT-9 / FR-53: carries the deployment's urgency designation. */
+    urgent?: boolean;
+    /** NT-2: the people this message declares it mentions. */
+    mentions?: string[];
 }
 
 export interface FakeRoomSpec {
@@ -27,7 +31,8 @@ export interface FakeRoomSpec {
     unread?: number;
     highlight?: number;
     favourite?: boolean;
-    muted?: boolean;
+    /** NT-5: the notification level the user has set for this room. */
+    level?: "all" | "mentions" | "none";
     lastActive?: number;
     canPost?: boolean;
     /** Earlier history the room can page in (FR-36). */
@@ -37,7 +42,11 @@ export interface FakeRoomSpec {
 function toEvent(m: FakeMessage): any {
     return {
         getType: () => (m.encrypted ? "m.room.encrypted" : "m.room.message"),
-        getContent: () => ({ body: m.body }),
+        getContent: () => ({
+            body: m.body,
+            ...(m.urgent ? { "uz.gov.urgent": true } : {}),
+            ...(m.mentions ? { "m.mentions": { user_ids: m.mentions } } : {}),
+        }),
         getId: () => m.id,
         getSender: () => m.sender,
         getTs: () => m.ts,
@@ -75,6 +84,10 @@ export function createFakeClient(specs: FakeRoomSpec[], userId = "@me:gov.uz") {
                 type === "highlight" ? (spec.highlight ?? 0) : (spec.unread ?? 0),
             getLiveTimeline: () => timeline,
             getEventReadUpTo: () => spec.messages?.[0]?.id ?? null,
+            getMember: (who: string) => {
+                const member = (spec.members ?? []).find((x) => x.id === who);
+                return member ? { name: member.name } : null;
+            },
             getMembers: () =>
                 (spec.members ?? []).map((member) => ({
                     userId: member.id,
@@ -108,9 +121,28 @@ export function createFakeClient(specs: FakeRoomSpec[], userId = "@me:gov.uz") {
         getUserId: () => userId,
         getRooms: () => rooms,
         getRoom: (id: string) => rooms.find((r) => r.roomId === id) ?? null,
+        /*
+         * NT-5: the three levels are expressed by which push rules exist — a
+         * room rule silences ordinary messages, an override rule silences
+         * everything including mentions.
+         */
+        pushRules: {
+            global: {
+                override: specs
+                    .filter((s) => s.level === "none")
+                    .map((s) => ({
+                        rule_id: s.id,
+                        enabled: true,
+                        actions: ["dont_notify"],
+                        conditions: [{ kind: "event_match", key: "room_id", pattern: s.id }],
+                    })),
+            },
+        },
         getRoomPushRule: (_scope: string, id: string) => {
             const spec = specs.find((s) => s.id === id);
-            return spec?.muted ? { enabled: true, actions: ["dont_notify"] } : undefined;
+            return spec?.level === "mentions"
+                ? { rule_id: id, enabled: true, actions: ["dont_notify"] }
+                : undefined;
         },
         paginateEventTimeline: async (tl: any) => {
             const room = rooms.find((r) => r.getLiveTimeline() === tl);

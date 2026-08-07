@@ -15,6 +15,7 @@ import { IconButton } from "../ui";
 import { NAVIGATION_COPY } from "../../config/navigationCopy";
 import type { WorkspaceModuleItem } from "../../config/workspaceModules";
 import type { OrgLanguage, OrgNode } from "../../types/organisation";
+import type { UnreadSummary } from "../../types/notification";
 import type { ResourceState } from "../../types/resource";
 import "../navigation/navigation.css";
 
@@ -32,6 +33,12 @@ interface SidebarProps {
     language?: OrgLanguage;
     /** ES-5: offered when the hierarchy could not be read. */
     onRetryOrganisation?: () => void;
+    /** NT-1: everything waiting for this user, aggregated up the hierarchy. */
+    unread?: UnreadSummary;
+    /** IA-3: the node the user's conversations belong to — their position. */
+    unreadNodeId?: string;
+    /** NT-1: what is waiting in each module that holds conversations. */
+    unreadByModule?: ReadonlyMap<string, UnreadSummary>;
 }
 
 export function Sidebar({
@@ -46,6 +53,9 @@ export function Sidebar({
     onToggleCollapsed,
     language = "uz",
     onRetryOrganisation,
+    unread,
+    unreadNodeId,
+    unreadByModule,
 }: SidebarProps): JSX.Element {
     return (
         <div
@@ -78,6 +88,8 @@ export function Sidebar({
                     collapsed={collapsed}
                     language={language}
                     onRetry={onRetryOrganisation}
+                    unread={unread}
+                    unreadNodeId={unreadNodeId}
                 />
 
                 <div className="svr-sidebar__divider" role="presentation" />
@@ -87,6 +99,7 @@ export function Sidebar({
                     onSelectModule={onSelectModule}
                     modules={modules}
                     collapsed={collapsed}
+                    unreadByModule={unreadByModule}
                 />
             </div>
         </div>

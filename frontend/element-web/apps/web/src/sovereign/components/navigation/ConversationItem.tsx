@@ -14,6 +14,8 @@ import React, { memo, type JSX } from "react";
 
 import { Avatar, Badge, Icon, type IconName } from "../ui";
 import { CONVERSATION_COPY } from "../../config/navigationCopy";
+import { NOTIFICATION_COPY, NOTIFICATION_LEVEL_LABEL } from "../../config/notificationCopy";
+import { countsTowardMentions, countsTowardUnread } from "../../types/notification";
 import {
     CONVERSATION_TYPE_LABEL,
     type ConversationType,
@@ -45,12 +47,14 @@ export const ConversationItem = memo(function ConversationItem({
     const typeLabel = CONVERSATION_TYPE_LABEL[conversation.type];
 
     /*
-     * NT-6: a muted conversation stays visible but is counted out, so its
+     * NT-6: a silenced conversation stays visible but is counted out, so its
      * unread total is not presented as something demanding attention.
-     * NT-2: a mention stays distinct from an ordinary unread even when muted.
+     * NT-2: a mention stays distinct from an ordinary unread at every level.
+     * NT-9: an urgent official message is shown through the silence.
      */
-    const showUnread = conversation.unreadCount > 0 && !conversation.isMuted;
-    const showMention = conversation.mentionCount > 0;
+    const showUnread = conversation.unreadCount > 0 && countsTowardUnread(conversation);
+    const showMention = conversation.mentionCount > 0 && countsTowardMentions(conversation);
+    const isSilenced = conversation.notificationLevel !== "all";
 
     return (
         <li>
@@ -60,8 +64,9 @@ export const ConversationItem = memo(function ConversationItem({
                 className={[
                     "svr-conversation-item",
                     isActive ? "is-active" : "",
-                    conversation.isMuted ? "is-muted" : "",
+                    isSilenced ? "is-muted" : "",
                     showUnread || showMention ? "is-unread" : "",
+                    conversation.hasUrgent ? "is-urgent" : "",
                 ]
                     .filter(Boolean)
                     .join(" ")}
@@ -90,13 +95,21 @@ export const ConversationItem = memo(function ConversationItem({
                                 className="svr-conversation-item__flag"
                             />
                         )}
-                        {conversation.isMuted && (
+                        {/* NT-5: which of the three levels is in force, in words. */}
+                        {isSilenced && (
                             <Icon
-                                name="bell-off"
+                                name={conversation.notificationLevel === "none" ? "bell-off" : "bell"}
                                 size="sm"
-                                label={CONVERSATION_COPY.mutedLabel}
+                                label={NOTIFICATION_LEVEL_LABEL[conversation.notificationLevel]}
                                 className="svr-conversation-item__flag"
                             />
+                        )}
+
+                        {/* NT-9 / A11Y-5: urgency is stated, never colour alone. */}
+                        {conversation.hasUrgent && (
+                            <span className="svr-conversation-item__urgent">
+                                {NOTIFICATION_COPY.urgentLabel}
+                            </span>
                         )}
 
                         {conversation.lastActivityAt !== null && (
