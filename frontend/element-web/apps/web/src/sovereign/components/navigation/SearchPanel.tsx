@@ -14,12 +14,13 @@
  * returns to whatever opened it on close.
  */
 
-import React, { memo, useEffect, useRef, type JSX } from "react";
+import React, { memo, useRef, type JSX } from "react";
 
 import { Button, EmptyState, ErrorState, Icon, IconButton, Spinner } from "../ui";
 import { SEARCH_COPY } from "../../config/searchCopy";
 import { SURFACE_COPY, RETRY_LABEL } from "../../config/stateCopy";
 import { useSearch } from "../../hooks/useSearch";
+import { useDialog } from "../../hooks/useDialog";
 import { useProfileViewer } from "../../context/ProfileContext";
 import type { SearchCategory, SearchResult } from "../../types/search";
 import "./navigation.css";
@@ -35,45 +36,9 @@ interface Props {
 export const SearchPanel = memo(function SearchPanel({ onClose, onOpenResult }: Props): JSX.Element {
     const search = useSearch();
     const { openProfile } = useProfileViewer();
-    const panel = useRef<HTMLDivElement | null>(null);
+    // A11Y-3 / CMP-47: focus enters, stays, and is put back on close.
+    const { ref: panel } = useDialog<HTMLDivElement>(onClose);
     const field = useRef<HTMLInputElement | null>(null);
-    const returnFocusTo = useRef<Element | null>(null);
-
-    useEffect(() => {
-        returnFocusTo.current = document.activeElement;
-        field.current?.focus();
-        return () => (returnFocusTo.current as HTMLElement | null)?.focus?.();
-    }, []);
-
-    useEffect(() => {
-        const onKeyDown = (event: KeyboardEvent): void => {
-            if (event.key === "Escape") {
-                event.preventDefault();
-                onClose();
-                return;
-            }
-            if (event.key !== "Tab") return;
-
-            const focusable = panel.current?.querySelectorAll<HTMLElement>(
-                'button, input, select, [href], [tabindex]:not([tabindex="-1"])',
-            );
-            if (!focusable || focusable.length === 0) return;
-
-            const first = focusable[0];
-            const last = focusable[focusable.length - 1];
-
-            if (event.shiftKey && document.activeElement === first) {
-                event.preventDefault();
-                last.focus();
-            } else if (!event.shiftKey && document.activeElement === last) {
-                event.preventDefault();
-                first.focus();
-            }
-        };
-
-        document.addEventListener("keydown", onKeyDown);
-        return () => document.removeEventListener("keydown", onKeyDown);
-    }, [onClose]);
 
     const select = (result: SearchResult): void => {
         // PR-2: a person found by search opens the same profile as a person
@@ -96,6 +61,7 @@ export const SearchPanel = memo(function SearchPanel({ onClose, onOpenResult }: 
                 <Icon name="search" size="md" className="svr-search__icon" />
                 <input
                     ref={field}
+                    data-svr-autofocus="true"
                     type="search"
                     className="svr-search__field"
                     value={search.query}

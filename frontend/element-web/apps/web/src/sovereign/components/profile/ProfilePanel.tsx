@@ -17,7 +17,7 @@
  * notification centre.
  */
 
-import React, { memo, useEffect, useRef, useState, type JSX } from "react";
+import React, { memo, useState, type JSX } from "react";
 
 import { Avatar, Button, EmptyState, ErrorState, IconButton, PresenceBadge, Spinner } from "../ui";
 import { PROFILE_COPY } from "../../config/profileCopy";
@@ -25,6 +25,7 @@ import { PRESENCE_COPY } from "../../config/presenceCopy";
 import { RETRY_LABEL } from "../../config/stateCopy";
 import { formatAbsoluteTime } from "../../config/timeCopy";
 import { useProfile, useProfileEditing, useSessions, useStartDirectConversation } from "../../hooks/useProfile";
+import { useDialog } from "../../hooks/useDialog";
 import { useManualPresence } from "../../hooks/usePresence";
 import { MatrixFileService } from "../../services/MatrixFileService";
 import { SELECTABLE_PRESENCE } from "../../types/presence";
@@ -50,49 +51,13 @@ export const ProfilePanel = memo(function ProfilePanel({
     const { manual, setManual } = useManualPresence();
     const sessions = useSessions(profile?.isSelf === true);
 
-    const panel = useRef<HTMLDivElement | null>(null);
-    const returnFocusTo = useRef<Element | null>(null);
+    // A11Y-3 / CMP-47: focus enters, stays, and is put back on close.
+    const { ref: panel } = useDialog<HTMLDivElement>(onClose);
 
     /** PR-4: what the user has typed but not yet saved. */
     const [draftName, setDraftName] = useState<string | null>(null);
     const [draftStatus, setDraftStatus] = useState<string | null>(null);
     const [notice, setNotice] = useState<string | null>(null);
-
-    useEffect(() => {
-        returnFocusTo.current = document.activeElement;
-        panel.current?.querySelector<HTMLElement>("button")?.focus();
-        return () => (returnFocusTo.current as HTMLElement | null)?.focus?.();
-    }, []);
-
-    useEffect(() => {
-        const onKeyDown = (event: KeyboardEvent): void => {
-            if (event.key === "Escape") {
-                event.preventDefault();
-                onClose();
-                return;
-            }
-            if (event.key !== "Tab") return;
-
-            const focusable = panel.current?.querySelectorAll<HTMLElement>(
-                'button, input, select, [href], [tabindex]:not([tabindex="-1"])',
-            );
-            if (!focusable || focusable.length === 0) return;
-
-            const first = focusable[0];
-            const last = focusable[focusable.length - 1];
-
-            if (event.shiftKey && document.activeElement === first) {
-                event.preventDefault();
-                last.focus();
-            } else if (!event.shiftKey && document.activeElement === last) {
-                event.preventDefault();
-                first.focus();
-            }
-        };
-
-        document.addEventListener("keydown", onKeyDown);
-        return () => document.removeEventListener("keydown", onKeyDown);
-    }, [onClose]);
 
     const openDirect = async (): Promise<void> => {
         try {
