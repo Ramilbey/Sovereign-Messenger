@@ -71,6 +71,26 @@ export function SovereignLayout(): JSX.Element {
         currentNodeId: activeNodeId,
     });
 
+    /*
+     * A11Y-12: the theme is applied to the document root, where the token
+     * definitions are scoped. It is set on the root rather than on the frame
+     * so overlays — search, the notification centre, a profile — are themed
+     * too, wherever the browser puts them.
+     */
+    useEffect(() => {
+        const root = document.documentElement;
+        const previous = root.getAttribute("data-svr-theme");
+
+        root.setAttribute("data-svr-theme", preferences.theme);
+        return () => {
+            if (previous === null) {
+                root.removeAttribute("data-svr-theme");
+            } else {
+                root.setAttribute("data-svr-theme", previous);
+            }
+        };
+    }, [preferences.theme]);
+
     // Observe sign-out so locally held drafts and outbox records do not
     // outlive the session on a shared workstation. Idempotent.
     useEffect(() => {
@@ -353,7 +373,8 @@ export function SovereignLayout(): JSX.Element {
             {/* UI-16: one surface at a time, chosen explicitly. */}
             {isCompact ? (
                 <>
-                    <div className="svr-compact-surface">
+                    {/* A11Y-6: one surface at a time, and it is the main one. */}
+                    <main className="svr-compact-surface">
                         <ConnectionBanner state={connectionState} />
                         {compactSurface === "organisation" && sidebar}
                         {compactSurface === "conversations" && conversationList}
@@ -361,7 +382,7 @@ export function SovereignLayout(): JSX.Element {
                         {compactSurface === "workspace" && (
                             <WorkspaceArea activeModuleId={activeModuleId} />
                         )}
-                    </div>
+                    </main>
 
                     <CompactNavigation active={compactSurface} onSelect={setCompactSurface} />
                 </>
@@ -375,7 +396,8 @@ export function SovereignLayout(): JSX.Element {
                      * location, directly above the working area. SUX-5: it is
                      * non-blocking — the content below stays readable.
                      */}
-                    <div className="svr-main">
+                    {/* A11Y-6: the working area is the document's main region. */}
+                    <main className="svr-main">
                         <ConnectionBanner state={connectionState} />
 
                         <div className="svr-main-toolbar">
@@ -410,7 +432,7 @@ export function SovereignLayout(): JSX.Element {
                                 />
                             )}
                         </div>
-                    </div>
+                    </main>
 
                     {panelOpen && (
                         <RightPanel

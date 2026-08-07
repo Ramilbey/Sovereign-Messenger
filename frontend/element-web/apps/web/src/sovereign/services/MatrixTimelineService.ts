@@ -230,9 +230,18 @@ export class MatrixTimelineService {
         const info = content?.info ?? {};
         const mimeType = typeof info?.mimetype === "string" ? info.mimetype : "application/octet-stream";
 
+        /*
+         * A11Y-8: a described image carries its filename separately, and its
+         * body is the description. Without a filename the body is the name,
+         * which is what every client sent before descriptions existed.
+         */
+        const filename = typeof content?.filename === "string" ? content.filename : "";
+        const body = typeof content?.body === "string" ? content.body : "";
+
         return {
             contentUri,
-            name: typeof content?.body === "string" ? content.body : "",
+            name: filename || body,
+            description: filename && body !== filename ? body : undefined,
             size: typeof info?.size === "number" ? info.size : null,
             mimeType,
             isImage: msgtype === "m.image" && isPreviewableImage(mimeType),

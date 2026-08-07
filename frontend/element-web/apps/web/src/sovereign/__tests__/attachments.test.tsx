@@ -47,6 +47,7 @@ describe("FR-24 — reviewing an attachment before sending", () => {
                 onRemove={onRemove}
                 onCancel={() => undefined}
                 onRetry={() => undefined}
+                onDescribe={() => undefined}
             />,
         );
 
@@ -66,6 +67,7 @@ describe("FR-25 / ST-12 — progress and cancellation", () => {
                 onRemove={() => undefined}
                 onCancel={() => undefined}
                 onRetry={() => undefined}
+                onDescribe={() => undefined}
             />,
         );
 
@@ -82,6 +84,7 @@ describe("FR-25 / ST-12 — progress and cancellation", () => {
                 onRemove={() => undefined}
                 onCancel={onCancel}
                 onRetry={() => undefined}
+                onDescribe={() => undefined}
             />,
         );
 
@@ -100,6 +103,7 @@ describe("FR-30 / ST-14 — recovering from failure", () => {
                 onRemove={() => undefined}
                 onCancel={() => undefined}
                 onRetry={onRetry}
+                onDescribe={() => undefined}
             />,
         );
 
@@ -114,6 +118,7 @@ describe("FR-30 / ST-14 — recovering from failure", () => {
                 onRemove={() => undefined}
                 onCancel={() => undefined}
                 onRetry={() => undefined}
+                onDescribe={() => undefined}
             />,
         );
         // The answer would not change, so a retry would be dishonest.
@@ -129,6 +134,7 @@ describe("FR-28 / FR-29 / SUX-11 — a refusal states the limit", () => {
                 onRemove={() => undefined}
                 onCancel={() => undefined}
                 onRetry={() => undefined}
+                onDescribe={() => undefined}
             />,
         );
 
@@ -142,6 +148,7 @@ describe("FR-28 / FR-29 / SUX-11 — a refusal states the limit", () => {
                 onRemove={() => undefined}
                 onCancel={() => undefined}
                 onRetry={() => undefined}
+                onDescribe={() => undefined}
             />,
         );
         expect(screen.getByText(/Ruxsat etilgan turlar/)).toBeTruthy();
@@ -154,6 +161,7 @@ describe("FR-28 / FR-29 / SUX-11 — a refusal states the limit", () => {
                 onRemove={() => undefined}
                 onCancel={() => undefined}
                 onRetry={() => undefined}
+                onDescribe={() => undefined}
             />,
         );
         // SUX-11: the refusal does not consume the user's selection.

@@ -5,6 +5,8 @@
  * UI-18: panel state adjusted by the user persists across sessions.
  * UI-19: message density is user-selectable between comfortable and compact.
  *
+ * A11Y-12: the interface theme, including the high-contrast theme, which is
+ * selectable independently of light and dark.
  * NT-7: whether mentions and direct messages sound an alert, off by default.
  *
  * Scope: workstation preference only. This service stores no credentials, no
@@ -18,6 +20,14 @@ const STORAGE_KEY = "sovereign_frame_preferences";
 /** UI-19: how much vertical room a message occupies. */
 export type MessageDensity = "comfortable" | "compact";
 
+/**
+ * TOK-3 / A11Y-12: the three themes the token library defines.
+ *
+ * High contrast is a choice of its own rather than a variant of dark: a reader
+ * who needs it needs it in daylight too.
+ */
+export type SovereignTheme = "dark" | "light" | "contrast";
+
 export interface FramePreferences {
     /** NAV-1: the organisation sidebar is collapsed to an icon rail. */
     sidebarCollapsed: boolean;
@@ -26,6 +36,8 @@ export interface FramePreferences {
     /** UI-14 / UI-15: the work module surface is shown beside the conversation. */
     workspaceOpen: boolean;
     density: MessageDensity;
+    /** A11Y-12: the theme in force, chosen by the user. */
+    theme: SovereignTheme;
     /**
      * NT-7: an audible alert for mentions and direct messages.
      *
@@ -51,6 +63,7 @@ const DEFAULTS: FramePreferences = {
     panelOpen: true,
     workspaceOpen: false,
     density: "comfortable",
+    theme: "dark",
     notificationSound: false,
 };
 
@@ -121,6 +134,10 @@ export class FramePreferenceService {
                     stored.density === "compact" || stored.density === "comfortable"
                         ? stored.density
                         : DEFAULTS.density,
+                theme:
+                    stored.theme === "light" || stored.theme === "contrast" || stored.theme === "dark"
+                        ? stored.theme
+                        : DEFAULTS.theme,
                 notificationSound:
                     typeof stored.notificationSound === "boolean"
                         ? stored.notificationSound

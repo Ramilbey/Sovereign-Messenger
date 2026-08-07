@@ -1001,3 +1001,25 @@ button.svr-member-item:focus-visible {
     padding: var(--svr-space-4);
     box-sizing: border-box;
 }
+
+/* A11Y-8: the sender's description of an image, written before it is sent. */
+.svr-attachment__description {
+    box-sizing: border-box;
+    width: 100%;
+    min-height: var(--svr-control-height-sm);
+    margin-block-start: var(--svr-space-1);
+    padding-inline: var(--svr-space-2);
+    background-color: var(--svr-surface-base);
+    border: var(--svr-border-width-thin) solid var(--svr-border-default);
+    border-radius: var(--svr-radius-sm);
+    color: var(--svr-content-primary);
+    font-family: var(--svr-font-family-base);
+    font-size: var(--svr-type-caption-size);
+    line-height: var(--svr-type-caption-line);
+}
+
+/* A11Y-2 / TOK-14: the one focus treatment, never removed. */
+.svr-attachment__description:focus-visible {
+    outline: var(--svr-focus-ring-width) solid var(--svr-focus-ring-color);
+    outline-offset: var(--svr-focus-ring-offset);
+}

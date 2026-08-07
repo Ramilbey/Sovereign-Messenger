@@ -26,6 +26,8 @@ interface Props {
     onRemove: (id: string) => void;
     onCancel: (id: string) => void;
     onRetry: (id: string) => void;
+    /** A11Y-8: records the sender's description of an image. */
+    onDescribe: (id: string, description: string) => void;
 }
 
 function stateLabel(attachment: PendingAttachment): string {
@@ -57,6 +59,7 @@ export const AttachmentPreview = memo(function AttachmentPreview({
     onRemove,
     onCancel,
     onRetry,
+    onDescribe,
 }: Props): JSX.Element {
     const isRejected = Boolean(attachment.rejection);
     const isUploading = attachment.state === "uploading";
@@ -84,6 +87,22 @@ export const AttachmentPreview = memo(function AttachmentPreview({
                     {/* FR-24: name, size, and type, stated exactly. */}
                     {formatBytes(attachment.size)} · {stateLabel(attachment)}
                 </span>
+
+                {/*
+                 * A11Y-8: the sender describes the image they are sending. A
+                 * filename is not a text alternative — "IMG_2043.jpg" tells a
+                 * reader using a screen reader nothing about what it shows.
+                 */}
+                {attachment.previewUrl && !isRejected && (
+                    <input
+                        type="text"
+                        className="svr-attachment__description"
+                        value={attachment.description ?? ""}
+                        placeholder={FILE_COPY.describePlaceholder}
+                        aria-label={`${FILE_COPY.describeLabel}: ${attachment.name}`}
+                        onChange={(event) => onDescribe(attachment.id, event.target.value)}
+                    />
+                )}
 
                 {/* FR-25: determinate progress, readable by assistive technology. */}
                 {isUploading && (

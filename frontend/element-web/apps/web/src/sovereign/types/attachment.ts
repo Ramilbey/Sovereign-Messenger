@@ -28,6 +28,13 @@ export interface PendingAttachment {
     contentUri?: string;
     /** CMP-35: an object URL for previewing an image before it is sent. */
     previewUrl?: string;
+    /**
+     * A11Y-8: a description of the image, written by the sender.
+     *
+     * A filename is not a text alternative: "IMG_2043.jpg" tells a reader
+     * using a screen reader nothing about the scene it shows.
+     */
+    description?: string;
 }
 
 /** FR-26: an attachment as it appears in a conversation. */
@@ -41,6 +48,8 @@ export interface MessageAttachment {
     isImage: boolean;
     width?: number;
     height?: number;
+    /** A11Y-8: the sender's description, where they wrote one. */
+    description?: string;
 }
 
 /** FR-26: whether a type is presented inline or as a document card. */

@@ -73,4 +73,8 @@ export const FILE_COPY = {
     tooLarge: (limit: string): string => `Fayl juda katta. Ruxsat etilgan hajm: ${limit}`,
     unsupportedType: (types: string): string =>
         `Bu turdagi fayllarni yuborib bo'lmaydi. Ruxsat etilgan turlar: ${types}`,
+
+    /** A11Y-8: the sender's own description of an image. */
+    describeLabel: "Rasm tavsifi",
+    describePlaceholder: "Rasmda nima aks etgan? (ixtiyoriy)",
 } as const;

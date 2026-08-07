@@ -98,6 +98,8 @@ export function ChatArea(): JSX.Element {
                         size: attachment.size,
                         mimeType: attachment.mimeType,
                         isImage: isPreviewableImage(attachment.mimeType),
+                        // A11Y-8: the description travels with the image.
+                        description: attachment.description,
                     });
                 }
 
@@ -206,6 +208,7 @@ export function ChatArea(): JSX.Element {
                                         onRemove={upload.remove}
                                         onCancel={upload.cancel}
                                         onRetry={upload.retry}
+                                        onDescribe={upload.describe}
                                     />
                                 ))}
                             </ul>

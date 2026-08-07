@@ -100,6 +100,12 @@ export const FRAME_COPY = {
     densityComfortable: "Keng",
     densityCompact: "Ixcham",
 
+    /** A11Y-12 / TOK-3: the theme, selectable by the user. */
+    themeLabel: "Mavzu",
+    themeDark: "Tungi",
+    themeLight: "Kunduzgi",
+    themeContrast: "Yuqori kontrast",
+
     /** Supporting panel headings (PR-7, ORG-7, FR-17). */
     panelLabel: "Yordamchi panel",
     panelCurrentUser: "Joriy foydalanuvchi",

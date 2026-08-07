@@ -179,9 +179,17 @@ export class MatrixFileService {
         const client = this.clientService.getClient();
         if (!client || !roomId) return null;
 
+        /*
+         * A11Y-8: where the sender described the image, the description is the
+         * body — which is what a reader hears — and the filename is carried
+         * beside it, so nothing about the file is lost.
+         */
+        const described = attachment.description?.trim();
+
         const content = {
             msgtype: attachment.isImage ? "m.image" : "m.file",
-            body: attachment.name,
+            body: described || attachment.name,
+            filename: attachment.name,
             url: attachment.contentUri,
             info: {
                 mimetype: attachment.mimeType,

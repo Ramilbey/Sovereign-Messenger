@@ -107,6 +107,31 @@ export function RightPanel({ overlay = false, onClose }: RightPanelProps): JSX.E
             <section className="svr-panel-section">
                 <h2 className="svr-panel-section__heading">{FRAME_COPY.panelDisplay}</h2>
 
+                {/* A11Y-12: the high-contrast theme is chosen here, alongside
+                    light and dark rather than beneath either of them. */}
+                <fieldset className="svr-panel-choice">
+                    <legend className="svr-panel-choice__legend">{FRAME_COPY.themeLabel}</legend>
+
+                    {(
+                        [
+                            ["dark", FRAME_COPY.themeDark],
+                            ["light", FRAME_COPY.themeLight],
+                            ["contrast", FRAME_COPY.themeContrast],
+                        ] as const
+                    ).map(([value, label]) => (
+                        <label key={value} className="svr-panel-choice__option">
+                            <input
+                                type="radio"
+                                name="svr-theme"
+                                value={value}
+                                checked={preferences.theme === value}
+                                onChange={() => update({ theme: value })}
+                            />
+                            <span>{label}</span>
+                        </label>
+                    ))}
+                </fieldset>
+
                 <fieldset className="svr-panel-choice">
                     <legend className="svr-panel-choice__legend">{FRAME_COPY.densityLabel}</legend>
 

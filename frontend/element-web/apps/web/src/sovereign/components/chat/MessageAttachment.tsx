@@ -68,12 +68,14 @@ export const MessageAttachment = memo(function MessageAttachment({
                     type="button"
                     className="svr-image-preview"
                     onClick={() => setViewerOpen(true)}
-                    aria-label={`${FILE_COPY.openImage}: ${attachment.name}`}
+                    aria-label={`${FILE_COPY.openImage}: ${attachment.description || attachment.name}`}
                 >
                     <img
                         className="svr-image-preview__image"
                         src={thumbnailUrl ?? fullUrl}
-                        alt={attachment.name}
+                        /* A11Y-8: the sender's description where they wrote
+                           one; the filename is the fallback. */
+                        alt={attachment.description || attachment.name}
                         loading="lazy"
                         onError={() => setImageFailed(true)}
                     />
@@ -83,7 +85,7 @@ export const MessageAttachment = memo(function MessageAttachment({
                 {viewerOpen && (
                     <ImageViewer
                         src={fullUrl}
-                        name={attachment.name}
+                        name={attachment.description || attachment.name}
                         onClose={() => setViewerOpen(false)}
                     />
                 )}

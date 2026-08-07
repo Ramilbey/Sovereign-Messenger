@@ -27,6 +27,8 @@ export interface UploadApi {
     cancel: (id: string) => void;
     /** FR-30: retries a failed transfer without re-selecting the file. */
     retry: (id: string) => void;
+    /** A11Y-8: the sender's description of an image, before it is sent. */
+    describe: (id: string, description: string) => void;
     /** Transfers everything queued and returns what completed. */
     uploadAll: () => Promise<PendingAttachment[]>;
     clear: () => void;
@@ -161,6 +163,11 @@ export function useUpload(): UploadApi {
         [attachments, transfer],
     );
 
+    const describe = useCallback(
+        (id: string, description: string) => patch(id, { description }),
+        [patch],
+    );
+
     const uploadAll = useCallback(async (): Promise<PendingAttachment[]> => {
         const pending = attachments.filter((a) => a.state === "queued" || a.state === "failed");
         if (pending.length === 0) return [];
@@ -181,5 +188,5 @@ export function useUpload(): UploadApi {
         setAttachments([]);
     }, [attachments]);
 
-    return { attachments, add, remove, cancel, retry, uploadAll, clear };
+    return { attachments, add, remove, cancel, retry, describe, uploadAll, clear };
 }
