@@ -11,6 +11,7 @@
  */
 
 import React, { useState, useEffect, useCallback, type JSX } from "react";
+import { Icon } from "../ui";
 import "./PolicyModal.css";
 
 const STORAGE_KEY = "sovereign_policy_accepted";
@@ -36,7 +37,8 @@ export function PolicyModal(): JSX.Element | null {
         <div id="sovereign-policy-backdrop" className="svr-policy-backdrop">
             <div id="sovereign-policy-modal" className="svr-policy-modal">
                 <div className="svr-policy-header">
-                    <span className="svr-policy-emblem">🏛</span>
+                    {/* TOK-13 / UI-8: institutional iconography, not an emoji. */}
+                    <Icon name="building" size="lg" className="svr-policy-emblem" />
                     <div className="svr-policy-header-titles">
                         <span className="svr-policy-gov-title">
                             O'zbekiston Respublikasi Davlat Xizmati
@@ -51,7 +53,8 @@ export function PolicyModal(): JSX.Element | null {
                     {/* Section 1: Government Usage Policy */}
                     <div className="svr-policy-section">
                         <div className="svr-policy-section-title">
-                            <span>📜</span> 1. Davlat foydalanish siyosati (Workspace Policy)
+                            <Icon name="document" size="sm" /> 1. Davlat foydalanish siyosati
+                            (Workspace Policy)
                         </div>
                         <p className="svr-policy-section-text">
                             Usbu tizim O'zbekiston Respublikasi davlat organlari va tashkilotlarida axborot xavfsizligi hamda xizmat axborotlaridan foydalanish bo'yicha belgilangan me'yoriy-huquqiy hujjatlarga muvofiq faqat rasmiy xizmat vazifalarini bajarish uchun mo'ljallangan. Tizim resurslaridan asossiz foydalanish qat'iyan man etiladi.
@@ -61,7 +64,8 @@ export function PolicyModal(): JSX.Element | null {
                     {/* Section 2: Communication Policy */}
                     <div className="svr-policy-section">
                         <div className="svr-policy-section-title">
-                            <span>🔒</span> 2. Muloqot va axborot xavfsizligi siyosati (Communication Policy)
+                            <Icon name="lock" size="sm" /> 2. Muloqot va axborot xavfsizligi
+                            siyosati (Communication Policy)
                         </div>
                         <p className="svr-policy-section-text">
                             Tizim ichidagi barcha yozishmalar, yuborilgan hujjatlar, xabarlar va biriktirilgan fayllar rasmiy axborot hisoblanadi. Tizimdan shaxsiy maqsadlarda muloqot qilish, ruxsatsiz fayllar uzatish va maxfiy ma'lumotlarni uchinchi shaxslarga oshkor etish qonunan javobgarlikka sabab bo'ladi.

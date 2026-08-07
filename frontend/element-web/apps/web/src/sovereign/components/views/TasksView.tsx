@@ -1,12 +1,14 @@
 /*
  * Sovereign Messenger — Step 8
  * TasksView.tsx — Workspace view for Tasks module.
+ * TOK-13 / AC-16: institutional iconography, never an emoji.
  * Backed by useTasks() hook.
  */
 
 import React, { memo, type JSX } from "react";
 import { useTasks } from "../../providers/useSovereignData";
 import { ModuleStateBoundary } from "./ModuleStateBoundary";
+import { Icon } from "../ui";
 import "./ModuleViews.css";
 
 export const TasksView = memo(function TasksView(): JSX.Element {
@@ -15,7 +17,7 @@ export const TasksView = memo(function TasksView(): JSX.Element {
     return (
         <div id="module-view-tasks" className="svr-module-view-root">
             <div className="svr-module-header">
-                <span className="svr-module-header-icon">✅</span>
+                <Icon name="task" size="md" className="svr-module-header-icon" />
                 <span className="svr-module-header-title">Vazifalar</span>
                 {state === "ready" && (<span className="svr-module-header-count">{tasks.length} ta vazifa</span>)}
             </div>

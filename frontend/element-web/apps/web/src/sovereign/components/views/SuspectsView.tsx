@@ -1,12 +1,14 @@
 /*
  * Sovereign Messenger — Sprint 1, Step 9
- * SuspectsView.tsx — Workspace view for Tergov Suspects module (👤 Gumonlanuvchilar).
+ * SuspectsView.tsx — Workspace view for Tergov Suspects module (Gumonlanuvchilar).
+ * TOK-13 / AC-16: institutional iconography, never an emoji.
  * Backed by useSuspects() hook.
  */
 
 import React, { memo, type JSX } from "react";
 import { useSuspects } from "../../providers/useSovereignData";
 import { ModuleStateBoundary } from "./ModuleStateBoundary";
+import { Icon } from "../ui";
 import "./ModuleViews.css";
 
 export const SuspectsView = memo(function SuspectsView(): JSX.Element {
@@ -15,7 +17,7 @@ export const SuspectsView = memo(function SuspectsView(): JSX.Element {
     return (
         <div id="module-view-suspects" className="svr-module-view-root">
             <div className="svr-module-header">
-                <span className="svr-module-header-icon">👤</span>
+                <Icon name="person" size="md" className="svr-module-header-icon" />
                 <span className="svr-module-header-title">Gumonlanuvchilar</span>
                 {state === "ready" && (<span className="svr-module-header-count">{suspects.length} ta shaxs</span>)}
             </div>

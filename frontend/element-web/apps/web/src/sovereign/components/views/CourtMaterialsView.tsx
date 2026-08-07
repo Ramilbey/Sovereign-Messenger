@@ -1,12 +1,14 @@
 /*
  * Sovereign Messenger — Sprint 1, Step 9
- * CourtMaterialsView.tsx — Workspace view for Tergov Court Materials module (⚖ Sud materiallari).
+ * CourtMaterialsView.tsx — Workspace view for Tergov Court Materials module (Sud materiallari).
+ * TOK-13 / AC-16: institutional iconography, never an emoji.
  * Backed by useCourtMaterials() hook.
  */
 
 import React, { memo, type JSX } from "react";
 import { useCourtMaterials } from "../../providers/useSovereignData";
 import { ModuleStateBoundary } from "./ModuleStateBoundary";
+import { Icon } from "../ui";
 import "./ModuleViews.css";
 
 export const CourtMaterialsView = memo(function CourtMaterialsView(): JSX.Element {
@@ -15,7 +17,7 @@ export const CourtMaterialsView = memo(function CourtMaterialsView(): JSX.Elemen
     return (
         <div id="module-view-court-materials" className="svr-module-view-root">
             <div className="svr-module-header">
-                <span className="svr-module-header-icon">⚖</span>
+                <Icon name="scale" size="md" className="svr-module-header-icon" />
                 <span className="svr-module-header-title">Sud Materiallari</span>
                 {state === "ready" && (<span className="svr-module-header-count">{materials.length} ta material</span>)}
             </div>

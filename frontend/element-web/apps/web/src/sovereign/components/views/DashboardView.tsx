@@ -1,12 +1,14 @@
 /*
  * Sovereign Messenger — Step 8
  * DashboardView.tsx — Workspace view for Dashboard module.
+ * TOK-13 / AC-16: institutional iconography, never an emoji.
  * Backed by useDashboard() hook.
  */
 
 import React, { memo, type JSX } from "react";
 import { useDashboard } from "../../providers/useSovereignData";
 import { ModuleStateBoundary } from "./ModuleStateBoundary";
+import { Icon } from "../ui";
 import "./ModuleViews.css";
 
 export const DashboardView = memo(function DashboardView(): JSX.Element {
@@ -15,7 +17,7 @@ export const DashboardView = memo(function DashboardView(): JSX.Element {
     return (
         <div id="module-view-dashboard" className="svr-module-view-root">
             <div className="svr-module-header">
-                <span className="svr-module-header-icon">📊</span>
+                <Icon name="chart" size="md" className="svr-module-header-icon" />
                 <span className="svr-module-header-title">Dashboard</span>
                 {state === "ready" && (<span className="svr-module-header-count">Statistika</span>)}
             </div>

@@ -1,12 +1,14 @@
 /*
  * Sovereign Messenger — Sprint 1, Step 9
- * CasesView.tsx — Workspace view for Tergov Cases module (🗂 Ishlar).
+ * CasesView.tsx — Workspace view for Tergov Cases module (Ishlar).
+ * TOK-13 / AC-16: institutional iconography, never an emoji.
  * Backed by useCases() hook.
  */
 
 import React, { memo, type JSX } from "react";
 import { useCases } from "../../providers/useSovereignData";
 import { ModuleStateBoundary } from "./ModuleStateBoundary";
+import { Icon } from "../ui";
 import "./ModuleViews.css";
 
 export const CasesView = memo(function CasesView(): JSX.Element {
@@ -15,7 +17,7 @@ export const CasesView = memo(function CasesView(): JSX.Element {
     return (
         <div id="module-view-cases" className="svr-module-view-root">
             <div className="svr-module-header">
-                <span className="svr-module-header-icon">🗂</span>
+                <Icon name="briefcase" size="md" className="svr-module-header-icon" />
                 <span className="svr-module-header-title">Tergov Ishlari</span>
                 {state === "ready" && (<span className="svr-module-header-count">{cases.length} ta ish</span>)}
             </div>

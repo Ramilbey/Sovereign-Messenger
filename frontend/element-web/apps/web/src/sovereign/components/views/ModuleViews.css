@@ -28,12 +28,13 @@
     align-items: center;
     gap: var(--svr-space-3);
     margin-bottom: var(--svr-space-5);
-    padding-bottom: 14px;
+    padding-bottom: var(--svr-space-3);
     border-bottom: 1px solid var(--svr-border-default);
 }
 
 .svr-module-header-icon {
-    font-size: var(--svr-type-display-size);
+    flex: none;
+    color: var(--svr-brand-primary);
 }
 
 .svr-module-header-title {
@@ -139,7 +140,9 @@
 }
 
 .svr-document-icon {
-    font-size: var(--svr-type-heading-1-size);
+    display: inline-flex;
+    flex: none;
+    color: var(--svr-content-secondary);
 }
 
 .svr-document-title {

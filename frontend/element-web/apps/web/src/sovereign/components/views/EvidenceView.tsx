@@ -1,18 +1,21 @@
 /*
  * Sovereign Messenger — Sprint 1, Step 9
- * EvidenceView.tsx — Workspace view for Tergov Evidence module (📷 Dalillar).
+ * EvidenceView.tsx — Workspace view for Tergov Evidence module (Dalillar).
+ * TOK-13 / AC-16: institutional iconography, never an emoji.
  * Backed by useEvidence() hook.
  */
 
 import React, { memo, type JSX } from "react";
 import { useEvidence } from "../../providers/useSovereignData";
 import { ModuleStateBoundary } from "./ModuleStateBoundary";
+import { Icon, type IconName } from "../ui";
 import "./ModuleViews.css";
 
-const TYPE_ICONS: Record<string, string> = {
-    physical: "📦",
-    digital: "💾",
-    document: "📄",
+/* TOK-13: the evidence kind is an institutional icon beside its own label. */
+const TYPE_ICONS: Record<string, IconName> = {
+    physical: "briefcase",
+    digital: "image",
+    document: "document",
 };
 
 export const EvidenceView = memo(function EvidenceView(): JSX.Element {
@@ -21,7 +24,7 @@ export const EvidenceView = memo(function EvidenceView(): JSX.Element {
     return (
         <div id="module-view-evidence" className="svr-module-view-root">
             <div className="svr-module-header">
-                <span className="svr-module-header-icon">📷</span>
+                <Icon name="image" size="md" className="svr-module-header-icon" />
                 <span className="svr-module-header-title">Dalillar</span>
                 {state === "ready" && (<span className="svr-module-header-count">{evidence.length} ta dalil</span>)}
             </div>
@@ -33,7 +36,8 @@ export const EvidenceView = memo(function EvidenceView(): JSX.Element {
                             <div className="svr-inv-card-row">
                                 <div>
                                     <div className="svr-inv-card-title">
-                                        {TYPE_ICONS[e.type] || "📷"} {e.description}
+                                        <Icon name={TYPE_ICONS[e.type] ?? "image"} size="sm" />{" "}
+                                        {e.description}
                                     </div>
                                     <div className="svr-inv-card-meta">
                                         Ish: <span className="svr-inv-card-accent">#{e.caseNumber}</span>{" "}

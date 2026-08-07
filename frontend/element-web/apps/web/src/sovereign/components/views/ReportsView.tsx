@@ -1,12 +1,14 @@
 /*
  * Sovereign Messenger — Sprint 1, Step 9
- * ReportsView.tsx — Workspace view for Tergov Reports module (📜 Bayonnomalar).
+ * ReportsView.tsx — Workspace view for Tergov Reports module (Bayonnomalar).
+ * TOK-13 / AC-16: institutional iconography, never an emoji.
  * Backed by useReports() hook.
  */
 
 import React, { memo, type JSX } from "react";
 import { useReports } from "../../providers/useSovereignData";
 import { ModuleStateBoundary } from "./ModuleStateBoundary";
+import { Icon } from "../ui";
 import "./ModuleViews.css";
 
 export const ReportsView = memo(function ReportsView(): JSX.Element {
@@ -15,7 +17,7 @@ export const ReportsView = memo(function ReportsView(): JSX.Element {
     return (
         <div id="module-view-records" className="svr-module-view-root">
             <div className="svr-module-header">
-                <span className="svr-module-header-icon">📜</span>
+                <Icon name="document" size="md" className="svr-module-header-icon" />
                 <span className="svr-module-header-title">Bayonnomalar</span>
                 {state === "ready" && (<span className="svr-module-header-count">{reports.length} ta bayonnoma</span>)}
             </div>

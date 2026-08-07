@@ -1,12 +1,14 @@
 /*
  * Sovereign Messenger — Step 8
  * MembersView.tsx — Workspace view for Members/Users module.
+ * TOK-13 / AC-16: institutional iconography, never an emoji.
  * Backed by useUsers() hook.
  */
 
 import React, { memo, type JSX } from "react";
 import { useUsers } from "../../providers/useSovereignData";
 import { ModuleStateBoundary } from "./ModuleStateBoundary";
+import { Icon } from "../ui";
 import { roleLabel } from "../../config/roleCopy";
 import "./ModuleViews.css";
 
@@ -16,7 +18,7 @@ export const MembersView = memo(function MembersView(): JSX.Element {
     return (
         <div id="module-view-members" className="svr-module-view-root">
             <div className="svr-module-header">
-                <span className="svr-module-header-icon">👥</span>
+                <Icon name="people" size="md" className="svr-module-header-icon" />
                 <span className="svr-module-header-title">Xodimlar</span>
                 {state === "ready" && (<span className="svr-module-header-count">{users.length} ta xodim</span>)}
             </div>
