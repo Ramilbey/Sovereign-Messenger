@@ -278,6 +278,62 @@ describe("NT-9 / FR-53 — an urgent message in the conversation list", () => {
     });
 });
 
+describe("NT-3 / NT-4 / NT-7 — the notification centre surface", () => {
+    const messages = [
+        { id: "$read", sender: "@a:gov", senderName: "Aziz", body: "O'qilgan", ts: 1 },
+        { id: "$new", sender: "@a:gov", senderName: "Aziz", body: "Yangi xabar", ts: 2 },
+    ];
+
+    async function open(specs: FakeRoomSpec[]) {
+        useServices(specs);
+        const { NotificationCentre } = await import("../components/navigation/NotificationCentre");
+        const onOpenEntry = vi.fn();
+        const onClose = vi.fn();
+
+        render(<NotificationCentre onClose={onClose} onOpenEntry={onOpenEntry} />);
+        return { onOpenEntry, onClose };
+    }
+
+    it("lists what is waiting, and opens an entry at its source (NT-3)", async () => {
+        const { onOpenEntry } = await open([{ id: "!g:gov", name: "Tergov", messages }]);
+
+        expect(screen.getByText(/Yangi xabar/)).toBeTruthy();
+
+        fireEvent.click(screen.getByText(/Yangi xabar/));
+        expect(onOpenEntry).toHaveBeenCalledWith("!g:gov", "$new");
+    });
+
+    it("says so plainly when nothing is waiting (ES-1)", async () => {
+        await open([{ id: "!g:gov", name: "Tergov" }]);
+        expect(screen.getByText(NOTIFICATION_COPY.emptyTitle)).toBeTruthy();
+    });
+
+    it("offers marking one and marking all as read (NT-4)", async () => {
+        await open([{ id: "!g:gov", name: "Tergov", messages }]);
+
+        expect(screen.getByLabelText(NOTIFICATION_COPY.markRead)).toBeTruthy();
+        expect(screen.getByText(NOTIFICATION_COPY.markAllRead)).toBeTruthy();
+    });
+
+    it("keeps the audible alert off until the user turns it on (NT-7)", async () => {
+        await open([{ id: "!g:gov", name: "Tergov", messages }]);
+
+        const toggle = () =>
+            screen.getByLabelText(new RegExp(NOTIFICATION_COPY.soundLabel)) as HTMLInputElement;
+
+        expect(toggle().checked).toBe(false);
+        fireEvent.click(toggle());
+        expect(toggle().checked).toBe(true);
+    });
+
+    it("closes on Escape without taking the reader anywhere (A11Y-1 / NT-10)", async () => {
+        const { onClose } = await open([{ id: "!g:gov", name: "Tergov", messages }]);
+
+        fireEvent.keyDown(document, { key: "Escape" });
+        expect(onClose).toHaveBeenCalled();
+    });
+});
+
 describe("FR-52 — setting the level from the conversation", () => {
     it("offers the three levels and writes the choice to the platform", async () => {
         const { notifications } = useServices([{ id: "!g:gov", name: "Tergov" }]);

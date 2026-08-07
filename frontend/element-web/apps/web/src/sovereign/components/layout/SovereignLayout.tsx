@@ -35,10 +35,12 @@ import { useBreakpoint } from "../../hooks/useBreakpoint";
 import { useFramePreferences } from "../../hooks/useFramePreferences";
 import { orgNodeName } from "../../types/organisation";
 import { summariseUnread, type UnreadSummary } from "../../types/notification";
+import { useNotificationAlert } from "../../hooks/useNotifications";
 import { MODULE_CONVERSATION_TYPE, scopeModulesToNode } from "../../config/workspaceModules";
 import { SessionLifecycleService } from "../../services/SessionLifecycleService";
 import { ConversationList } from "../navigation/ConversationList";
 import { SearchPanel } from "../navigation/SearchPanel";
+import { NotificationCentre } from "../navigation/NotificationCentre";
 import { ConnectionBanner, IconButton } from "../ui";
 import { FRAME_COPY } from "../../config/navigationCopy";
 
@@ -53,6 +55,8 @@ export function SovereignLayout(): JSX.Element {
     const [compactSurface, setCompactSurface] = useState<CompactSurface>("conversations");
     /** NAV-4 / SR-2: global search, reachable from any screen. */
     const [searchOpen, setSearchOpen] = useState(false);
+    /** NT-3: the notification centre, reachable from the application header. */
+    const [notificationsOpen, setNotificationsOpen] = useState(false);
 
     const { getAllowedModules, currentUser } = usePermissions();
     const { activeChannelId, setActiveChannelId, conversations, conversationsState } = useChat();
@@ -152,6 +156,23 @@ export function SovereignLayout(): JSX.Element {
      * organisation model gives it, not the internal reference the identity
      * data carries.
      */
+    /*
+     * NT-7 / A11Y-7: what has just arrived, announced politely and — where the
+     * user has asked for it — sounded. Direct messages and mentions only: an
+     * officer is not alerted for every message in every official channel.
+     */
+    const directUnread = useMemo(
+        () =>
+            summariseUnread(conversations.filter((conversation) => conversation.type === "direct"))
+                .unread,
+        [conversations],
+    );
+    const announcement = useNotificationAlert(
+        unreadTotal.mentions,
+        directUnread,
+        preferences.notificationSound,
+    );
+
     const departmentLabel = useMemo(() => {
         const bolim = organisation.path.find((node) => node.type === "Bolim");
         return bolim ? orgNodeName(bolim, organisation.language) : null;
@@ -303,12 +324,27 @@ export function SovereignLayout(): JSX.Element {
                 currentUser={currentUser}
                 departmentLabel={departmentLabel}
                 onOpenSearch={() => setSearchOpen(true)}
+                onOpenNotifications={() => setNotificationsOpen(true)}
+                unread={unreadTotal}
                 language={organisation.language}
             />
+
+            {/* A11Y-7: arrivals are announced without taking the user's focus. */}
+            <p className="svr-visually-hidden" role="status" aria-live="polite">
+                {announcement}
+            </p>
 
             {/* NAV-4 / SR-2: global search overlays the frame from any screen. */}
             {searchOpen && (
                 <SearchPanel onClose={() => setSearchOpen(false)} onOpenResult={handleOpenResult} />
+            )}
+
+            {/* NT-3 / NT-10: overlays the supporting side, never the composer. */}
+            {notificationsOpen && (
+                <NotificationCentre
+                    onClose={() => setNotificationsOpen(false)}
+                    onOpenEntry={handleOpenResult}
+                />
             )}
 
             {/* UI-16: one surface at a time, chosen explicitly. */}

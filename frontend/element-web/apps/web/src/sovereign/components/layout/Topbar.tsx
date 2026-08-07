@@ -25,8 +25,10 @@
 import React, { memo, type JSX } from "react";
 
 import { Breadcrumb } from "../navigation/Breadcrumb";
-import { Avatar, ConnectionStatus, IconButton } from "../ui";
+import { Avatar, Badge, ConnectionStatus, IconButton } from "../ui";
 import { SEARCH_COPY } from "../../config/searchCopy";
+import { NOTIFICATION_COPY } from "../../config/notificationCopy";
+import { hasUnread, type UnreadSummary } from "../../types/notification";
 import { FRAME_COPY } from "../../config/navigationCopy";
 import type { ConnectionState } from "../../services/ConnectionStateService";
 import type { OrgLanguage, OrgNode } from "../../types/organisation";
@@ -51,6 +53,10 @@ interface TopbarProps {
      */
     departmentLabel: string | null;
     language?: OrgLanguage;
+    /** NT-3: opens the notification centre. */
+    onOpenNotifications: () => void;
+    /** NT-1: what is waiting across the whole organisation. */
+    unread: UnreadSummary;
 }
 
 export const Topbar = memo(function Topbar({
@@ -61,6 +67,8 @@ export const Topbar = memo(function Topbar({
     currentUser,
     departmentLabel,
     onOpenSearch,
+    onOpenNotifications,
+    unread,
     language = "uz",
 }: TopbarProps): JSX.Element {
     return (
@@ -91,6 +99,28 @@ export const Topbar = memo(function Topbar({
                     variant="ghost"
                     onClick={onOpenSearch}
                 />
+
+                {/*
+                  * NT-1 / NT-3: the organisation-level total, and the way in
+                  * to what produced it. The control states what is waiting, so
+                  * the badge is not the only carrier (A11Y-5, A11Y-6).
+                  */}
+                <span className="svr-topbar__notifications">
+                    <IconButton
+                        icon="bell"
+                        label={NOTIFICATION_COPY.openWith(unread.unread, unread.mentions)}
+                        variant="ghost"
+                        onClick={onOpenNotifications}
+                    />
+                    {hasUnread(unread) && (
+                        <Badge
+                            count={unread.mentions > 0 ? unread.mentions : unread.unread}
+                            tone={unread.mentions > 0 ? "mention" : "unread"}
+                            label={NOTIFICATION_COPY.aggregateLabel(unread.unread, unread.mentions)}
+                            className="svr-topbar__notifications-badge"
+                        />
+                    )}
+                </span>
 
                 <ConnectionStatus state={connectionState} />
 

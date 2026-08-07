@@ -9,9 +9,10 @@
  * Per Blueprint §8, this consumes a service and never reads the platform SDK.
  */
 
-import { useCallback, useEffect, useMemo, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 
 import { MatrixNotificationService } from "../services/MatrixNotificationService";
+import { NOTIFICATION_COPY } from "../config/notificationCopy";
 import { isDemoMode } from "../config/SovereignConfig";
 import { ready, unavailable, type SovereignResource } from "../types/resource";
 import type { NotificationEntry, NotificationLevel } from "../types/notification";
@@ -69,6 +70,71 @@ export function useNotificationActions(): NotificationActions {
     }, [demo]);
 
     return { markRead, markAllRead };
+}
+
+/**
+ * NT-7 / A11Y-7: what to announce when something arrives, and the alert.
+ *
+ * Driven by the totals the unread model already holds rather than by the
+ * notification feed: a rise in what is waiting is the same fact, and reading it
+ * from the totals costs nothing, where re-reading every conversation on every
+ * synchronisation to find out would (PERF-10).
+ *
+ * A11Y-7: the announcement is polite — a colleague's message must not interrupt
+ * an officer mid-sentence.
+ */
+export function useNotificationAlert(mentions: number, directUnread: number, enabled: boolean): string {
+    const [announcement, setAnnouncement] = useState("");
+    const previous = useRef<{ mentions: number; direct: number } | null>(null);
+
+    useEffect(() => {
+        const before = previous.current;
+        previous.current = { mentions, direct: directUnread };
+
+        // The first reading establishes the baseline: what was already waiting
+        // when the application opened has not just arrived.
+        if (!before) return;
+
+        const arrived = mentions > before.mentions || directUnread > before.direct;
+        if (!arrived) return;
+
+        setAnnouncement(NOTIFICATION_COPY.aggregateLabel(directUnread, mentions));
+        if (enabled) playAlert();
+    }, [mentions, directUnread, enabled]);
+
+    return announcement;
+}
+
+/**
+ * A short tone, synthesised rather than loaded.
+ *
+ * A government deployment should not have to ship, cache, and approve an audio
+ * asset for one beep, and a synthesised tone cannot fail to load. Silently does
+ * nothing where the browser gives no audio context — an alert that cannot sound
+ * is not an error worth interrupting anyone for.
+ */
+function playAlert(): void {
+    try {
+        const Ctor =
+            (globalThis as any).AudioContext ?? (globalThis as any).webkitAudioContext ?? null;
+        if (!Ctor) return;
+
+        const context = new Ctor();
+        const oscillator = context.createOscillator();
+        const gain = context.createGain();
+
+        oscillator.type = "sine";
+        oscillator.frequency.value = 880;
+        gain.gain.value = 0.05;
+
+        oscillator.connect(gain);
+        gain.connect(context.destination);
+        oscillator.start();
+        oscillator.stop(context.currentTime + 0.12);
+        oscillator.onended = () => void context.close?.();
+    } catch {
+        // No audio available; the visible notification still stands.
+    }
 }
 
 export interface NotificationLevelApi {

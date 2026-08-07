@@ -649,3 +649,164 @@
     line-height: var(--svr-type-caption-line);
     text-align: center;
 }
+
+/* ── CMP-42 Notification centre ──────────────────────────────────────────── */
+
+/*
+ * NT-10: anchored to the supporting side of the frame below the header, so it
+ * covers neither the composer nor the message being read.
+ */
+.svr-notifications {
+    position: fixed;
+    inset-block-start: var(--svr-frame-header-height);
+    inset-inline-end: 0;
+    inset-block-end: 0;
+    z-index: 9;
+    display: flex;
+    flex-direction: column;
+    box-sizing: border-box;
+    width: 100%;
+    max-width: calc(var(--svr-frame-panel-width) * 1.5);
+    background-color: var(--svr-surface-raised);
+    border-inline-start: var(--svr-border-width-thin) solid var(--svr-border-default);
+    box-shadow: var(--svr-shadow-overlay);
+    font-family: var(--svr-font-family-base);
+    color: var(--svr-content-primary);
+    overflow: hidden;
+}
+
+.svr-notifications__bar {
+    display: flex;
+    align-items: center;
+    gap: var(--svr-space-2);
+    flex: none;
+    padding: var(--svr-space-3);
+    border-block-end: var(--svr-border-width-thin) solid var(--svr-border-default);
+}
+
+.svr-notifications__title {
+    flex: 1;
+    margin: 0;
+    min-width: 0;
+    font-size: var(--svr-type-heading-3-size);
+    font-weight: var(--svr-type-heading-3-weight);
+    line-height: var(--svr-type-heading-3-line);
+}
+
+/* NT-7: the alert setting sits with the notifications it governs. */
+.svr-notifications__sound {
+    display: flex;
+    align-items: flex-start;
+    gap: var(--svr-space-2);
+    flex: none;
+    padding: var(--svr-space-3);
+    border-block-end: var(--svr-border-width-thin) solid var(--svr-border-subtle);
+    cursor: pointer;
+}
+
+.svr-notifications__sound-label {
+    display: block;
+    font-size: var(--svr-type-body-size);
+    line-height: var(--svr-type-body-line);
+}
+
+.svr-notifications__sound-hint {
+    display: block;
+    color: var(--svr-content-secondary);
+    font-size: var(--svr-type-caption-size);
+    line-height: var(--svr-type-caption-line);
+}
+
+.svr-notifications__list-region {
+    flex: 1;
+    min-height: 0;
+    overflow-y: auto;
+}
+
+.svr-notifications__list {
+    list-style: none;
+    margin: 0;
+    padding: 0;
+}
+
+.svr-notifications__item {
+    display: flex;
+    align-items: center;
+    gap: var(--svr-space-1);
+    padding-inline-end: var(--svr-space-2);
+    border-block-end: var(--svr-border-width-thin) solid var(--svr-border-subtle);
+}
+
+.svr-notifications__entry {
+    display: flex;
+    flex-direction: column;
+    gap: var(--svr-space-1);
+    flex: 1;
+    min-width: 0;
+    padding: var(--svr-space-3);
+    background: none;
+    border: 0;
+    color: inherit;
+    font-family: var(--svr-font-family-base);
+    text-align: start;
+    cursor: pointer;
+}
+
+.svr-notifications__entry:hover {
+    background-color: var(--svr-surface-hover);
+}
+
+/* A11Y-2 / TOK-14: the one focus treatment, never removed. */
+.svr-notifications__entry:focus-visible {
+    outline: var(--svr-focus-ring-width) solid var(--svr-focus-ring-color);
+    outline-offset: var(--svr-focus-ring-offset);
+}
+
+/* NT-9: an urgent official message is elevated in the centre as in the list. */
+.svr-notifications__entry.is-urgent {
+    box-shadow: inset var(--svr-space-1) 0 0 0 var(--svr-status-urgent);
+}
+
+.svr-notifications__entry-line {
+    display: flex;
+    align-items: center;
+    gap: var(--svr-space-2);
+    min-width: 0;
+}
+
+.svr-notifications__entry-icon {
+    flex: none;
+    color: var(--svr-content-secondary);
+}
+
+.svr-notifications__entry-name {
+    flex: 0 1 auto;
+    min-width: 0;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+    font-weight: var(--svr-type-body-strong-weight);
+}
+
+.svr-notifications__entry-kind,
+.svr-notifications__entry-time {
+    flex: none;
+    color: var(--svr-content-secondary);
+    font-size: var(--svr-type-caption-size);
+    line-height: var(--svr-type-caption-line);
+    white-space: nowrap;
+}
+
+.svr-notifications__entry-time {
+    margin-inline-start: auto;
+}
+
+/* EDGE-16: a long message truncates rather than breaking the layout. */
+.svr-notifications__entry-body {
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+    color: var(--svr-content-secondary);
+    font-size: var(--svr-type-caption-size);
+    line-height: var(--svr-type-caption-line);
+}

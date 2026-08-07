@@ -82,6 +82,20 @@
     flex: none;
 }
 
+/* NT-1: the organisation-level total sits on its control in the header. */
+.svr-topbar__notifications {
+    position: relative;
+    display: inline-flex;
+    flex: none;
+}
+
+.svr-topbar__notifications-badge {
+    position: absolute;
+    inset-block-start: 0;
+    inset-inline-end: 0;
+    pointer-events: none;
+}
+
 .svr-topbar__user {
     display: flex;
     align-items: center;
