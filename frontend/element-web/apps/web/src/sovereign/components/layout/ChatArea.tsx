@@ -49,6 +49,8 @@ export function ChatArea(): JSX.Element {
         isLoadingEarlierMessages,
         loadEarlierMessages,
         readUpToId,
+        removalNotice,
+        dismissRemovalNotice,
     } = useChat();
     const { currentUser, canPostInChannel } = usePermissions();
 
@@ -151,6 +153,20 @@ export function ChatArea(): JSX.Element {
                     ) : null
                 }
             />
+
+            {/* EDGE-7: the conversation they were in is gone, said once. */}
+            {removalNotice && (
+                <div className="svr-removal-notice" role="status" aria-live="polite">
+                    <span>{removalNotice}</span>
+                    <button
+                        type="button"
+                        className="svr-removal-notice__dismiss"
+                        onClick={dismissRemovalNotice}
+                    >
+                        {CHAT_COPY.conversationRemovedDismiss}
+                    </button>
+                </div>
+            )}
 
             <MessageTimeline
                 messages={messages}

@@ -12,7 +12,7 @@
  * from the shared state boundary, so this surface cannot invent its own copy.
  */
 
-import React, { memo, useMemo, useState, type JSX } from "react";
+import React, { memo, useCallback, useEffect, useMemo, useRef, useState, type JSX } from "react";
 
 import { ConversationItem } from "./ConversationItem";
 import { ModuleStateBoundary } from "../views/ModuleStateBoundary";
@@ -60,6 +60,21 @@ interface ConversationGroup {
     items: SovereignConversation[];
 }
 
+/**
+ * EDGE-1: how many conversations are put in the document at once.
+ *
+ * A department with five thousand conversations must not pay for five
+ * thousand rows to see the first twenty — measured at 5,000, rendering the
+ * lot costs over two seconds, against comfortably under a tenth of that for
+ * a window. More is rendered as the user scrolls towards the end of it, so
+ * the list is complete to anyone who scrolls and instant to everyone else
+ * (PERF-10).
+ */
+const RENDER_WINDOW = 60;
+
+/** How close to the end the reader must come before more is rendered. */
+const EXTEND_THRESHOLD_PX = 400;
+
 export const ConversationList = memo(function ConversationList({
     conversations,
     state,
@@ -73,6 +88,7 @@ export const ConversationList = memo(function ConversationList({
 }: ConversationListProps): JSX.Element {
     const [typeFilter, setTypeFilter] = useState<TypeFilter>("all");
     const [sortMode, setSortMode] = useState<SortMode>("recent");
+    const [windowSize, setWindowSize] = useState<number>(RENDER_WINDOW);
 
     const groups = useMemo<ConversationGroup[]>(() => {
         const visible =
@@ -119,6 +135,45 @@ export const ConversationList = memo(function ConversationList({
 
         return result;
     }, [conversations, typeFilter, sortMode]);
+
+    /*
+     * EDGE-1: the window covers the groups in order, so the first group is
+     * complete before the second begins — a reader scrolling down meets the
+     * rows in the order the list presents them, never a gap.
+     */
+    const visibleGroups = useMemo<ConversationGroup[]>(() => {
+        let remaining = windowSize;
+        const result: ConversationGroup[] = [];
+
+        for (const group of groups) {
+            if (remaining <= 0) break;
+            result.push({ ...group, items: group.items.slice(0, remaining) });
+            remaining -= group.items.length;
+        }
+
+        return result;
+    }, [groups, windowSize]);
+
+    const total = useMemo(
+        () => groups.reduce((count, group) => count + group.items.length, 0),
+        [groups],
+    );
+
+    // A change of filter or sort presents a different list; it starts at the
+    // top, so it starts with one window again.
+    useEffect(() => setWindowSize(RENDER_WINDOW), [typeFilter, sortMode]);
+
+    const scroll = useRef<HTMLElement | null>(null);
+
+    const onScroll = useCallback(() => {
+        const element = scroll.current;
+        if (!element) return;
+
+        const remaining = element.scrollHeight - element.scrollTop - element.clientHeight;
+        if (remaining > EXTEND_THRESHOLD_PX) return;
+
+        setWindowSize((size) => (size >= total ? size : size + RENDER_WINDOW));
+    }, [total]);
 
     const isFiltered = typeFilter !== "all";
     const hasResults = groups.length > 0;
@@ -168,8 +223,13 @@ export const ConversationList = memo(function ConversationList({
                 loadingRows={6}
             >
                 {hasResults ? (
-                    <nav className="svr-conversation-list__scroll" aria-label={CONVERSATION_COPY.listLabel}>
-                        {groups.map((group) => (
+                    <nav
+                        ref={scroll}
+                        className="svr-conversation-list__scroll"
+                        aria-label={CONVERSATION_COPY.listLabel}
+                        onScroll={onScroll}
+                    >
+                        {visibleGroups.map((group) => (
                             <section key={group.key} className="svr-conversation-list__group">
                                 <h3 className="svr-conversation-list__heading">{group.heading}</h3>
                                 <ul className="svr-conversation-list__items">

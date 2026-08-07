@@ -26,6 +26,11 @@ export const CHAT_COPY = {
     readOnlyChannel: "Ushbu rasmiy kanalda xabarlarni faqat rahbarlar yuboradi.",
     readOnlyConversation: "Ushbu suhbatda xabar yuborish imkoni yo'q.",
 
+    /* EDGE-7: the conversation is gone, and the reader is told once, plainly. */
+    conversationRemoved: (name: string): string =>
+        `"${name}" suhbati endi mavjud emas. U ro'yxatdan olib tashlandi.`,
+    conversationRemovedDismiss: "Tushunarli",
+
     /** SUX-9: a change of posting rights, explained at the point of effect. */
     postingGranted: "Endi ushbu suhbatda xabar yuborishingiz mumkin.",
     postingRevoked: "Ushbu suhbatda xabar yuborish imkoni olib tashlandi. Yozgan matningiz saqlanib qoldi.",

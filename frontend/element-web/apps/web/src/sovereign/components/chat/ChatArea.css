@@ -1023,3 +1023,34 @@ button.svr-member-item:focus-visible {
     outline: var(--svr-focus-ring-width) solid var(--svr-focus-ring-color);
     outline-offset: var(--svr-focus-ring-offset);
 }
+
+/* EDGE-7: a conversation that is gone is reported once, without blocking. */
+.svr-removal-notice {
+    display: flex;
+    align-items: center;
+    gap: var(--svr-space-3);
+    flex: none;
+    padding: var(--svr-space-2) var(--svr-space-4);
+    background-color: var(--svr-status-warning-subtle);
+    color: var(--svr-content-primary);
+    font-size: var(--svr-type-caption-size);
+    line-height: var(--svr-type-caption-line);
+}
+
+.svr-removal-notice__dismiss {
+    margin-inline-start: auto;
+    padding: 0;
+    background: none;
+    border: 0;
+    color: var(--svr-brand-emphasis);
+    font-family: var(--svr-font-family-base);
+    font-size: var(--svr-type-caption-size);
+    line-height: var(--svr-type-caption-line);
+    cursor: pointer;
+}
+
+/* A11Y-2 / TOK-14: the one focus treatment, never removed. */
+.svr-removal-notice__dismiss:focus-visible {
+    outline: var(--svr-focus-ring-width) solid var(--svr-focus-ring-color);
+    outline-offset: var(--svr-focus-ring-offset);
+}

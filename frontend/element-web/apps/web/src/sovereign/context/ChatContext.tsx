@@ -12,9 +12,16 @@ import { useOutbox } from "../hooks/useOutbox";
 import type { ResourceState } from "../types/resource";
 import { useConversations, useMessages, type SovereignMessage } from "../providers/useSovereignData";
 import type { SovereignConversation } from "../types/conversation";
+import { CHAT_COPY } from "../config/chatCopy";
 
 
 export interface ChatContextValue {
+    /**
+     * EDGE-7: the conversation the user was in is no longer available, stated
+     * once. Null when there is nothing to report.
+     */
+    removalNotice: string | null;
+    dismissRemovalNotice: () => void;
     activeChannelId: string;
     setActiveChannelId: (channelId: string) => void;
     /** The conversation now open, with the metadata its header needs (FR-44). */
@@ -44,13 +51,31 @@ export function ChatProvider({
     children,
 }: ChatProviderProps): JSX.Element {
     const [activeChannelId, setActiveChannelId] = useState<string>(defaultChannelId);
+    const [removalNotice, setRemovalNotice] = useState<string | null>(null);
     const { data: conversations, state: conversationsState } = useConversations();
 
+    /*
+     * EDGE-7: a conversation the user is reading can be removed under them —
+     * they are taken out of it, or it is made inaccessible. Moving them
+     * silently to another conversation would leave them writing into the
+     * wrong one; leaving them where they were would leave them on a broken
+     * screen. They are moved, and told once why.
+     */
+    const known = React.useRef<Map<string, string>>(new Map());
+
     React.useEffect(() => {
-        if (conversations.length > 0 && !conversations.some((c) => c.id === activeChannelId)) {
-            setActiveChannelId(conversations[0].id);
-        }
-    }, [conversations, activeChannelId]);
+        conversations.forEach((conversation) => known.current.set(conversation.id, conversation.name));
+
+        if (conversationsState !== "ready" || conversations.length === 0) return;
+        if (conversations.some((c) => c.id === activeChannelId)) return;
+
+        const name = known.current.get(activeChannelId);
+        if (name) setRemovalNotice(CHAT_COPY.conversationRemoved(name));
+
+        setActiveChannelId(conversations[0].id);
+    }, [conversations, conversationsState, activeChannelId]);
+
+    const dismissRemovalNotice = useCallback(() => setRemovalNotice(null), []);
 
     // Sending goes through the outbox; this hook supplies the timeline only.
     const {
@@ -110,6 +135,8 @@ export function ChatProvider({
             activeChannelId,
             setActiveChannelId,
             activeConversation,
+            removalNotice,
+            dismissRemovalNotice,
             conversations,
             conversationsState,
             messages,
@@ -122,6 +149,8 @@ export function ChatProvider({
         [
             activeChannelId,
             activeConversation,
+            removalNotice,
+            dismissRemovalNotice,
             conversations,
             conversationsState,
             messages,
