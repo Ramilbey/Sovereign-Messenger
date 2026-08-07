@@ -30,7 +30,7 @@ interface MemberListItemProps {
     presence?: SovereignPresence;
     /** CMP-12 selected state, where the surface tracks a selection. */
     isSelected?: boolean;
-    /** PR-2: opens the person's profile. Absent until profiles exist (M5). */
+    /** PR-2: opens the person's profile. */
     onSelect?: (memberId: string) => void;
 }
 
@@ -94,9 +94,9 @@ export const MemberListItem = memo(function MemberListItem({
         .join(" ");
 
     /*
-     * UX-8: the row is only a control where it leads somewhere. Until profiles
-     * exist there is nowhere to go, so it is presented as information rather
-     * than as a button that does nothing when pressed.
+     * UX-8: the row is only a control where it leads somewhere. A surface that
+     * offers no profile presents the person as information rather than as a
+     * button that does nothing when pressed.
      */
     if (!onSelect) {
         return <li className={className}>{content}</li>;

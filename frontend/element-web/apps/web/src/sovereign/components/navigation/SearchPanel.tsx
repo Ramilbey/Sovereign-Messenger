@@ -20,6 +20,7 @@ import { Button, EmptyState, ErrorState, Icon, IconButton, Spinner } from "../ui
 import { SEARCH_COPY } from "../../config/searchCopy";
 import { SURFACE_COPY, RETRY_LABEL } from "../../config/stateCopy";
 import { useSearch } from "../../hooks/useSearch";
+import { useProfileViewer } from "../../context/ProfileContext";
 import type { SearchCategory, SearchResult } from "../../types/search";
 import "./navigation.css";
 
@@ -33,6 +34,7 @@ interface Props {
 
 export const SearchPanel = memo(function SearchPanel({ onClose, onOpenResult }: Props): JSX.Element {
     const search = useSearch();
+    const { openProfile } = useProfileViewer();
     const panel = useRef<HTMLDivElement | null>(null);
     const field = useRef<HTMLInputElement | null>(null);
     const returnFocusTo = useRef<Element | null>(null);
@@ -74,6 +76,14 @@ export const SearchPanel = memo(function SearchPanel({ onClose, onOpenResult }: 
     }, [onClose]);
 
     const select = (result: SearchResult): void => {
+        // PR-2: a person found by search opens the same profile as a person
+        // found anywhere else — not the conversation they happen to share.
+        if (result.category === "people") {
+            openProfile(result.id);
+            onClose();
+            return;
+        }
+
         if (!result.conversationId) return;
         onOpenResult(result.conversationId, result.eventId);
         onClose();

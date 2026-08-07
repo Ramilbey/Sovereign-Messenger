@@ -18,10 +18,12 @@ import { useMembers } from "../../hooks/useMembers";
 import { usePresenceFor } from "../../hooks/usePresence";
 import { useOrganization } from "../../providers/useSovereignData";
 import { useFramePreferences } from "../../hooks/useFramePreferences";
+import { useProfileViewer } from "../../context/ProfileContext";
 import { Avatar, IconButton } from "../ui";
 import { MemberList } from "../chat/MemberList";
 import { FRAME_COPY } from "../../config/navigationCopy";
 import { roleLabel } from "../../config/roleCopy";
+import { PROFILE_COPY } from "../../config/profileCopy";
 import "./panel.css";
 
 interface RightPanelProps {
@@ -38,6 +40,8 @@ export function RightPanel({ overlay = false, onClose }: RightPanelProps): JSX.E
     const presence = usePresenceFor(memberIds);
     const { data: org } = useOrganization(currentUser.department);
     const { preferences, update } = useFramePreferences();
+    // PR-2: every person on this panel leads to the same profile.
+    const { openProfile } = useProfileViewer();
 
     return (
         <aside
@@ -60,13 +64,19 @@ export function RightPanel({ overlay = false, onClose }: RightPanelProps): JSX.E
             {/* PR-7: the signed-in user's identity and official role. */}
             <section className="svr-panel-section">
                 <h2 className="svr-panel-section__heading">{FRAME_COPY.panelCurrentUser}</h2>
-                <div className="svr-panel-identity">
+                {/* PR-4: the user reaches their own profile from the frame. */}
+                <button
+                    type="button"
+                    className="svr-panel-identity"
+                    aria-label={PROFILE_COPY.open(currentUser.displayName)}
+                    onClick={() => openProfile(currentUser.id)}
+                >
                     <Avatar name={currentUser.displayName} id={currentUser.id} size="lg" />
                     <div className="svr-panel-identity__text">
                         <p className="svr-panel-identity__name">{currentUser.displayName}</p>
                         <p className="svr-panel-identity__role">{roleLabel(currentUser.role)}</p>
                     </div>
-                </div>
+                </button>
             </section>
 
             {/* ORG-7: the organisational identity of the current position. */}
@@ -86,7 +96,12 @@ export function RightPanel({ overlay = false, onClose }: RightPanelProps): JSX.E
              * the presence capability delivered in Milestone 4. Ordering by an
              * availability nobody reports would be ordering by nothing.
              */}
-            <MemberList members={members} state={membersState} presence={presence} />
+            <MemberList
+                members={members}
+                state={membersState}
+                presence={presence}
+                onSelectMember={openProfile}
+            />
 
             {/* UI-19: message density, selectable by the user and persisted. */}
             <section className="svr-panel-section">

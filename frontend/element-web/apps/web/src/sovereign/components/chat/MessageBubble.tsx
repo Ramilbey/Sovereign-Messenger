@@ -20,6 +20,8 @@ import React, { memo, type JSX } from "react";
 import { Avatar, Icon, type IconName } from "../ui";
 import { MessageAttachment } from "./MessageAttachment";
 import { ACKNOWLEDGEMENT_COPY, CHAT_COPY } from "../../config/chatCopy";
+import { PROFILE_COPY } from "../../config/profileCopy";
+import { useProfileViewer } from "../../context/ProfileContext";
 import type { MessageDeliveryState, SovereignMessage } from "../../services/MessageService";
 
 /** COM-5: every state carries an icon and a label, never shape alone. */
@@ -54,6 +56,8 @@ export const MessageBubble = memo(function MessageBubble({
     onShowAcknowledgement,
 }: MessageBubbleProps): JSX.Element {
     const state = message.readState ? STATE_PRESENTATION[message.readState] : null;
+    // PR-2: the sender's name is the way to the person who sent it.
+    const { openProfile } = useProfileViewer();
 
     return (
         <div
@@ -71,7 +75,16 @@ export const MessageBubble = memo(function MessageBubble({
              */}
             {!isOutgoing && (
                 <span className="svr-msg-avatar-slot">
-                    {showSender && <Avatar name={message.senderName} id={message.senderId} size="md" />}
+                    {showSender && (
+                        <button
+                            type="button"
+                            className="svr-msg-avatar-button"
+                            aria-label={PROFILE_COPY.open(message.senderName)}
+                            onClick={() => openProfile(message.senderId)}
+                        >
+                            <Avatar name={message.senderName} id={message.senderId} size="md" />
+                        </button>
+                    )}
                 </span>
             )}
 
@@ -82,7 +95,16 @@ export const MessageBubble = memo(function MessageBubble({
             >
                 {!isOutgoing && showSender && (
                     <div className="svr-msg-header">
-                        <span className="svr-msg-sender-name">{message.senderName}</span>
+                        {/* PR-2: the sender of a message is a person, and
+                            every person leads to the same profile. */}
+                        <button
+                            type="button"
+                            className="svr-msg-sender-name"
+                            aria-label={PROFILE_COPY.open(message.senderName)}
+                            onClick={() => openProfile(message.senderId)}
+                        >
+                            {message.senderName}
+                        </button>
                         {/* FR-34: shown only where the role is actually known. */}
                         {message.senderRole && (
                             <span className="svr-msg-sender-role">{message.senderRole}</span>

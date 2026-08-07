@@ -217,11 +217,33 @@
     gap: var(--svr-space-2);
 }
 
+/* PR-2: the sender's name is a control, and reads as the name it always was. */
 .svr-msg-sender-name {
+    padding: 0;
+    background: none;
+    border: 0;
     color: var(--svr-brand-emphasis);
+    font-family: var(--svr-font-family-base);
     font-size: var(--svr-type-caption-size);
     font-weight: var(--svr-type-body-strong-weight);
     line-height: var(--svr-type-caption-line);
+    cursor: pointer;
+}
+
+.svr-msg-avatar-button {
+    display: block;
+    padding: 0;
+    background: none;
+    border: 0;
+    border-radius: var(--svr-radius-full);
+    cursor: pointer;
+}
+
+/* A11Y-2 / TOK-14: the one focus treatment, never removed. */
+.svr-msg-sender-name:focus-visible,
+.svr-msg-avatar-button:focus-visible {
+    outline: var(--svr-focus-ring-width) solid var(--svr-focus-ring-color);
+    outline-offset: var(--svr-focus-ring-offset);
 }
 
 /* GW-11: the official designation, where a source for it exists. */

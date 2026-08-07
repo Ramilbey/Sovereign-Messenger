@@ -28,6 +28,7 @@ import { RightPanel } from "./RightPanel";
 import { CompactNavigation, type CompactSurface } from "./CompactNavigation";
 import { usePermissions } from "../../context/PermissionContext";
 import { useChat } from "../../context/ChatContext";
+import { ProfileProvider } from "../../context/ProfileContext";
 import { useConnectionState } from "../../hooks/useConnectionState";
 import { useDrafts } from "../../hooks/useDrafts";
 import { useOrganisation } from "../../hooks/useOrganisation";
@@ -303,6 +304,8 @@ export function SovereignLayout(): JSX.Element {
     );
 
     return (
+        /* PR-2 / PR-9: one profile, opened from wherever a person appears. */
+        <ProfileProvider onOpenConversation={handleOpenResult}>
         <div
             id="sovereign-layout"
             className={[
@@ -420,5 +423,6 @@ export function SovereignLayout(): JSX.Element {
                 </>
             )}
         </div>
+        </ProfileProvider>
     );
 }

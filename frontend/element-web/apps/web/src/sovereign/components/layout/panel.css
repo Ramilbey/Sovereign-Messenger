@@ -45,11 +45,32 @@
 
 /* PR-7 identity */
 
+/* PR-4: the identity block is the way into the user's own profile. */
 .svr-panel-identity {
     display: flex;
     align-items: center;
     gap: var(--svr-space-3);
+    box-sizing: border-box;
+    width: 100%;
     min-width: 0;
+    padding: var(--svr-space-1);
+    background: none;
+    border: 0;
+    border-radius: var(--svr-radius-sm);
+    color: inherit;
+    font-family: var(--svr-font-family-base);
+    text-align: start;
+    cursor: pointer;
+}
+
+.svr-panel-identity:hover {
+    background-color: var(--svr-surface-hover);
+}
+
+/* A11Y-2 / TOK-14: the one focus treatment, never removed. */
+.svr-panel-identity:focus-visible {
+    outline: var(--svr-focus-ring-width) solid var(--svr-focus-ring-color);
+    outline-offset: var(--svr-focus-ring-offset);
 }
 
 .svr-panel-identity__text {

@@ -1,0 +1,251 @@
+/*
+ * Sovereign Messenger — Sprint 3, Milestone 5 (Discovery & Polish)
+ * profile.css — CMP-13 Person Profile
+ *
+ * AC-16 / TOK-1: no literal colour, spacing, radius, duration, or typography
+ * value appears here. Every value is a token reference. The only literals are
+ * structural primitives with no design meaning (0, 1, 100%).
+ */
+
+@import "../../styles/tokens.css";
+
+/*
+ * PR-9: one presentation, wherever it is opened from. It overlays the
+ * supporting side of the frame, so the conversation stays readable behind it.
+ */
+.svr-profile {
+    position: fixed;
+    inset-block-start: var(--svr-frame-header-height);
+    inset-inline-end: 0;
+    inset-block-end: 0;
+    z-index: 10;
+    display: flex;
+    flex-direction: column;
+    box-sizing: border-box;
+    width: 100%;
+    max-width: calc(var(--svr-frame-panel-width) * 1.5);
+    background-color: var(--svr-surface-raised);
+    border-inline-start: var(--svr-border-width-thin) solid var(--svr-border-default);
+    box-shadow: var(--svr-shadow-overlay);
+    font-family: var(--svr-font-family-base);
+    color: var(--svr-content-primary);
+    overflow: hidden;
+}
+
+.svr-profile__bar {
+    display: flex;
+    align-items: center;
+    gap: var(--svr-space-2);
+    flex: none;
+    padding: var(--svr-space-3);
+    border-block-end: var(--svr-border-width-thin) solid var(--svr-border-default);
+}
+
+.svr-profile__title {
+    flex: 1;
+    margin: 0;
+    min-width: 0;
+    font-size: var(--svr-type-heading-3-size);
+    font-weight: var(--svr-type-heading-3-weight);
+    line-height: var(--svr-type-heading-3-line);
+}
+
+.svr-profile__body {
+    flex: 1;
+    min-height: 0;
+    overflow-y: auto;
+}
+
+.svr-profile__identity {
+    display: flex;
+    align-items: center;
+    gap: var(--svr-space-3);
+    padding: var(--svr-space-4) var(--svr-space-3);
+    border-block-end: var(--svr-border-width-thin) solid var(--svr-border-subtle);
+}
+
+.svr-profile__identity-text {
+    display: flex;
+    flex-direction: column;
+    gap: var(--svr-space-1);
+    min-width: 0;
+}
+
+.svr-profile__name {
+    margin: 0;
+    font-size: var(--svr-type-heading-3-size);
+    font-weight: var(--svr-type-heading-3-weight);
+    line-height: var(--svr-type-heading-3-line);
+    /* EDGE-16: a long name wraps rather than breaking the panel. */
+    overflow-wrap: anywhere;
+}
+
+.svr-profile__meta {
+    margin: 0;
+    color: var(--svr-content-secondary);
+    font-size: var(--svr-type-caption-size);
+    line-height: var(--svr-type-caption-line);
+}
+
+.svr-profile__section {
+    display: flex;
+    flex-direction: column;
+    gap: var(--svr-space-2);
+    padding: var(--svr-space-3);
+    border-block-end: var(--svr-border-width-thin) solid var(--svr-border-subtle);
+}
+
+.svr-profile__heading {
+    margin: 0;
+    font-size: var(--svr-type-label-size);
+    font-weight: var(--svr-type-label-weight);
+    line-height: var(--svr-type-label-line);
+    letter-spacing: var(--svr-type-label-tracking);
+    text-transform: uppercase;
+    color: var(--svr-content-secondary);
+}
+
+.svr-profile__fields {
+    display: flex;
+    flex-direction: column;
+    gap: var(--svr-space-2);
+    margin: 0;
+}
+
+.svr-profile__field {
+    display: flex;
+    align-items: baseline;
+    gap: var(--svr-space-2);
+}
+
+.svr-profile__field-label {
+    flex: none;
+    min-width: calc(var(--svr-frame-panel-width) / 3);
+    color: var(--svr-content-secondary);
+    font-size: var(--svr-type-caption-size);
+    line-height: var(--svr-type-caption-line);
+}
+
+.svr-profile__field-value {
+    margin: 0;
+    min-width: 0;
+    overflow-wrap: anywhere;
+}
+
+/* PR-5: the fields the organisation governs say so, once. */
+.svr-profile__note {
+    margin: 0;
+    color: var(--svr-content-secondary);
+    font-size: var(--svr-type-caption-size);
+    line-height: var(--svr-type-caption-line);
+}
+
+.svr-profile__control {
+    display: flex;
+    flex-direction: column;
+    gap: var(--svr-space-1);
+}
+
+.svr-profile__control-label {
+    color: var(--svr-content-secondary);
+    font-size: var(--svr-type-caption-size);
+    line-height: var(--svr-type-caption-line);
+}
+
+.svr-profile__input {
+    box-sizing: border-box;
+    width: 100%;
+    min-height: var(--svr-control-height-md);
+    padding-inline: var(--svr-space-2);
+    background-color: var(--svr-surface-base);
+    border: var(--svr-border-width-thin) solid var(--svr-border-default);
+    border-radius: var(--svr-radius-sm);
+    color: var(--svr-content-primary);
+    font-family: var(--svr-font-family-base);
+    font-size: var(--svr-type-body-size);
+    line-height: var(--svr-type-body-line);
+}
+
+/* A11Y-2 / TOK-14: the one focus treatment, never removed. */
+.svr-profile__input:focus-visible,
+.svr-profile__link:focus-visible {
+    outline: var(--svr-focus-ring-width) solid var(--svr-focus-ring-color);
+    outline-offset: var(--svr-focus-ring-offset);
+}
+
+.svr-profile__choice {
+    display: flex;
+    flex-direction: column;
+    gap: var(--svr-space-1);
+    margin: 0;
+    padding: 0;
+    border: 0;
+}
+
+.svr-profile__choice-option {
+    display: flex;
+    align-items: center;
+    gap: var(--svr-space-2);
+    cursor: pointer;
+}
+
+.svr-profile__list {
+    list-style: none;
+    margin: 0;
+    padding: 0;
+}
+
+.svr-profile__link {
+    display: block;
+    box-sizing: border-box;
+    width: 100%;
+    min-height: var(--svr-control-height-md);
+    padding: var(--svr-space-1) var(--svr-space-2);
+    background: none;
+    border: 0;
+    border-radius: var(--svr-radius-sm);
+    color: var(--svr-content-primary);
+    font-family: var(--svr-font-family-base);
+    font-size: var(--svr-type-body-size);
+    line-height: var(--svr-type-body-line);
+    text-align: start;
+    /* EDGE-16: a long name truncates rather than breaking the layout. */
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+    cursor: pointer;
+}
+
+.svr-profile__link:hover {
+    background-color: var(--svr-surface-hover);
+}
+
+.svr-profile__empty {
+    margin: 0;
+    color: var(--svr-content-secondary);
+    font-size: var(--svr-type-caption-size);
+    line-height: var(--svr-type-caption-line);
+}
+
+.svr-profile__session {
+    display: flex;
+    align-items: baseline;
+    gap: var(--svr-space-2);
+    padding-block: var(--svr-space-1);
+    font-size: var(--svr-type-body-size);
+    line-height: var(--svr-type-body-line);
+}
+
+.svr-profile__session-current {
+    color: var(--svr-brand-primary);
+    font-size: var(--svr-type-caption-size);
+    line-height: var(--svr-type-caption-line);
+}
+
+.svr-profile__notice {
+    margin: 0;
+    padding: var(--svr-space-2) var(--svr-space-3);
+    color: var(--svr-content-secondary);
+    font-size: var(--svr-type-caption-size);
+    line-height: var(--svr-type-caption-line);
+}
