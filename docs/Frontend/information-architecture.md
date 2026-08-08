@@ -1,7 +1,8 @@
 # Information Architecture and Navigation
 
 **Sprint 3 deliverables D-3 (information architecture) and D-4 (navigation and
-interaction), as implemented in Milestone 3.**
+interaction).** Written at Milestone 3; §5 and the header notes were brought up
+to date at the Sprint 3 freeze.
 
 This document records what the code does and why. Where it and
 `SPRINT_3_PRODUCT_REQUIREMENTS.md` differ, the PRD prevails.
@@ -86,7 +87,9 @@ the filter (ES-2, ES-4).
 computed locally, which would drift between tabs and devices (NT-8). Muted
 conversations stay listed but are counted out (NT-6); mentions stay distinct
 even when muted (NT-2). The model that aggregates to module and organisation
-level is delivered with the notification system in Milestone 5.
+level was delivered with the notification system in Milestone 5: the same
+arithmetic over the same conversations produces the conversation, module, and
+organisational totals, so no two levels can disagree.
 
 ### Application header (CMP-18)
 
@@ -94,15 +97,17 @@ Left to right: institutional identity and organisational code (UI-9, ORG-7),
 breadcrumbs (NAV-5), connection state (SUX-16), and the current user's name,
 official role, and department (PR-7).
 
-Two regions are reserved rather than filled:
+**Global search (NAV-4)** and the **notification centre (NT-3)** were reserved
+here at Milestone 3 and are now filled: the header carries both entry points,
+Ctrl/Cmd-K reaches search from anywhere, and the notification control carries
+the organisation-level unread total.
+
+One region remains reserved rather than filled:
 
 - **State Emblem (UI-8)** — a controlled state symbol supplied by deployment
   configuration. Its region is held open and rendered only when the approved
   asset exists; an improvised substitute would misrepresent state identity.
   Sourcing it is branding deliverable D-2.
-- **Global search (NAV-4)** — arrives with the search capability in Milestone 5.
-  A search field that cannot search would be a surface that does not tell the
-  truth.
 
 ### Conversation surface
 
@@ -161,26 +166,33 @@ trap and tabbing past it takes one press (A11Y-1). Focus moves only in response
 to a key press, never on re-render, so arriving data cannot take focus from
 where the user is.
 
-The full shortcut set of NAV-9 — search, conversation switching, next unread,
-composer focus, closing panels — depends on search and the unread model, and is
-delivered with them in Milestone 5.
+Of the NAV-9 shortcut set, search (Ctrl/Cmd-K) and closing a panel (Escape) are
+bound. Conversation switching, next unread, composer focus, and the
+discoverable reference are not, and are recorded as UR-6 in
+[sprint-3-outstanding.md](../Development/sprint-3-outstanding.md).
 
 ---
 
-## 5. Deferred to later milestones
+## 5. What this document deferred, and where it stands
 
-Recorded here so the boundary is explicit rather than discovered.
+This section was written at Milestone 3 as a forward list. It is kept as a
+record of what was promised and what arrived, because a deferral list that is
+never settled is how a gap becomes permanent.
 
-| Item | Requirement | Milestone |
-|---|---|---|
-| Global search and its shortcut | NAV-4, NAV-9, SR-1 … SR-11 | M5 |
-| Unread aggregation to module and organisation level | NT-1, NT-2, ST-21 | M5 |
-| Notification centre and per-conversation settings | NT-3 … NT-7 | M5 |
-| Recent items list | NAV-6 | M5 |
-| Stable deep links to conversations and messages | NAV-8 | M5 |
-| Pinned messages affordance in the header | FR-48 | M4 |
-| Presence in the member list and staff panel | FR-13, FR-17 | M4 |
-| Typing data behind the reserved indicator | FR-6 … FR-8 | M4 |
-| Read receipts behind the delivered and read states | FR-18 … FR-21 | M4 |
-| Sender role for other participants | FR-34 | Blocked on role provisioning (R-6, FUT-15) |
+| Item | Requirement | Promised | State at Sprint 3 close |
+|---|---|---|---|
+| Global search and its shortcut | NAV-4, SR-1 … SR-11 | M5 | **Delivered** |
+| Unread aggregation to module and organisation level | NT-1, NT-2, ST-21 | M5 | **Delivered** |
+| Notification centre and per-conversation settings | NT-3 … NT-7 | M5 | **Delivered** |
+| Presence in the member list and staff panel | FR-13, FR-17 | M4 | **Delivered** |
+| Typing data behind the reserved indicator | FR-6 … FR-8 | M4 | **Delivered** |
+| Read receipts behind the delivered and read states | FR-18 … FR-21 | M4 | **Delivered** |
+| Full keyboard shortcut set | NAV-9 | M5 | **Partial** — search and Escape only (UR-6) |
+| Recent items list | NAV-6 | M5 | **Not delivered** (UR-3) |
+| Stable deep links to conversations and messages | NAV-8 | M5 | **Not delivered** (UR-5) |
+| Pinned messages affordance in the header | FR-48 | M4 | **Not delivered** (UR-2) |
+| Sender role for other participants | FR-34 | Blocked on role provisioning (R-6, FUT-15) | Still blocked |
+
+The four undelivered items are recorded as UR-2, UR-3, UR-5, and UR-6 in
+[sprint-3-outstanding.md](../Development/sprint-3-outstanding.md).
 | State Emblem asset | UI-8 | D-2 (Design) |

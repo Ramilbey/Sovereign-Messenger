@@ -1,6 +1,6 @@
 /*
  * Sovereign Messenger — Sprint 3, Milestone 5 (Discovery & Polish)
- * ProfilePanel.tsx — CMP-13 Person Profile
+ * ProfilePanel.tsx — CMP-11 Profile Panel
  *
  * PR-1: full name, official role, department, organisational position,
  * presence, and last seen.

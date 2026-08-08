@@ -121,7 +121,7 @@ Measured performance:
 | ID | Criterion | Evidence |
 |---|---|---|
 | **AC-23** | Sign-in, restore, send, receive, real-time delivery, room switching unchanged | `regression.test.tsx` + live suite; no authentication or session code touched |
-| **AC-24** | Demo Mode fully operational, unchanged | `SovereignDemoApp` and `DemoLogin` untouched; every new capability presents its unavailable state in Demo Mode rather than changing its behaviour |
+| **AC-24** | Demo Mode fully operational, unchanged | `SovereignDemoApp` untouched. `DemoLogin` has one changed line — the provider it reads began returning a state envelope (M2), and the call site had to unwrap it; the data it shows and the behaviour it has are identical. Every new capability presents its unavailable state in Demo Mode rather than altering it |
 | **AC-25** | One client instance, one sync loop | `regression.test.tsx`; every service reads `MatrixClientService`, none creates a client |
 | **AC-26** | No protected system modified | `git diff f18a55c..HEAD --stat` touches no file under §6.1 |
 
@@ -184,8 +184,28 @@ their own layout and need only the focus contract.
 
 ## 5. What remains
 
-Recorded in full in [sprint-3-outstanding.md](sprint-3-outstanding.md):
-technical debt owned by Engineering, and the work owned by Product.
+Recorded in full in [sprint-3-outstanding.md](sprint-3-outstanding.md).
+
+**Seven requirements Sprint 3 specified are unmet** (UR-1 – UR-7), found by the
+freeze audit after this record was first written. None is gated by an
+acceptance criterion, which is how the sprint reached AC-1 – AC-36 without
+them, and each is a *shall* in the PRD:
+
+| Requirement | State |
+|---|---|
+| FR-47 mark a conversation as a favourite | read-only; nothing sets the tag |
+| FR-48 pinned messages affordance | not delivered |
+| NAV-6 recent items | not delivered |
+| NAV-7 browser back and forward | not delivered |
+| NAV-8 stable shareable links | not delivered |
+| NAV-9 keyboard shortcut set and reference | search and Escape only |
+| NAV-10 scroll position preserved across a switch | drafts yes, scroll no |
+
+NAV-7 and NAV-8 are one piece of work — a routing model the frame does not
+have — and it is the largest item outstanding.
+
+Also recorded there: ten items of Engineering debt, and the decisions and
+deliverables owned by Product.
 
 ---
 
